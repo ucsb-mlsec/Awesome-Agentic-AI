@@ -7,8 +7,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 ## Table of Contents
 
-- [Awesome-Agentic-AI-for-Security](#awesome-agentic-ai-for-security)
-  - [Table of Contents](#table-of-contents)
   - [Survey](#survey)
   - [End-to-end frameworks](#end-to-end-frameworks)
   - [Vulnerability detection](#vulnerability-detection)
