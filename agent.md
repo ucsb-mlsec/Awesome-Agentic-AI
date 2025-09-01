@@ -15,7 +15,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ## Newest models
 
-- <span style="color: #6b86ffff">GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]</span>
+- ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
   - Model: MoE with 335B and 32B active parameters 
   - Mid-training: repo-level code training, synthetic reasoning data, Long-context & agent training
   - Post-training:
@@ -45,7 +45,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
   - Hybrid thinking with different template; higher thinking efficiency; smarter tool calling **[only support in non-thinking mode]**
 
-- <span style="color: #6b86ffff">Kimi K2: Open Agentic Intelligence [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]</span>
+- ***Kimi K2: Open Agentic Intelligence*** [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
   - MoE model with 1 trillion total params and 32B active params
   - Pre-training: 
     - 15.5 trillion tokens + data efficiency techniques
@@ -148,14 +148,14 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Learn PRM from ORM and train the model with RLOO 
 
 - Learn PRM from expert trajs
-  - <span style="color: #FF6B6B">BREAD: Branched Rollouts from Expert Anchors Bridge SFT & RL for Reasoning [[Arxiv'25/06](https://arxiv.org/pdf/2506.17211)]</span>
+  - ***BREAD: Branched Rollouts from Expert Anchors Bridge SFT & RL for Reasoning*** [[Arxiv'25/06](https://arxiv.org/pdf/2506.17211)]
 
 - Use model internal signal as PRM
-  - <span style="color: #FF6B6B">Deep Think with Confidence [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]</span>
+  - ***Deep Think with Confidence*** [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]
   - Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
   - Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
 
-- <span style="color: #FF6B6B">Self-play</span>
+- ***Self-play***
   - RL Tango: Reinforcing Generator and Verifier Together for Language Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.15034)]
   - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs
   - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning
@@ -164,8 +164,8 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - Learn PRM from annotated data
 
-- Learn PRM from expert policy 
-  - <span style="color: #FF6B6B">StepWiser: Stepwise Generative Judges for Wiser Reasoning</span> [[Arxiv'25/08](https://arxiv.org/abs/2508.19229)]
+- Learn PRM from MCTS rollout
+  - ***StepWiser: Stepwise Generative Judges for Wiser Reasoning*** [[Arxiv'25/08](https://arxiv.org/abs/2508.19229)]
   
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 

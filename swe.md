@@ -75,9 +75,9 @@ Here, we list recent papers on training coding LLMs under agent scaffolds, inclu
 
 ### Issue resolving
 
-- <span style="color: #6b86ffff">SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution </span>
+- ***SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution***
 
-- <span style="color: #6b86ffff">DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL </span>
+- ***DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL***
 
 - ToolCoder: A Systematic Code-Empowered Tool Learning Framework for Large Language Models
 
