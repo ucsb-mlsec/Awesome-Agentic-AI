@@ -136,7 +136,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
-
+- Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning (https://arxiv.org/pdf/2508.08221)
 ### Offline RL
 
 - Representative works can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
