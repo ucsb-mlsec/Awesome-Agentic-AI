@@ -75,6 +75,10 @@ Here, we list recent papers on training coding LLMs under agent scaffolds, inclu
 
 ### Issue resolving
 
+- <span style="color: #6b86ffff">SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution </span>
+
+- <span style="color: #6b86ffff">DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL </span>
+
 - ToolCoder: A Systematic Code-Empowered Tool Learning Framework for Large Language Models
 
 - Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks
@@ -86,10 +90,6 @@ Here, we list recent papers on training coding LLMs under agent scaffolds, inclu
 - SWE-RL: Advancing LLM Reasoning via Reinforcement Learning on Open Software Evolution
 
 - SWE-Gym: Training Software Engineering Agents and Verifiers with SWE-Gym
-
-- SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution
-
-- DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL
 
 - Training Long-Context, Multi-Turn Software Engineering Agents with Reinforcement Learning
 

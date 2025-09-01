@@ -11,10 +11,11 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - [Offline RL](#offline-rl)
   - [Training with PRM](#training-with-prm)
 - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
+- [Memory management](#memory-management)
 
 ## Newest models
 
-- GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
+- <span style="color: #6b86ffff">GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]</span>
   - Model: MoE with 335B and 32B active parameters 
   - Mid-training: repo-level code training, synthetic reasoning data, Long-context & agent training
   - Post-training:
@@ -44,7 +45,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
   - Hybrid thinking with different template; higher thinking efficiency; smarter tool calling **[only support in non-thinking mode]**
 
-- Kimi K2: Open Agentic Intelligence [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
+- <span style="color: #6b86ffff">Kimi K2: Open Agentic Intelligence [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]</span>
   - MoE model with 1 trillion total params and 32B active params
   - Pre-training: 
     - 15.5 trillion tokens + data efficiency techniques
@@ -169,4 +170,8 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 
 
+## Memory management 
+
+
 ## Agentic modeling (linear attentions)
+
