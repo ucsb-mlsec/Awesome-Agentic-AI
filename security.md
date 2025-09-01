@@ -23,10 +23,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - [Others](#others)
     - [🛠️ Techniques](#️-techniques-3)
     - [📋 Benchmarks](#-benchmarks-3)
-  - [Citation](#citation)
-  - [How to Contribute](#how-to-contribute)
-
-[TODO: hongwei; you can add more icon to this]
 
 ## Survey
 
@@ -81,40 +77,134 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - Papers that use LLM to generate seeds or grammars 
 
 
-[TODO: hongwei; fill in the rest]
-
 ### 📋 Benchmarks
 
+- SecCodePLT: A Unified Platform for Evaluating the Security of Code GenAI
+- A C/C++ Code Vulnerability Dataset with Code Changes and CVE Summaries (BigVul)
+    - 3,754 CVE data spanning 91 different vulnerability types extracted from 348 Github projects; Each CVE data contains the commit before and after fix, and also some metadata (CWE-ID, CVE-ID, program language, file changed, CVSS-related features)
+- Vulnerability Detection with Code Language Models: How Far Are We (Primevul)?
+    - Contains 6,968 vulnerable and 228,800 benign functions, covering 140 CWEs
+    - Data collection and processing method:
+        - Merge all security-related commits and functions changed by them from BigVul, CrossVul, CVEfixes, and DiverseVul
+        - Normalization (by removing \n, \t, and \r) and deduplication. 
+        - More accurate data labeling: label a function as vulnerable if
+            - It’s the only changed function in a fixing commit
+            - It’s explicitly mentioned in the CVE description
+        - Temporal Splits: oldest 80% as the training set, 10% most recent as the testing set, and other samples as the validation set
+- LLMs Cannot Reliably Identify and Reason About Security Vulnerabilities (Yet?) (SecLLMHolmes)
+    - 228 code scenarios across 8 vulns for C and python with **augmentation**
+        - Trivial augmentation (84): mutate vuln codes from hand-crafted code scenarios by randomly renaming funcs/params, adding unreachable code, inserting whitespace or \n, and adding comments
+        - Non-trivial augmentation (66): mutate vuln and benign codes from hand-crafted code scenarios by changing func/param names to vulnerability-related keywords or `non_vulnerable`, adding a potentially dangerous library function (e.g., ‘strcpy’ or ‘strcat’) but use it in a safe way
+    - Prompt templates: the set contains combinations of strategies including zero-shot/few shot, task-oriented (assign a task in the prompt), role-oriented (assign a role), step-by-step, definition-based (provide the definition of a vuln while asking the model to detect that vuln)
+    - Metrics: Accuracy, cosine similarity, Gpt-4, Rouge score
 
 ## Vulnerability triage
 
 ### 🛠️ Techniques 
 
-- PoC generation
+- **PoC generation**
 
-- Root cause analysis
+  - LLM with simple tools (non-PL tools)
+      - LLM Agents can Autonomously Exploit One-day Vulnerabilities (arxiv 2024)
+          - Tools:
+              - Web browsing elements (retrieving HTML, clicking on elements, etc.)
+              - A terminal 
+              - Web search results 
+              - File creation and editing 
+              - A code interpreter.
+          - Did not disclose the prompt
+          - All web vulns, xss, rce, csrf
+          - Tested on 15 hand-picked CVEs.
+              - When providing vulnerability description and documentation of the target, 87% success rate
+              - When removing vulnerability description, 7% success rate
+      - Teams of LLM Agents can Exploit Zero-Day Vulnerabilities (Arxiv 2024)
+          - Target on web vulns
+          - Has 3 kinds of agents, a hierarchical planner which explores the environment and generates a plan, a team manager which determines which expert agent to use for a specific page, and some expert agents, each for one vuln type (SQLi, xss, csrf, …)
+          - Tools in common for expert agents
+              - Playwright (a browser testing framework to access the websites), the terminal, and file management tools
+              - Each expert agent has specific tools for the specific vuln
+                  - E.g., SQLi agent has access to sqlmap
+                  - Zap agent has access to zap (a scanner for xss, csrf, ..)
+  - [FaultLine: Automated Proof-of-Vulnerability Generation Using LLM Agents](https://arxiv.org/abs/2507.15241)
+      - It is a good agent with slicing and fixed workflow
+  - [On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks](https://arxiv.org/abs/2501.16466)
+  - General agents: OpenHands and CodeX
+  - CTF agents: Cybench and NYU CTF
+
+- **Root cause analysis**
+
+  - Enhancing fault localization through ordered code analysis with LLM agents and self-reflection (arxiv 2024)
+    - Target on Java projects, fault localization on the method level.
+    - Has 3 agents:
+        - Context Extraction Agent: First run GZoltar and use SBFL to rank all covered methods by the crashing testcase. Then group all methods into subgroups, each subgroup within the input context length of the LLM. Then provide the summarized failed test and stack trace, and use LLM to find the most likely root cause method of each group. No tool call for this step.
+        - Debugger Agent: Construct a call graph, provide LLM with the concatenated most likely root cause method of each group, give LLM tools of get_callers, get_callees, and get_method body, let LLM rank all provided methods.
+        - Reviewer Agent: let LLM critique, provide get_callgraph, get_callers, get_callees, and get_method body.
+    - Lacking tools and only using simple tools
+  - We have a debugger in our AIxCC
 
 ### 📋 Benchmarks
+
+- Bounty Bench: [https://bountybench.github.io/](https://bountybench.github.io/) 
 
 ## Vulnerability patching
 
 ### 🛠️ Techniques 
-
+- A Case Study of LLM for Automated Vulnerability Repair: Assessing Impact of Reasoning and Patch Validation Feedback (AIWARE 2024)
+    - Human-based planning
+    - Procedure
+        - Provide LLM with a code snippet and exact vulnerable lines, prompt llm to generate a patch
+        - Run compile, poc, and functionality test
+        - If any of them fail, retry with the compiler/sanitizer/unit test output as feedback
+- RepairAgent: An Autonomous, LLM-Based Agent for Program Repair (arxiv 2024)
+    - LLM-based planning, but it is a state machine
+        1. ![RepairAgent state machine](./imgs/RepairAgent.png)
+    - Tools
+        - Localization: search_code_base, find_similar_api_calls,read_range, get_classes_and_methods, extract_method, Run_fault_localization (use GZoltar for SBFL)
+        - Generation: Generate_method_body, write_fix
+        - Execution tools: Run_tests/Extract_tests
+- APPATCH: Automated Adaptive Prompting Large Language Models for Real-World Software Vulnerability Patching (USENIX 2025) [[link](https://www.usenix.org/conference/usenixsecurity25/presentation/nong)]
+    - A fixed pipeline: Summarize the vulnerability semantics and do root cause analysis (LLM can request context as needed), match existing knowledge base, generate a patch, and validate the patch with an LLM judge
+        - Construct a static knowledge base
+    - Tools: SPG (control flow graph + data dependency graph)
+- PATCHAGENT: A Practical Program Repair Agent Mimicking Human Expertise (USENIX 2025) [[link](https://www.dataisland.org/paper/patchagent.pdf)]
+    - Human-based planning with specific prompts and a tool combo. 
+        - Report Purification: reformat the sanitizer report to a more structured version
+        - Chain Compression: used when retrieving contexts, has two mechanisms
+            - When llm view a piece of code, sample symbols that are near the lines in the sanitizer report, and get their definition
+            - When getting a definition of a symbol, recursively retrieve info.
+                - E.g., 1) the definition of “info” is in line 100-> 2) get the code snippet around line 100 -> 3)in line 100, “info” is defined as a return value of a function, so get the definition of the function
+            - Autocorelation
+                - Fix line numbers by heuristics
+            - Counterexample Feedback
+                - Sample failed patches and instructing the LLM not to generate similar patches again
 
 
 ### 📋 Benchmarks
-
+[TODO]
 
 ## Others
 
 ### 🛠️ Techniques 
 
-- Penn test
+- **Penn test**
 
-- CTF
+  - PentestGPT: Evaluating and Harnessing Large Language Models for Automated Penetration Testing (Usenix 2024)
+  - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks (arxiv 2025)
+  - From Sands to Mansions: Towards Automated Cyberattack Emulation with Classical Planning and Large Language Models (arxiv 2025)
+  - [VulnBot: Autonomous Penetration Testing for A Multi-Agent Collaborative Framework](https://arxiv.org/abs/2501.13411) (arxiv 2025)
+  - AutoAttacker: A Large Language Model Guided System to Implement Automatic Cyber-attacks (arxiv 2024)
 
+- **CTF**
 
-- Binary analysis/reverse engineering 
+  - D-CIPHER: Dynamic Collaborative Intelligent Multi-Agent System with Planner and Heterogeneous Executors for Offensive Security (arxiv 2024)
+  - EnIGMA: Interactive Tools Substantially Assist LM Agents in Finding Security Vulnerabilities (arxiv 2024)
+  - Measuring and Augmenting Large Language Models for Solving Capture-the-Flag Challenges (CCS 2025)
+      - CTF QA benchmark
+      - Propose an agent with RAG and terminal tools
+
+- **Binary analysis/reverse engineering**
+[TODO]
+
 
 ### 📋 Benchmarks
-
+[TODO]
