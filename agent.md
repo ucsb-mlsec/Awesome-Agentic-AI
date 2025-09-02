@@ -164,7 +164,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
       - For the Verifier RL model, the reward would be a final reward, consisting of an outcome reward plus a format reward.
 
   - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs
-    - Trajectory response data: s=(s_1, ..., s_{t-1}), a=(a_1, ..., a_{t-1}). Here, s denotes the thinking trajectory while a denote the answer trajectory. 
+    - Trajectory response data: the thinking trajectory is $s=(s_1, ..., s_{t-1})$, and the answer trajectory is $a=(a_1, ..., a_{t-1})$.
     - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
     - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the   alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
     - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
