@@ -157,21 +157,35 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - ***Self-play***
   - RL Tango: Reinforcing Generator and Verifier Together for Language Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.15034)]
-    - RL for small model Q-Wen7B, outperfom Prime
+    - RL for small model Q-Wen7B, outperfom prime.
     - Algorithm
-      - Train Generator RL model and Verifier model together, Verifier model will generate step-wise reward (+1/-1) for Generator.
-      - For Generator RL model, the reward would be a combine of step-wise reward and final outcome reward.
-      - For the Verifier RL model, the reward would be a final reward, consisting of an outcome reward plus a format reward.
+      - Train Generator model and Verifier model together, Verifier model will generate step-wise reward (+1/-1) for Generator.
+      - For Generator model, the reward would be a combine of step-wise reward and final outcome reward.
+      - For the Verifier model, the reward would be a final reward, consisting of an outcome reward plus a format reward.
 
   - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs
-    - Trajectory response data: the thinking trajectory is $s=(s_1, ..., s_{t-1})$, and the answer trajectory is $a=(a_1, ..., a_{t-1})$.
+    - Trajectory response data: the thinking trajectory is $s=(s_{1}, ..., s_{t})$, and the answer trajectory is $a=(a_{1}, ..., a_{t})$.
     - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
     - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the   alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
     - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
 
   - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning
+    - This paper focus on error detection of wrong reasoning steps.
+    - Algorithm
+      - build an adversarial game between sneak generator and critic
+      - The sneak generator try to convert the last correct step of a partial reasoning trajectory into wrong step.
+      - The critic attempts to detect errors in the snake's output; after training, only the critic is used
+
   - S2R: Teaching LLMs to Self-verify and Self-correct via Reinforcement Learning
+    - Try to train RL agent to do self-correct and self-verifier: [s1, v1, s2, v2, ...,]
+    - First perform supervised training to learn the pattern, then fine-tune using RL. 
+    - For RL training, consider both ORL (i.e., only final correct v_M) and PRL training; ORL have better results. 
+
   - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data
+    - Setting: start from relative small Q-A dataset and try to finetune RL with this dataset.
+    - Self-instruction: prompt the current LLM to generate additional questions.
+    - Self-rewarding: derive rewards using majority voting on the final answer.
+    - Training: fine-tune the LLM with the generated questions and majority-voted answers.
 
 - Learn PRM from annotated data
 
