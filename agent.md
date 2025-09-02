@@ -181,7 +181,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - S2R: Teaching LLMs to Self-verify and Self-correct via Reinforcement Learning
     - Train the RL agent to perform self-correction and self-verification in sequence: $[s_{1}, v_{1}, s_{2}, v_{2}, ...]$.
     - First perform supervised training to learn the pattern, then fine-tune using RL. 
-    - For RL training, consider both ORL (i.e., only final correct $v_M$) and PRL training; ORL have better results. 
+    - For RL training, consider both ORL (i.e., only final correction $s_M$) and PRL training; ORL have better results. 
     - LLM model: Qwen2.5-7B-instruct, Lllama-3.1-8B. 
 
   - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data
