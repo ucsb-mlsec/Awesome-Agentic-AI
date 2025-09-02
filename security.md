@@ -194,8 +194,10 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 
 ### 📋 Benchmarks
-[TODO]
 
+- CVE-Bench: Benchmarking LLM-based Software Engineering Agent’s Ability to Repair Real-World CVE Vulnerabilities [[NAACL'25/04](https://aclanthology.org/2025.naacl-long.212/)]
+- SEC-bench: Automated Benchmarking of LLM Agents on Real-World Software Security Tasks [[arxiv'25/06](https://arxiv.org/abs/2506.11791)]
+- Introducing AutoPatchBench: A Benchmark for AI-Powered Security Fixes (Meta AI) [[blog'25/04](https://engineering.fb.com/2025/04/29/ai-research/autopatchbench-benchmark-ai-powered-security-fixes/)]
 ## Others
 
 ### 🛠️ Techniques 
@@ -217,8 +219,11 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
       - Propose an agent with RAG and terminal tools
 
 - **Binary analysis/reverse engineering**
-[TODO]
 
+  - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
+  - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
 
 ### 📋 Benchmarks
-[TODO]
+
+- SECURE: Benchmarking Large Language Models for Cybersecurity [[IEEE ACSAC'24/12](https://www.computer.org/csdl/proceedings-article/acsac/2024/208800a015/25bv7zxqzyo)]
+- CTIBench: A Benchmark for Evaluating LLMs in Cyber Threat Intelligence [[NeurIPS'24/12](https://arxiv.org/abs/2406.07599)]
