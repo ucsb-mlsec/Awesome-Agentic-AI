@@ -157,7 +157,21 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - ***Self-play***
   - RL Tango: Reinforcing Generator and Verifier Together for Language Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.15034)]
+   - RL for small model Q-Wen7B, outperfom Prime
+   - Algorithm
+    - Train Generator RL model and Verifier model together, Verifier model will generate step-wise reward (+1/-1) for Generator.
+    - For Generator RL model, the reward would be a combine of step-wise reward and final outcome reward.
+    - For the Verifier RL model, the reward would be a final reward, consisting of an outcome reward plus a format reward.
+
   - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs
+   - Trajectory response data: s=(s_1, ..., s_{t-1}), a=(a_1, ..., a_{t-1}). Here, s denotes the thinking trajectory while a denote the answer trajectory. 
+   - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
+   - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_i$ and $a_i$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
+   - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
+
+Do you want me to make it more formal (academic tone) or concise (bullet-point style)?
+
+
   - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning
   - S2R: Teaching LLMs to Self-verify and Self-correct via Reinforcement Learning
   - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data
