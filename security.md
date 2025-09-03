@@ -9,6 +9,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 ## Table of Contents
 
+  - [Agentic Training](#agentic-training)
   - [Survey](#survey)
   - [End-to-end frameworks](#end-to-end-frameworks)
   - [Vulnerability detection](#vulnerability-detection)
@@ -23,6 +24,11 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - [Others](#others)
     - [🛠️ Techniques](#️-techniques-3)
     - [📋 Benchmarks](#-benchmarks-3)
+
+## Agentic Training
+
+- Cyber-Zero: TRAINING CYBERSECURITY AGENTS WITHOUT RUNTIME ([Arxiv'25/08](https://www.arxiv.org/pdf/2508.00910)]
+
 
 ## Survey
 
@@ -171,7 +177,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
         - If any of them fail, retry with the compiler/sanitizer/unit test output as feedback
 - RepairAgent: An Autonomous, LLM-Based Agent for Program Repair [[arxiv'24/10](https://arxiv.org/abs/2403.17134)]
     - LLM-based planning, but it is a state machine
-        1. ![RepairAgent state machine](./imgs/RepairAgent.png)
     - Tools
         - Localization: search_code_base, find_similar_api_calls,read_range, get_classes_and_methods, extract_method, Run_fault_localization (use GZoltar for SBFL)
         - Generation: Generate_method_body, write_fix
@@ -192,6 +197,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
             - Counterexample Feedback
                 - Sample failed patches and instructing the LLM not to generate similar patches again
 
+- AutoSafeCoder: A Multi-Agent Framework for Securing LLM Code Generation through Static Analysis and Fuzz Testing [[Arxiv'24](https://arxiv.org/abs/2409.10737)]
 
 ### 📋 Benchmarks
 

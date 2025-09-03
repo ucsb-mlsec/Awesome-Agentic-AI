@@ -52,6 +52,7 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
   - Optimization over Agentless to improve resolve rate and cost efficiency
   - Early attempts on formal verification after generation
 
+- UTBoost: Rigorous Evaluation of Coding Agents on SWE-Bench
 
 ## Debugging and test generation agents
 
@@ -97,6 +98,18 @@ Here, we list recent papers on training coding LLMs under agent scaffolds, inclu
 
 - Co-PatcheR: Collaborative Software Patching with Component(s)-specific Small Reasoning Models
 
+- Skywork-SWE: Unveiling Data Scaling Laws for Software Engineering in LLMs
+  - New data creation technique
+
+- Training Software Engineering Agents and Verifiers with SWE-Gym
+
 ### Test generation
 
 - CURE: Co-Evolving LLM Coder and Unit Tester via Reinforcement Learning
+- CoCoEvo: Co-Evolution of Programs and Test Cases to Enhance Code Generation
+- CodeContests+: High-Quality Test Case Generation for Competitive Programming
+- Learning to Generate Unit Tests for Automated Debugging
+- ASTER: Natural and Multi-language Unit Test Generation with LLMs
+- Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
+- LLM-based Unit Test Generation via Property Retrieval
+Automatic Unit Test Data Generation and Actor-Critic Reinforcement Learning for Code Synthesis

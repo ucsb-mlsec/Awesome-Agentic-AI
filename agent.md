@@ -83,6 +83,13 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ## Code reasoning 
 
+- Stabilizing Knowledge, Promoting Reasoning: Dual-Token Constraints for RLVR [[Arxiv'25/07](https://arxiv.org/abs/2507.15778)]
+  - Archer: new data construction technique
+  - Weaker KL regularization and higher clipping thresholds to reasoning tokens to encourage exploration, while using stronger constraints on knowledge tokens to maintain factual knowledge
+
+- Multi-Turn Code Generation Through Single-Step Rewards [[ICML'25/02](https://arxiv.org/pdf/2502.20380)]
+  - Iterative code generation and refinement with a generator and a verifier
+
 - Integrate code interpret as part of reasoning rollout
 
   - CoRT: Code-integrated Reasoning within Thinking [[Arxiv'25/06](https://arxiv.org/pdf/2506.09820)]
@@ -96,6 +103,10 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Towards Effective Code-Integrated Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.24480)]
     - Similar as R1-Code-Interpreter: reasoning + interpreter
     - Force to do execution in every step + RL
+
+  - ReVeal: Self-Evolving Code Agents via Iterative Generation-Verification [[Arxiv'25/06](https://arxiv.org/pdf/2506.11442)]
+    - Propose turn-aware PPO, which calculates return based on turns; the rest is similar as other works that involve interpreter
+
 
 ## SFT-based reasoning
 - OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/02](https://arxiv.org/abs/2506.04178)] 
@@ -153,6 +164,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - SFT + RL (GRPO)
 
 - Use model internal signal as PRM
+  - Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning [[Arxiv'25/08](https://arxiv.org/pdf/2509.00125)]
   - ***Deep Think with Confidence*** [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]
     - Design different conference computing methods 
       - token confidence is similar as entropy
