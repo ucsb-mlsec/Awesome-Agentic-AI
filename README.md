@@ -18,11 +18,6 @@ Under each category, we have techniques and benchmarks.
 In this part, we summarize recent works on SWE agents, where most of them focusing on code generation and issue resolving. 
 Based on the agent scaffold, researchers also design methods to train specific models on SWE tasks. 
 
-## Citation
-
-If you find this repo useful, please cite:
-
-
 ## How to contribute.
 
 For questions or collaboration, please contact the maintainers via GitHub Issues.
