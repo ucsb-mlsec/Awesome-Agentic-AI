@@ -22,14 +22,6 @@ Based on the agent scaffold, researchers also design methods to train specific m
 
 If you find this repo useful, please cite:
 
-```bibtex
-@misc{surfi2025agent,
-   title={Recent Progresses on Agentic AI with an Focus on Security and Software Engineering},
-   author={Hongwei Li, Yuheng Tang, Yuzhou Nie, Kaijie Zhu, Zhun Wang, Ruizhe Jiang, Wenbo Guo},
-   year={2025},
-   url={https://github.com/ucsb-mlsec/Awesome-Agentic-AI}
-}
-```
 
 ## How to contribute.
 
