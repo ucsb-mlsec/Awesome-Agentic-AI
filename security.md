@@ -39,7 +39,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 ## End-to-end frameworks
 - AIxCC frameworks
-  - TeamAtlenta: [[Code](https://github.com/Team-Atlanta/aixcc-afc-atlantis)]
+  - TeamAtlenta: [[Final code](https://github.com/Team-Atlanta/aixcc-afc-atlantis)] [[Semifinal code](https://github.com/Team-Atlanta/aixcc-asc-atlantis)]
     - Include multiple prompting strategy to increase the diversity of LLM-based fuzzing seed generation  
   - Shellphish: [[Final code](https://github.com/shellphish/artiphishell/releases/tag/Finals)] [[Semifinal code](https://github.com/shellphish/artiphishell/releases/tag/Semi-Finals)]
   - Theori: [[Code](https://theori-io.github.io/aixcc-public/index.html)]
