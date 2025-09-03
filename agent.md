@@ -135,67 +135,83 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
+- **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
+
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
-- Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning (https://arxiv.org/pdf/2508.08221)
+
 ### Offline RL
 
 - Representative works can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
 ### Training with PRM
 
-- Learn PRM from ORM
- - Process Reinforcement through Implicit Rewards [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
-  - Learn PRM from ORM and train the model with RLOO 
-
 - Learn PRM from expert trajs
   - ***BREAD: Branched Rollouts from Expert Anchors Bridge SFT & RL for Reasoning*** [[Arxiv'25/06](https://arxiv.org/pdf/2506.17211)]
+    - For hard problem; SFT cannot learn well; RL cannot get correct answer in early steps
+    - Pre-fill partial expert demonstrations and let small models to continue generating based on the partial expert demonstration
+      - Dynamically adjust the length based on the accuracy of small model rollout
+    - SFT + RL (GRPO)
 
 - Use model internal signal as PRM
   - ***Deep Think with Confidence*** [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]
+    - Design different conference computing methods 
+      - token confidence is similar as entropy
+      - Group confidence based on sliding windows and positions
+      - Weighted majority voting based on confidence during inference 
   - Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
   - Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
 
-- ***Self-play***
+- ***Learn a PRM through iterative training reward and policy***
   - RL Tango: Reinforcing Generator and Verifier Together for Language Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.15034)]
-    - RL for small model Qwen2.5-7B, outperfom prime.
+    - RL for small model Qwen2.5-7B, outperform prime.
     - Algorithm
-      - Train Generator model and Verifier model together, Verifier model will generate step-wise reward (+1/-1) for Generator.
-      - For Generator model, the reward would be a combine of step-wise reward and final outcome reward.
-      - For the Verifier model, the reward would be a final reward, consisting of an outcome reward plus a format reward.
-      - Use the same datasest as prime. First supervised training, then RL finetuning. 
+      - Train Generator model and Verifier model together, Verifier model will generate step-wise (\n\n) reward (+1/-1) for Generator.
+      - For Generator model, the reward would be a combine of step-wise reward and final outcome reward
+      - For the Verifier model, the reward is a final reward, consisting of an outcome reward plus a format reward
+      - Use the same dataset as prime, first supervised training, then RL fine-tuning. 
 
-  - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs
+  - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs [[Arixv'25/06](https://arxiv.org/abs/2506.18896)]
     - Trajectory response data: the thinking trajectory is $s=(s_{1}, ..., s_{t})$, and the answer trajectory is $a=(a_{1}, ..., a_{t})$.
     - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
-    - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the   alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
+    - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
     - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
     - LLM model: Qwen2.5-1.5B-Instruct and Qwen2.5-7B-Instruct.
 
-  - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning
-    - This paper focus on error detection of wrong reasoning steps.
+  - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data [[Arxiv'25/05](https://arxiv.org/pdf/2505.20347)]
+    - Setting: start with a relatively small Q-A dataset and finetune the RL model on it
+    - Self-instruction: prompt the current LLM to generate additional questions
+    - Self-rewarding: derive rewards using majority voting on the final answer
+    - Training: fine-tune the LLM with the generated questions and majority-voted answers
+    - LLM model: Qwen-2.5-7B, Llama-3.2-3B
+
+  - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning [[Arxiv'25/04](https://arxiv.org/abs/2504.19162)]
+    - This paper focus on error detection of wrong reasoning steps
     - Algorithm
-      - build an adversarial game between sneak generator and critic
+      - Build an adversarial game between sneak generator and critic
       - The sneak generator try to convert the last correct step of a partial reasoning trajectory into wrong step.
       - The critic attempts to detect errors in the snake's output; after training, only the critic is used
 
-  - S2R: Teaching LLMs to Self-verify and Self-correct via Reinforcement Learning
-    - Train the RL agent to perform self-correction and self-verification in sequence: $[s_{1}, v_{1}, s_{2}, v_{2}, ...]$.
-    - First perform supervised training to learn the pattern, then fine-tune using RL. 
-    - For RL training, consider both ORL (i.e., only final correction $s_M$) and PRL training; ORL have better results. 
+  - S2R: Teaching LLMs to Self-verify and Self-correct via Reinforcement Learning [[ACL'25/02](https://arxiv.org/abs/2502.12853)]
+    - Train the RL agent to perform self-correction and self-verification in sequence: $[s_{1}, v_{1}, s_{2}, v_{2}, ...]$
+    - First perform supervised training to learn the pattern, then fine-tune using RL
+    - For RL training, consider both ORM (i.e., only final correction $s_M$) and PRM training (PRM here is the answer correctness of the intermediate steps); ORM have better results
     - LLM model: Qwen2.5-7B-instruct, Lllama-3.1-8B. 
 
-  - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data
-    - Setting: start with a relatively small Q-A dataset and finetune the RL model on it.
-    - Self-instruction: prompt the current LLM to generate additional questions.
-    - Self-rewarding: derive rewards using majority voting on the final answer.
-    - Training: fine-tune the LLM with the generated questions and majority-voted answers.
-    - LLM model: Qwen-2.5-7B, Llama-3.2-3B. 
+- Learn PRM from ORM
+ - Process Reinforcement through Implicit Rewards [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
+  - Learn PRM from ORM and train the model with RLOO 
 
 - Learn PRM from annotated data
 
 - Learn PRM from MCTS rollout
   - ***StepWiser: Stepwise Generative Judges for Wiser Reasoning*** [[Arxiv'25/08](https://arxiv.org/abs/2508.19229)]
-  
+    - PRM with better step segmetation
+      - Split reasoning steps by "\n\n" is problemic 
+      - Use a strong model to divide the reasoning generated by the target model -> SFT data -> train the target model
+        - Target model can better generate chunks
+    - MCTS for computing reward for each step
+      - New reward design to capture more signal 
+    - RL training with GRPO for assigning reward for each step
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 
 
