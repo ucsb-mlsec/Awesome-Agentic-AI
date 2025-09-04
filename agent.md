@@ -15,7 +15,8 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ## Newest models
 
-- ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
+- UI-TARS-2 Technical Report: Advancing GUI Agent with Multi-Turn Reinforcement Learning [[Arxiv'2/9](https://arxiv.org/pdf/2509.02544v1)]
+-  ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
   - Model: MoE with 335B and 32B active parameters 
   - Mid-training: repo-level code training, synthetic reasoning data, Long-context & agent training
   - Post-training:
