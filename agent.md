@@ -164,6 +164,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Pre-fill partial expert demonstrations and let small models to continue generating based on the partial expert demonstration
       - Dynamically adjust the length based on the accuracy of small model rollout
     - SFT + RL (GRPO)
+  - UFT: Unifying Supervised and Reinforcement Fine-Tuning [[Arxiv'25/05](https://arxiv.org/abs/2505.16984)]
 
 - Use model internal signal as PRM
   - Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning [[Arxiv'25/08](https://arxiv.org/pdf/2509.00125)]
