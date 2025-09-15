@@ -6,13 +6,20 @@ This [repo](https://github.com/codefuse-ai/Awesome-Code-LLM) has a more comprehe
 [Back to home](README.md)
 
 ## Table of Contents
-- [General Coding Agents](#general-coding-agents)
-- [Issue resolving Agents](#issue-resolving-agents)
-- [Debugging and test generation Agents](#debugging-and-test-generation-agents)
-- [DevOps Agents](#devops-agents)
-- [Agentic training](#agentic-training)
-  - [Issue resolving](#issue-resolving)
-  - [Test generation](#test-generation)
+- [SWE Agents and Agentic Post-training](#swe-agents-and-agentic-post-training)
+  - [Table of Contents](#table-of-contents)
+  - [General coding agents](#general-coding-agents)
+  - [Issue resolving agents](#issue-resolving-agents)
+  - [Debugging and test generation agents](#debugging-and-test-generation-agents)
+  - [DevOps agents](#devops-agents)
+  - [Agentic training](#agentic-training)
+    - [Issue resolving](#issue-resolving)
+    - [Test generation](#test-generation)
+    - [Scaling up RL environment](#scaling-up-rl-environment)
+      - [Scaling up data](#scaling-up-data)
+      - [Automaticly build environment dependency](#automaticly-build-environment-dependency)
+    - [Bug Trace for code agent](#bug-trace-for-code-agent)
+    - [How model understand code](#how-model-understand-code)
 
 ## General coding agents
 
@@ -112,4 +119,55 @@ Here, we list recent papers on training coding LLMs under agent scaffolds, inclu
 - ASTER: Natural and Multi-language Unit Test Generation with LLMs
 - Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
 - LLM-based Unit Test Generation via Property Retrieval
-Automatic Unit Test Data Generation and Actor-Critic Reinforcement Learning for Code Synthesis
+- Automatic Unit Test Data Generation and Actor-Critic Reinforcement Learning for Code Synthesis
+
+Benchmarks:
+- TestGenEval: A Real World Unit Test Generation and Test Completion Benchmark [[Arxiv'25](https://arxiv.org/abs/2410.00752)]
+- On the Evaluation of Large Language Models in Unit Test Generation [[Arxiv'25](https://arxiv.org/abs/2406.18181)]
+- SWT-Bench: Testing and Validating Real-World Bug-Fixes with Code Agents [[Arxiv'25](https://arxiv.org/abs/2406.12952)]
+
+### Scaling up RL environment
+#### Scaling up data
+- Bottleneck: lack of large-scale, high-quality RL training data
+  - Existing datasets: small (only a few thousand tasks).
+  - Costly to build, heavily manual.
+  - Poor scalability.
+
+- SWE-smith: Scaling Data for Software Engineering Agents [[Arxiv'25](https://arxiv.org/abs/2504.21798)]
+  - Given any Python repository:
+    - Build executable environment.
+    - Inject bugs into code.
+    - Run tests, keep only those that fail.
+    - Use an LLM to generate GitHub issue-style bug reports.
+
+- SWE-Flow: Synthesizing Software Engineering Data in a Test-Driven Manner [[Arxiv'25](https://arxiv.org/abs/2506.09003)]
+
+#### Automaticly build environment dependency
+- EnvBench: A Benchmark for Automated Environment Setup [[Arxiv'25](https://arxiv.org/abs/2503.14443)]
+  - 329 Python repos
+  - 665 JVM repos (Java + Kotlin)
+  - Chosen to include real challenges, not trivial setups.
+
+
+- SWE-bench Goes Live! [[Arxiv'25](https://arxiv.org/html/2505.23419v1)]
+  - REPOLAUNCH Automated Framework:
+    - Data Collection: Extract issue-PR pairs from active GitHub repos
+    - Env Setup: Parse README & CI configs, select base Docker image 
+    - Dependency Installation & Test Execution
+    - Validation: Task only valid if test goes from FAIL → PASS
+    - Packaging: Release reproducible Docker environments for each task
+
+
+### Bug Trace for code agent
+- AgenTracer: Who Is Inducing Failure in the LLM Agentic Systems? [[Arxiv'25](https://arxiv.org/abs/2509.03312)]
+  - when the system fails → which agent and which step is responsible?
+    - Counterfactual replay: replace actions with oracle guidance to find the decisive error step.
+    - Fault injection: perturb successful trajectories to synthesize failures.
+  - Qwen3-8B + multi-granular RL.
+
+
+### How model understand code
+- What Makes Large Language Models Reason in (Multi-Turn) Code Generation? [[Arxiv'25](https://arxiv.org/abs/2410.08105)]
+- Beyond Syntax: How Do LLMs Understand Code? [[IEEE'25](https://ieeexplore.ieee.org/document/11023969)]
+- How Does LLM Reasoning Work for Code? A Survey and a Call to Action [[Arxiv'25](https://arxiv.org/abs/2506.13932)]
+
