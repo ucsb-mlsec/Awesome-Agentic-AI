@@ -3,15 +3,18 @@
 Below, we summarize the latest agentic models, as well as some notable and recent reasoning techniques.  
 
 ## Table of Contents
-- [Newest models](#newest-models)
-- [Code reasoning](#code-reasoning)
-- [SFT-based reasoning](#sft-based-reasoning)
-- [RL-based reasoning](#rl-based-reasoning)
-  - [Online RL (train LLMs with ORM or PRM)](#online-rl-train-llms-with-orm-or-prm)
-  - [Offline RL](#offline-rl)
-  - [Training with PRM](#training-with-prm)
-- [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
-- [Memory management](#memory-management)
+- [Agentic model and techniques](#agentic-model-and-techniques)
+  - [Table of Contents](#table-of-contents)
+  - [Newest models](#newest-models)
+  - [Code reasoning](#code-reasoning)
+  - [SFT-based reasoning](#sft-based-reasoning)
+  - [RL-based reasoning](#rl-based-reasoning)
+    - [Online RL (train LLMs with ORM or PRM)](#online-rl-train-llms-with-orm-or-prm)
+    - [Offline RL](#offline-rl)
+    - [Training with PRM](#training-with-prm)
+  - [Agentic RL](#agentic-rl)
+  - [Memory management](#memory-management)
+  - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
 
 ## Newest models
 
@@ -109,18 +112,17 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - ReVeal: Self-Evolving Code Agents via Iterative Generation-Verification [[Arxiv'25/06](https://arxiv.org/pdf/2506.11442)]
     - Propose turn-aware PPO, which calculates return based on turns; the rest is similar as other works that involve interpreter
 
-
 ## SFT-based reasoning
-- OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/02](https://arxiv.org/abs/2506.04178)] 
-- s1: Simple test-time scaling [[Arxiv'25/03](https://arxiv.org/abs/2501.19393)] 
+- OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/02](https://arxiv.org/abs/2506.04178)]
+- s1: Simple test-time scaling [[Arxiv'25/03](https://arxiv.org/abs/2501.19393)]
   - Low sample size with diverse difficulty levels and topics
   - Budget forcing during test time: end thinking by appending end-of-thinking token; or extend thinking by appending “Wait” to reasoning trace
-- LLMs Can Easily Learn to Reason from Demonstrations Structure, not content, is what matters! [[Arxiv'25/02](https://arxiv.org/pdf/2502.07374)] 
+- LLMs Can Easily Learn to Reason from Demonstrations Structure, not content, is what matters! [[Arxiv'25/02](https://arxiv.org/pdf/2502.07374)]
   - Small models learn reasoning structures; do not filter out wrong answers
- 
+
 ## RL-based reasoning
 
-### Online RL (train LLMs with ORM or PRM) 
+### Online RL (train LLMs with ORM or PRM)
 
 - Open-Reasoner-Zero: An Open Source Approach to Scaling Up Reinforcement Learning on the Base Model [[Arxiv'25/07](https://arxiv.org/pdf/2503.24290)]
   - PPO over GRPO; No KL; Simplified reward function design; scale up training data
@@ -149,6 +151,16 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
 - **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
+  - Normalization:
+    - Group-level normalization is stable under different datasets (easy and hard math dataset) and different model sizes (Qwen 4B & 8B, base and aligned)
+    - Batch-level normalization is unstable, which is due to the standard deviation of the batch will swiftly decrease over training
+    - Calculating the **mean** at the local (group) level and the **standard deviation** at the global (batch) level enables more robust reward shaping.
+  - Clip value:
+    - For models with stronger fundamental reasoning abilities, increasing the clip higher parameter is more likely to facilitate exploration of better solution paths.
+  - Loss aggregation:
+    - Compared to sequence-level calculation (GRPO) token-level loss (DAPO) proves to be more effective on Base models, while showing limited improvement on Instruct models.
+  - Overlong filtering:
+    - Overlong filtering (DAPO) shows limited effectiveness on long-tail reasoning tasks; however, it can enhance the accuracy and clarity of responses in medium and short-length reasoning tasks. Still better than truncate (GRPO)
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
@@ -183,13 +195,13 @@ Below, we summarize the latest agentic models, as well as some notable and recen
       - Train Generator model and Verifier model together, Verifier model will generate step-wise (\n\n) reward (+1/-1) for Generator.
       - For Generator model, the reward would be a combine of step-wise reward and final outcome reward
       - For the Verifier model, the reward is a final reward, consisting of an outcome reward plus a format reward
-      - Use the same dataset as prime, first supervised training, then RL fine-tuning. 
+      - Use the same dataset as prime, first supervised training, then RL fine-tuning.
 
   - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs [[Arixv'25/06](https://arxiv.org/abs/2506.18896)]
     - Trajectory response data: the thinking trajectory is $s=(s_{1}, ..., s_{t})$, and the answer trajectory is $a=(a_{1}, ..., a_{t})$.
-    - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
-    - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
-    - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
+    - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$.
+    - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth.
+    - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward.
     - LLM model: Qwen2.5-1.5B-Instruct and Qwen2.5-7B-Instruct.
 
   <!-- - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data [[Arxiv'25/05](https://arxiv.org/pdf/2505.20347)]
@@ -210,28 +222,69 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Train the RL agent to perform self-correction and self-verification in sequence: $[s_{1}, v_{1}, s_{2}, v_{2}, ...]$
     - First perform supervised training to learn the pattern, then fine-tune using RL
     - For RL training, consider both ORM (i.e., only final correction $s_M$) and PRM training (PRM here is the answer correctness of the intermediate steps); ORM have better results
-    - LLM model: Qwen2.5-7B-instruct, Lllama-3.1-8B. 
+    - LLM model: Qwen2.5-7B-instruct, Lllama-3.1-8B.
 
 - Learn PRM from ORM
- - Process Reinforcement through Implicit Rewards [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
-  - Learn PRM from ORM and train the model with RLOO 
+  - Process Reinforcement through Implicit Rewards [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
+  - Learn PRM from ORM and train the model with RLOO
 
 - Learn PRM from annotated data
 
 - Learn PRM from MCTS rollout
   - ***StepWiser: Stepwise Generative Judges for Wiser Reasoning*** [[Arxiv'25/08](https://arxiv.org/abs/2508.19229)]
     - PRM with better step segment
-      - Split reasoning steps by "\n\n" is problemic 
+      - Split reasoning steps by "\n\n" is problemic
       - Use a strong model to divide the reasoning generated by the target model -> SFT data -> train the target model
         - Target model can better generate chunks
     - MCTS for computing reward for each step
-      - New reward design to capture more signal 
+      - New reward design to capture more signal
     - RL training with GRPO for assigning reward for each step
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 
+## Agentic RL
 
-## Memory management 
+- SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
+  - Train a progress estimator to assign a contribution score for each step. The sum of the contribution scores is the final reward (either 0 or 1). The training goal is to make the sum of the contribution scores close to the final reward (MSE loss).
 
+- Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
+  - A two-level grouping structure: preserving episode-level grouping for holistic performance comparison (GRPO), while dynamically constructing an additional set of step-level groups by retroactively aggregating actions encountering the same environment states.
+
+- Training Task Reasoning LLM Agents for Multi-turn Task Planning via Single-turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.20616)]
+  - Train LLM agents for multi-turn task planning by decomposing long-horizon tasks into single-turn reasoning problems, where the model (Qwen2.5-1.5B) learns to predict the correct next action at each state using GRPO with dense rewards from expert trajectories (Llama3-70B). Theory proves that improving single-step optimality leads to higher overall multi-turn success rate.
+
+- RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
+  - A new framework for efficient RL training.
+
+- Online Process Reward Leanring for Agentic Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.19199v2)]
+  - Similar to PRIME, the differences are 1. DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward.
+
+- RLVMR: Reinforcement Learning with Verifiable Meta-Reasoning Rewards for Robust Long-Horizon Agents [[Arxiv'25/07](https://arxiv.org/abs/2507.22844)]
+  - Create different rules to calculate the reward for each step.
+
+- COMPUTERRL: SCALING END-TO-END ONLINE REINFORCEMENT LEARNING FOR COMPUTER USE AGENTS [[Arxiv'25/08](https://arxiv.org/abs/2508.14040)]
+  - Implement API calls (via LLM) for agents to interact with the environment
+  - Step reward is defined as the final reward
+  - Incorporate SFT in the later phase of RL training to mitigate entropy collapse
+
+- MobileGUI-RL: Advancing Mobile GUI Agent through Reinforcement Learning in Online Environment [[Arxiv'25/07](https://arxiv.org/abs/2507.05720)]
+  - Task synthesis and filtering out low-quality tasks
+  - Step reward is defined as the final reward
+  - Define a set of rules to scale the reward of each trajectory
+
+- From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]
+  - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL (similar to )
+
+- Process reward models for llm agents: Practical framework and directions [[Arxiv'25/02](https://arxiv.org/abs/2502.10325)]
+  - Two frameworks:
+    - SFT via rollouts (similar to Group-in-Group, group the same states)
+    - Inverse RL (collecting expert trajectories to train PRM)
+
+- Reinforcement Learning for Long-Horizon Interactive LLM Agents [[Arxiv'25/02](https://arxiv.org/abs/2502.01600)]
+  - PPO with RLOO to estimate the reward, examined three different variants: token-level, step-level, and trajectory-level. Token-level is the most effective.
+
+- RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
+  - Extend PPO and GRPO to multi-turn reasoning`
+
+## Memory management
 
 ## Agentic modeling (linear attentions)
-
