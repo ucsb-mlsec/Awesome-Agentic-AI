@@ -1,98 +1,32 @@
-# Agentic model and techniques
+# General LLM reasoning models and techniques
 
-Below, we summarize the latest agentic models, as well as some notable and recent reasoning techniques.  
+Below, we summarize some recent works on general LLM reasoning (without involving agents). 
+Note that this direct has been extensively studied, with many techniques on improving RL-based post-training methods and tricks regarding the training process.
+Here, we mainly focus on the techniques that provide process reward signals, as well as specific training methods for code reasoning.
+On top of the basic training procedure, existing works have proposed many tricks; some of them are conflict with each other.
+Here, we also try to summarize the key training takeaways for both SFT and RL-based reasoning training from our experiences.
 
 ## Table of Contents
-- [Newest models](#newest-models)
 - [Code reasoning](#code-reasoning)
 - [SFT-based reasoning](#sft-based-reasoning)
 - [RL-based reasoning](#rl-based-reasoning)
   - [Online RL (train LLMs with ORM or PRM)](#online-rl-train-llms-with-orm-or-prm)
   - [Offline RL](#offline-rl)
   - [Training with PRM](#training-with-prm)
-- [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
-- [Memory management](#memory-management)
-
-## Newest models
-
-- ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
-  - Model: MoE with 335B and 32B active parameters 
-  - Mid-training: repo-level code training, synthetic reasoning data, Long-context & agent training
-  - Post-training:
-      - SFT: 
-        - Expert SFT: Empower the model with basic chat, reasoning, and tool-use capabilities; enable hybrid reasoning (short & long) 
-        - Unified SFT: Distill the capabilities of different expert models into one hybrid reasoning model
-        - Rejected sampling: answer correctness, prevent hallucination, toll-calling (invoke proper protocols, reach expected terminal states)
-        - Agentic SFT data collection: 
-          - Agentic Framework and Tool Collection: MCP (standard format)
-          - Task Synthesis: Single step and multi-step
-          - Trajectory Generation: teacher model
-          - Quality filtering: correctness 
-      - RL (GRPO without KL term)
-        - Reasoning RL: techniques to improve training efficiency, sample diversity, data quality
-      - Agentic RL 
-        - Web and coding agent (Github issue resolving with sandbox execution)
-        - Only optimize model generated tokens
-        - ORM with process format penalty (stop traj with wrong format)
-        - Self distillation and encourage interaction
-      - General RL 
-        - Holistic RL: Rule-based, human, and model-based feedback on generate tasks
-        - Instruction following 
-        - Function calling: step-wise (part of general RL) and multi-turn RL (distill from specialized models)
-        - Pathology RL (Final step)
-  - RL infra 
-
-- DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
-  - Hybrid thinking with different templates (Mixed thinking with non-thinking when answering) 
-  - Higher thinking efficiency and smarter tool calling **[only support in non-thinking mode]**
-
-- ***Kimi K2: Open Agentic Intelligence*** [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
-  - MoE model with 1 trillion total params and 32B active params
-  - Pre-training: 
-    - 15.5 trillion tokens + data efficiency techniques
-    - MuonClip optimizer: Muon + weight decay + QK clip 
-    - Post-training:
-      -  SFT
-         -  **Agentic data synthesis**: Tool spec generation, agent and task generation, trajectory generation; simulated env with real execution env
-      - RL 
-        - Verifiable rewards gym; Self-critique rubric reward 
-        - GRPO with KL diff + PTX loss for preventing forget critical data
-        - RL infra: efficient engine switching; system startup; agentic rollout
-
-- Qwen3 Technical Report [[Arxiv'25/5](https://arxiv.org/abs/2505.09388)]
-  - Model: Both dense and MoE model, flagship model -- Qwen3-235B-A22B
-    - Grouped Query Attention, SwiGLU, Rotary Positional Embeddings, and RMSNorm with pre-normalization; Remove QKV-bias and introduce QK-Norm
-  - Pre-training: 36 trillion tokens (length 32,768 tokens), with synthetic data generated from other Qwen models
-    - General stage, reasoning stage, long context stage
-    - Scaling low for optimal hyper-parameters 
-  - Post-training: 
-    - Long CoT cold-start SFT
-      - Data: math, code, logical reasoning, and general STEM problems with ground truth
-      - Filter: Query filtering (filter out non-verifiable queries) and response filtering (filter out simple questions)
-      - Use QwQ for reasoning data generation and filter out: incorrect answers; repetition; hallucinations; Inconsistencies between the thinking and summary contents; inappropriate language mixing or stylistic shifts; being overly similar to potential validation set items
-    - Reasoning RL with GRPO
-      - Data: Challenging but learnable data pairs (3,995)
-      - Use a large batch size and a high number of rollouts; off-policy training (reuse logged data for training); Control model entropy
-    - Hybrid thinking with SFT: 
-      - Combine data with and without reasoning paths into a unified dataset to combine thinking with non-thinking mode 
-      - Provide final answers with partial thinking with a manually stop thinking token  
-    - General RL: Instruction following; format following; preference alignment; **agent ability (tasks with tool invoke)**; ability to understand specific context
-      - Outcome rewards: Rule-based reward; model-based reward with/without reference answers
-  - Strong-to-weak distillation for small models, outperforms RL
-    - Off-policy Distillation: Combine the outputs of teacher models generated with both /think and /no think modes for response distillation
-    - On-policy Distillation: Student model generates on-policy sequences, query teacher models to get the targets, and is then fine-tuned by aligning its logits with those of a teacher model to minimize the KL divergence
 
 
 ## Code reasoning 
 
-- Stabilizing Knowledge, Promoting Reasoning: Dual-Token Constraints for RLVR [[Arxiv'25/07](https://arxiv.org/abs/2507.15778)]
-  - Archer: new data construction technique
-  - Weaker KL regularization and higher clipping thresholds to reasoning tokens to encourage exploration, while using stronger constraints on knowledge tokens to maintain factual knowledge
+- CoDA: Coding LM via Diffusion Adaptive [[Arxiv'25/10](https://github.com/SalesforceAIResearch/CoDA/blob/main/technical_report.pdf)]
+  - Diffusion model based code generation with 1.7B params (better conduct infilling)
+  - All SFT with different masking strategies for pre-, mid-, and post- training
+    - General data for pre-training; code centric data for mid- and post- training
+  - Outperform 7B Qwen model on HumanEval/MBPP
 
-- Multi-Turn Code Generation Through Single-Step Rewards [[ICML'25/02](https://arxiv.org/pdf/2502.20380)]
-  - Iterative code generation and refinement with a generator and a verifier
+- Multi-Turn Code Generation Through Single-Step Rewards [[ICML'25/07](https://arxiv.org/pdf/2502.20380)]
+  - Iterative code generation with a generator (trained with SFT and data is selected based on the verifier and testing case passing rewards) and a verifier (trained with cross-entropy loss)
 
-- Integrate code interpret as part of reasoning rollout
+- Integrate code interpreter as part of reasoning rollouts
 
   - CoRT: Code-integrated Reasoning within Thinking [[Arxiv'25/06](https://arxiv.org/pdf/2506.09820)]
     - Strong-to-weak distillation
@@ -109,9 +43,17 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - ReVeal: Self-Evolving Code Agents via Iterative Generation-Verification [[Arxiv'25/06](https://arxiv.org/pdf/2506.11442)]
     - Propose turn-aware PPO, which calculates return based on turns; the rest is similar as other works that involve interpreter
 
-
 ## SFT-based reasoning
-- OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/02](https://arxiv.org/abs/2506.04178)] 
+
+This post lists our key takeaways on SFT-based reasoning, with a focus on SWE and security tasks.
+
+- OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/06](https://arxiv.org/abs/2506.04178)] 
+    - Sampling multiple answers per question from a teacher model 
+    - Models with better performance are not necessarily better teachers (QwQ-32B is a stronger teacher than DeepSeek-R1)
+    - Verification and answer filtering methods are not important
+    - Select questions from a small number (top 1 or 2) of high-quality sources leads to better downstream performance compared to optimizing for diversity
+    - LLM-based difficulty and length filtering is better than embedding or fastText-based filtering
+
 - s1: Simple test-time scaling [[Arxiv'25/03](https://arxiv.org/abs/2501.19393)] 
   - Low sample size with diverse difficulty levels and topics
   - Budget forcing during test time: end thinking by appending end-of-thinking token; or extend thinking by appending “Wait” to reasoning trace
@@ -119,6 +61,8 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Small models learn reasoning structures; do not filter out wrong answers
  
 ## RL-based reasoning
+
+- **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
 
 ### Online RL (train LLMs with ORM or PRM) 
 
@@ -148,7 +92,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
-- **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
@@ -228,9 +171,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - RL training with GRPO for assigning reward for each step
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 
-
-## Memory management 
-
-
-## Agentic modeling (linear attentions)
-
+- Stabilizing Knowledge, Promoting Reasoning: Dual-Token Constraints for RLVR [[Arxiv'25/07](https://arxiv.org/abs/2507.15778)]
+  - Archer: new data construction technique
+  - Weaker KL regularization and higher clipping thresholds to reasoning tokens to encourage exploration, while using stronger constraints on knowledge tokens to maintain factual knowledge
