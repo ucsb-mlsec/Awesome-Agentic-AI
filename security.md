@@ -38,9 +38,15 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - Provide concrete recommendations for future research
 
 ## End-to-end frameworks
-- AIxCC frameworks [TODO hongwei add theori, shellphish?] 
-  - TeamAtlenta: [[Code](https://github.com/Team-Atlanta/aixcc-afc-atlantis)]
+- AIxCC frameworks
+  - TeamAtlenta: [[Final code](https://github.com/Team-Atlanta/aixcc-afc-atlantis)] [[Semifinal code](https://github.com/Team-Atlanta/aixcc-asc-atlantis)]
     - Include multiple prompting strategy to increase the diversity of LLM-based fuzzing seed generation  
+  - Shellphish: [[Final code](https://github.com/shellphish/artiphishell/releases/tag/Finals)] [[Semifinal code](https://github.com/shellphish/artiphishell/releases/tag/Semi-Finals)]
+  - Theori: [[Code](https://theori-io.github.io/aixcc-public/index.html)]
+  - Trail of Bits: [[Final code](https://github.com/trailofbits/afc-buttercup)] [[Semifinal code](https://github.com/trailofbits/asc-buttercup)]
+  - All You Need IS A Fuzzing Brain: [[Final code](https://github.com/o2lab/afc-crs-all-you-need-is-a-fuzzing-brain)] [[Semifinal code](https://github.com/o2lab/asc-crs-all-you-need-is-a-fuzzing-brain)]
+  - 42 b3yond 6ug: [[Final code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-crs)] [[Semifinal code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-asc)]
+  - Lacrosse: [[Final code](https://github.com/siftech/afc-crs-lacrosse)] [[Semifinal code](https://github.com/siftech/asc-crs-lacrosse)]
 
 ## Vulnerability detection
 
@@ -160,7 +166,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
         - Debugger Agent: Construct a call graph, provide LLM with the concatenated most likely root cause method of each group, give LLM tools of get_callers, get_callees, and get_method body, let LLM rank all provided methods.
         - Reviewer Agent: let LLM critique, provide get_callgraph, get_callers, get_callees, and get_method body.
     - Lacking tools and only using simple tools
-  - We have a debugger in our AIxCC
 
 ### 📋 Benchmarks
 
