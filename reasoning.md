@@ -45,7 +45,7 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
 
 ## SFT-based reasoning
 
-This post lists our key takeaways on SFT-based reasoning, with a focus on SWE and security tasks.
+**This [post](https://henrygwb.github.io/posts/sft.htm) lists our key takeaways on SFT-based reasoning, with a focus on SWE and security tasks.**
 
 - OpenThoughts: Data Recipes for Reasoning Models [[Arxiv'25/06](https://arxiv.org/abs/2506.04178)] 
     - Sampling multiple answers per question from a teacher model 
