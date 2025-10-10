@@ -150,6 +150,24 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - **Length extension and curriculum learning**
   - SFT -> Math only training -> Code only training
 
+- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models
+  - propose a scaling Law to predict downstream performance from policy entropy
+    - R = - a exp(H) + b
+    - a postive correlation between log(a|s) and A(s, a) tends to decrease the entropy
+  - To prevent the policy collapse by clipping a fraction of high-covariance tokens out of the policy update
+
+- QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION
+  - RL with easy prompts hurts pass @k and reasoning ability
+  - RL with hard prompts leads to slow learning
+    - introduce partial solutions during training to reduce problem difficulty 
+  - dataset: OpenR1-Math-220K dataset -> filter to 26K hardest items, partial solution generated via DEEPSEEK-R1
+  - LLM model: Nemotron-1.5B, DeepScaleR-1.5B
+
+- Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning
+
+
+
+
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
 - **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
