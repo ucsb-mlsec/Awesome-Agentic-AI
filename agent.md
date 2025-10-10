@@ -170,10 +170,10 @@ Below, we summarize the latest agentic models, as well as some notable and recen
    - LLM model: Qwen2.5-7B
 
 - EMERGENT HIERARCHICAL REASONING IN LLMS THROUGH REINFORCEMENT LEARNING
- - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
- - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
- - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep unchanged
- - LL model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
+  - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
+  - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
+  - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep unchanged
+  - LL model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
 
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
