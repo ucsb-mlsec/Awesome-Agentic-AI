@@ -154,7 +154,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - propose a scaling Law to predict downstream performance from policy entropy
     - R = - a exp(H) + b
     - a postive correlation between log(a|s) and A(s, a) tends to decrease the entropy
-  - To prevent the policy collapse, clip a fraction of high-covariance tokens out of the policy update
+  - To prevent entropy collapse, clip a fraction of high-covariance tokens out of the policy update
 
 - QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION
   - RL with easy prompts hurts pass @k and reasoning ability
@@ -165,14 +165,14 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning
   - R_final = R_ext(x, y) + \alpha(x; \pi) * C(y, x; \pi)
-   - C(y, x; \pi): negative average log probability
+   - C(y, x; \pi): negative average log probability, where larger values correspond to higher uncertainty in the policy
    - \alpha(x; \pi): \alpha_scale * sgn(\beta_{threshold} - diff(x, \pi)); If the problem is challenging, encourage exploration; otherwise, favor exploitation.
    - LLM model: Qwen2.5-7B
 
 - EMERGENT HIERARCHICAL REASONING IN LLMS THROUGH REINFORCEMENT LEARNING
   - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
   - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
-  - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep unchanged
+  - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep the advantage unchanged
   - LL model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
 
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
