@@ -150,55 +150,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - **Length extension and curriculum learning**
   - SFT -> Math only training -> Code only training
 
-- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models
-  - propose a scaling Law to predict downstream performance from policy entropy
-    - R = - a exp(H) + b
-    - a postive correlation between log(a|s) and A(s, a) tends to decrease the entropy
-  - To prevent entropy collapse, clip a fraction of high-covariance tokens out of the policy update
-
-- QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION
-  - RL with easy prompts hurts pass @k and reasoning ability
-  - RL with hard prompts leads to slow learning
-    - introduce partial solutions during training to reduce problem difficulty 
-  - dataset: OpenR1-Math-220K dataset -> filter to 26K hardest items, partial solution generated via DEEPSEEK-R1
-  - LLM model: Nemotron-1.5B, DeepScaleR-1.5B
-
-- Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning
-  - R_final = R_ext(x, y) + \alpha(x; \pi) * C(y, x; \pi)
-   - C(y, x; \pi): negative average log probability, where larger values correspond to higher uncertainty in the policy
-   - \alpha(x; \pi): \alpha_scale * sgn(\beta_{threshold} - diff(x, \pi)); If the problem is challenging, encourage exploration; otherwise, favor exploitation.
-   - LLM model: Qwen2.5-7B
-
-- EMERGENT HIERARCHICAL REASONING IN LLMS THROUGH REINFORCEMENT LEARNING
-  - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
-  - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
-  - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep the advantage unchanged
-  - LLM model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
-
-- Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
-  - Expected gradient norm is monotonically coupled with policy entropy
-  - A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
-   - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
-   - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
-  - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
-  - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
-
-- Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
-
-- **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
-  - Normalization:
-    - Group-level normalization is stable under different datasets (easy and hard math dataset) and different model sizes (Qwen 4B & 8B, base and aligned)
-    - Batch-level normalization is unstable, which is due to the standard deviation of the batch will swiftly decrease over training
-    - Calculating the **mean** at the local (group) level and the **standard deviation** at the global (batch) level enables more robust reward shaping.
-  - Clip value:
-    - For models with stronger fundamental reasoning abilities, increasing the clip higher parameter is more likely to facilitate exploration of better solution paths.
-  - Loss aggregation:
-    - Compared to sequence-level calculation (GRPO) token-level loss (DAPO) proves to be more effective on Base models, while showing limited improvement on Instruct models.
-  - Overlong filtering:
-    - Overlong filtering (DAPO) shows limited effectiveness on long-tail reasoning tasks; however, it can enhance the accuracy and clarity of responses in medium and short-length reasoning tasks. Still better than truncate (GRPO)
-
-- Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
-
 ### Offline RL
 
 - Representative works can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
@@ -319,6 +270,8 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
   - Extend PPO and GRPO to multi-turn reasoning
+
+- COMPUTERRL: SCALING END-TO-END ONLINE REINFORCEMENT LEARNING FOR COMPUTER USE AGENTS
 
 ## Memory management
 
