@@ -99,8 +99,6 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
   - **Length extension and curriculum learning**
   - SFT -> Math only training -> Code only training
 
-- Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
-
 - The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models
   - propose a scaling Law to predict downstream performance from policy entropy
     - R = - a exp(H) + b
@@ -137,11 +135,7 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
 - Energy-based Out-of-distribution Detection
-
 - SEMANTIC ENERGY: DETECTING LLM HALLUCINATION BEYOND ENTROPY
-
-
-
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
