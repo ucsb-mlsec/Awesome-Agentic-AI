@@ -173,7 +173,15 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
   - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
   - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep the advantage unchanged
-  - LL model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
+  - LLM model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
+
+- Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
+  - Expected gradient norm is monotonically coupled with policy entropy
+  - A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
+   - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
+   - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
+  - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
+  - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
 
 - Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
 
