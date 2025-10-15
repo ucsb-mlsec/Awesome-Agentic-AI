@@ -45,8 +45,21 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - Theori: [[Code](https://theori-io.github.io/aixcc-public/index.html)]
   - Trail of Bits: [[Final code](https://github.com/trailofbits/afc-buttercup)] [[Semifinal code](https://github.com/trailofbits/asc-buttercup)]
   - All You Need IS A Fuzzing Brain: [[Final code](https://github.com/o2lab/afc-crs-all-you-need-is-a-fuzzing-brain)] [[Semifinal code](https://github.com/o2lab/asc-crs-all-you-need-is-a-fuzzing-brain)]
+    - Simple pipeline, fuzzer (libfuzzer and llm-based poc gen) + llm-based patching
+    - Multiple prompts and multiple models, cwe-specific prompts.
+    - Poc Gen
+       - Delta mode:
+         - For poc gen, prompt includes coverage summarization + commit diff + cwe-specifc constitution (optional) + call path from harness entrypoint to a modified function (optional)
+       - Full mode:
+         - Find all reachable functions from entrypoint (static analysis)
+         - llm-based ranking for reachable funcs (all reachable function concatenated as a huge prompt)
+     - Patching
+       - Llm-based patching location identification, prompt includes commit diff + crash log + history from poc gen (optional) + coverage(optional) + rag
   - 42 b3yond 6ug: [[Final code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-crs)] [[Semifinal code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-asc)]
   - Lacrosse: [[Final code](https://github.com/siftech/afc-crs-lacrosse)] [[Semifinal code](https://github.com/siftech/asc-crs-lacrosse)]
+
+    
+
 
 ## Vulnerability detection
 
@@ -60,6 +73,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - Target on finding variants of previously found and patched vulnerabilities
     - Scan one commit at a time, collected recent commits to the SQLite repository, manually removing trivial and documentation-only changes and provide the agent with both the commit message and a diff for the change (and previous fixed vulns), let the agent review whether there is unfixed variants
     - Toolset: debugger_run (just run the project, without a debugger) and code_browser_source (search in the codebase) are used
+
 - **LLM-based detection with additional information**
   - LLMxCPG: Context-Aware Vulnerability Detection Through Code Property Graph-Guided Large Language Models [ [USENIX Security'25/07](https://arxiv.org/abs/2507.16585)]
     - Use Code property graph together with LLMs for detection
@@ -150,6 +164,25 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - FaultLine: Automated Proof-of-Vulnerability Generation Using LLM Agents [[arxiv'25/07](https://arxiv.org/abs/2507.15241)]
       - It is a good agent with slicing and fixed workflow
   - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks [[arxiv'25/05](https://arxiv.org/abs/2501.16466)]
+  - Agentic Concolic Execution (S&P'26)
+    - Use llm to perform basic-block level instrumentation
+    - Has a corpus that contains interesting inputs, initially a random input, in each iteration
+      - Pop one input from the corpus, use an LLM agent for collecting constraints
+      - Execute the input, collect the trace, remove the unexecuted blocks, and ask an agent (with code retrieval and z3) to summarize the constraints of the path
+      - LLM selects a branch to flip, and generate a new set of constraints
+      - Use LLM agent to solve the constraint (with code retrieval and z3) and generate an input.
+      - If the generated input yields new coverage, add the new input to the corpus
+    - Evaluation: 48 hours, targeting programs with several to tens of thousands of lines of code. exit if no coverage increase in 30 mins, 115%-233% higher code coverage than klee, and 11 0-days （pretty wired that the initial coverage at time 0 is not the same in Figure 5)
+  - Claude-Sonnet-4-5-System-Card
+    - Improvement on cybergym over openhands can be attributed to more flexible token constraints (a 200k token context window vs 2048 token output in openhands) and auto-summarization.
+    - Has editing tool and bash tool, in a kali virtual machine, with pwntools(for pwn challenges)、Metasploit(N-day vulns)、Ghidra(rev) and tshark(for cybench web challenge)
+    - asynchronous management of multiple terminal sessions
+    - Refinement is useful.
+  - FalseCrashReducer: Mitigating False Positive Crashes in OSS-Fuzz-Gen Using Agentic AI (arxiv 25)
+    - The motivation is that they think the llm-based fuzz driver generator of oss-fuzz is not good enough that the fuzz driver generates infeasible inputs to a target function for fuzz.
+    - Has one agent to extract constraints of inputs to the target function, with grep and function search tool (given func name return func implementation), the constraint is used to generate fuzz driver
+    - Has another agent to validate whether the crash is triggerable from program entry point
+
   - General agents
       - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'25/04](https://arxiv.org/abs/2407.16741)]
       - Evaluating Large Language Models Trained on Code (Codex of openai) [[arxiv'21/07](https://arxiv.org/abs/2107.03374)]
