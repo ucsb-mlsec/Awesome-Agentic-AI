@@ -73,13 +73,38 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
     - Compared to sequence-level calculation (GRPO) token-level loss (DAPO) proves to be more effective on Base models, while showing limited improvement on Instruct models.
   - Overlong filtering:
     - Overlong filtering (DAPO) shows limited effectiveness on long-tail reasoning tasks; however, it can enhance the accuracy and clarity of responses in medium and short-length reasoning tasks. Still better than truncate (GRPO)
-### Online RL (train LLMs with ORM or PRM) 
+### Online RL 
+
+Online RL methods are mainly used for post-training with verifiable outcome reward. Some recent works also explore using RL for [pre-training](https://arxiv.org/pdf/2506.08007) or mid-training (a new training stage between pre-training and post-training, mainly aim to improve agentic capabilities).
+
+
+- QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION [[Arxiv'25/09](https://arxiv.org/pdf/2507.13266)]
+  - RL with easy prompts/questions hurts pass @k and reasoning ability; RL with hard prompts/questions leads to slow learning
+  - Introduce partial solutions during training to reduce problem difficulty 
+  - Dataset: OpenR1-Math-220K dataset -> filter to 26K hardest items, partial solution generated via DEEPSEEK-R1
+  - LLM model: Nemotron-1.5B, DeepScaleR-1.5B
+
+  - BREAD: Branched Rollouts from Expert Anchors Bridge SFT & RL for Reasoning [[Arxiv'25/06](https://arxiv.org/pdf/2506.17211)]
+    - For hard problem; SFT cannot learn well; RL cannot get correct answer in early steps
+    - Pre-fill partial expert demonstrations and let small models to continue generating based on the partial expert demonstration
+      - Dynamically adjust the length based on the accuracy of small model rollout
+    - SFT + GRPO
+
+- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models [[Arxiv'25/06](https://arxiv.org/abs/2505.22617)]
+  - Resolve entropy collapse (Entropy dropped sharply at the early training stage, leading to an overly
+confident policy model) 
+  - Propose a scaling Law to predict downstream performance from policy entropy
+    - R = - a exp(H) + b
+    - A positive correlation between log(a|s) and A(s,a) tends to decrease the entropy
+  - Clip a fraction of high-covariance tokens out of the policy update
 
 - Open-Reasoner-Zero: An Open Source Approach to Scaling Up Reinforcement Learning on the Base Model [[Arxiv'25/07](https://arxiv.org/pdf/2503.24290)]
-  - PPO over GRPO; No KL; Simplified reward function design; scale up training data
+  - Shows that PPO with GAE and rule-based reward without KL 
+    - GAE hyper-parameters are important: the discount factor $\lambda$ controls the effective sequence length
+    - Scale up data quantity and diversity (Do not only use the common training sets)
   - Requires fewer training steps than deepseek distilled Qwen-32B
 
-- **Ring-lite: Scalable Reasoning via C3PO-Stabilized Reinforcement Learning for LLMs [[Arxiv'25/06](https://arxiv.org/pdf/2506.14731)]**
+- Ring-lite: Scalable Reasoning via C3PO-Stabilized Reinforcement Learning for LLMs [[Arxiv'25/06](https://arxiv.org/pdf/2506.14731)]
   - MoE model with 16B active params (**smallest open-source MoE model**), outperforming some 8B and 14B models
   - Distillation and RL integration
     - Select distillation checkpoints based on entropy loss for RL is more efficient than validation performance
@@ -96,73 +121,33 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
     - On-policy training: Stable RL training and helps prevent entropy collapse
     - **No KL term**, the loss becomes the REINFORCE objective
     - Rule-based reward with execution results as reward for coding
-  - **Length extension and curriculum learning**
-  - SFT -> Math only training -> Code only training
-
-- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models
-  - propose a scaling Law to predict downstream performance from policy entropy
-    - R = - a exp(H) + b
-    - a postive correlation between log(a|s) and A(s, a) tends to decrease the entropy
-  - To prevent entropy collapse, clip a fraction of high-covariance tokens out of the policy update
-
-- QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION
-  - RL with easy prompts hurts pass @k and reasoning ability
-  - RL with hard prompts leads to slow learning
-    - introduce partial solutions during training to reduce problem difficulty 
-  - dataset: OpenR1-Math-220K dataset -> filter to 26K hardest items, partial solution generated via DEEPSEEK-R1
-  - LLM model: Nemotron-1.5B, DeepScaleR-1.5B
-
-- Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning
-  - R_final = R_ext(x, y) + \alpha(x; \pi) * C(y, x; \pi)
-   - C(y, x; \pi): negative average log probability, where larger values correspond to higher uncertainty in the policy
-   - \alpha(x; \pi): \alpha_scale * sgn(\beta_{threshold} - diff(x, \pi)); If the problem is challenging, encourage exploration; otherwise, favor exploitation.
-   - LLM model: Qwen2.5-7B
-
-- EMERGENT HIERARCHICAL REASONING IN LLMS THROUGH REINFORCEMENT LEARNING
-  - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
-  - Initially, LLM learns to improve its low-level skills; after that, perfomance gains are driven by the exploration and mastery of high-level stragetic planning
-  - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep the advantage unchanged
-  - LLM model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
-
-- Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
-  - Expected gradient norm is monotonically coupled with policy entropy
-  - A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
-   - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
-   - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
-  - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
-  - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
-
-- Reinforcement Pre-Training [[Arxiv'25/06](https://arxiv.org/pdf/2506.08007)]
-
-- Energy-based Out-of-distribution Detection
-- SEMANTIC ENERGY: DETECTING LLM HALLUCINATION BEYOND ENTROPY
+  - **Length extension and curriculum learning**:
+    - Math only (8K-24K) -> Code only (24K-32K) -> Math only (32K)
+    - From easy to hard problems based on LLM judge
+    - Math only RL improve coding performance; not the other way around
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
+  - PPO, GRPO, DAPO
+  - Value estimation: REINFORCE, GAE, RLOO
 
 ### Offline RL
 
+Offline RL methods mainly refers to the methods that does not require rollout during training. DPO is the most representative methods that learn from pairwise data. Follow up works generalize DPO to cases where pairwise data is not available. 
+
 - Representative works can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
-### Training with PRM
+### Training with process reward
 
-- Learn PRM from expert trajs
-  - ***BREAD: Branched Rollouts from Expert Anchors Bridge SFT & RL for Reasoning*** [[Arxiv'25/06](https://arxiv.org/pdf/2506.17211)]
-    - For hard problem; SFT cannot learn well; RL cannot get correct answer in early steps
-    - Pre-fill partial expert demonstrations and let small models to continue generating based on the partial expert demonstration
-      - Dynamically adjust the length based on the accuracy of small model rollout
-    - SFT + RL (GRPO)
+#### Explicitly train a process reward model
 
-- Use model internal signal as PRM
-  - Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning [[Arxiv'25/08](https://arxiv.org/pdf/2509.00125)]
-  - ***Deep Think with Confidence*** [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]
-    - Design different conference computing methods 
-      - token confidence is similar as entropy
-      - Group confidence based on sliding windows and positions
-      - Weighted majority voting based on confidence during inference 
-  - Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
-  - Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
+- Learn a PRM through iteratively training reward and policy
+  - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs [[Arixv'25/06](https://arxiv.org/abs/2506.18896)]
+    - Trajectory response data: the thinking trajectory is $s=(s_{1}, ..., s_{t})$, and the answer trajectory is $a=(a_{1}, ..., a_{t})$.
+    - The goal is to train an PRM to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
+    - Supervised training of the RPM, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
+    - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
+    - LLM model: Qwen2.5-1.5B-Instruct and Qwen2.5-7B-Instruct.
 
-- ***Learn a PRM through iterative training reward and policy***
   - RL Tango: Reinforcing Generator and Verifier Together for Language Reasoning [[Arxiv'25/05](https://arxiv.org/pdf/2505.15034)]
     - RL for small model Qwen2.5-7B, outperform prime.
     - Algorithm
@@ -170,20 +155,6 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
       - For Generator model, the reward would be a combine of step-wise reward and final outcome reward
       - For the Verifier model, the reward is a final reward, consisting of an outcome reward plus a format reward
       - Use the same dataset as prime, first supervised training, then RL fine-tuning. 
-
-  - ReasonFlux-PRM: Trajectory-Aware PRMs for Long Chain-of-Thought Reasoning in LLMs [[Arixv'25/06](https://arxiv.org/abs/2506.18896)]
-    - Trajectory response data: the thinking trajectory is $s=(s_{1}, ..., s_{t})$, and the answer trajectory is $a=(a_{1}, ..., a_{t})$.
-    - The goal is to train an RPM model to assign a value to each $s_t$, denoted as $R(s_t \mid x, s_{<t}, a)$. 
-    - Supervised training of the RPM model, include two loss term. One is for step-wise reward, using labels derived from a combination of LLM-Judge, the alignment score between $s_t$ and $a_t$, and the coherence score; Another is for outcome reward, using labels derived ground-truth. 
-    - The learned step reward could be used to train online RL model, specificially, the final reward is a combination of outcome reward and mean of learned step reward. 
-    - LLM model: Qwen2.5-1.5B-Instruct and Qwen2.5-7B-Instruct.
-
-  <!-- - SeRL: Self-Play Reinforcement Learning for Large Language Models with Limited Data [[Arxiv'25/05](https://arxiv.org/pdf/2505.20347)]
-    - Setting: start with a relatively small Q-A dataset and finetune the RL model on it
-    - Self-instruction: prompt the current LLM to generate additional questions
-    - Self-rewarding: derive rewards using majority voting on the final answer
-    - Training: fine-tune the LLM with the generated questions and majority-voted answers
-    - LLM model: Qwen-2.5-7B, Llama-3.2-3B -->
 
   - SPC: Evolving Self-Play Critic via Adversarial Games for LLM Reasoning [[Arxiv'25/04](https://arxiv.org/abs/2504.19162)]
     - This paper focus on error detection of wrong reasoning steps
@@ -198,11 +169,8 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
     - For RL training, consider both ORM (i.e., only final correction $s_M$) and PRM training (PRM here is the answer correctness of the intermediate steps); ORM have better results
     - LLM model: Qwen2.5-7B-instruct, Lllama-3.1-8B. 
 
-- Learn PRM from ORM
- - Process Reinforcement through Implicit Rewards [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
-  - Learn PRM from ORM and train the model with RLOO 
-
-- Learn PRM from annotated data
+  - **Process Reinforcement through Implicit Rewards** [[Arxiv'25/02](https://arxiv.org/abs/2502.01456)]
+    - Learn PRM from ORM and train the model with RLOO 
 
 - Learn PRM from MCTS rollout
   - ***StepWiser: Stepwise Generative Judges for Wiser Reasoning*** [[Arxiv'25/08](https://arxiv.org/abs/2508.19229)]
@@ -212,9 +180,35 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
         - Target model can better generate chunks
     - MCTS for computing reward for each step
       - New reward design to capture more signal 
-    - RL training with GRPO for assigning reward for each step
+    - Use a reasoning model (RL training with GRPO) for assigning reward for each step
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
 
+
+#### Non-parametric process reward
+
+This line of methods explore using generation entropy or confidence as the process reward signal or factual knowledge constraint for token-level reward. There are also some works on exploring using entropy for hallucination detection. 
+
+- Emergent Hierarchical Reasoning in LLMs through Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/pdf/2509.03646)]
+  - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
+  - Force the model to learn high-level strategic planning tokens
+    - for high-level tokens, A(i, t) -> A(i, t) + \alpha * |A(i, t)|; for low-level tokens, keep the advantage unchanged
+  - LLM model: Qwen2.5-7B, Qwen3-4B, LLama-3.1-8
+
+- Know When to Explore: Difficulty-Aware Certainty as a Guide for LLM Reinforcement Learning [[Arxiv'25/08](https://arxiv.org/pdf/2509.00125)]
+  - Encourage exploration for difficult tasks and exploitation for easy tasks
+  - Control the degree of exploration by penalizing or rewarding high certainty
+
 - Stabilizing Knowledge, Promoting Reasoning: Dual-Token Constraints for RLVR [[Arxiv'25/07](https://arxiv.org/abs/2507.15778)]
-  - Archer: new data construction technique
-  - Weaker KL regularization and higher clipping thresholds to reasoning tokens to encourage exploration, while using stronger constraints on knowledge tokens to maintain factual knowledge
+  - Define low-entropy knowledge-based tokens and high-entropy reasoning-based tokens
+  - Apply weaker KL regularization and higher clipping thresholds to reasoning tokens to encourage exploration
+  - Using stronger constraints on knowledge tokens to maintain factual knowledge
+
+- Deep Think with Confidence [[Arxiv'25/08](https://arxiv.org/abs/2508.15260)]
+  - Design different conference computing methods 
+    - token confidence is similar as entropy
+    - Group confidence based on sliding windows and positions
+    - Weighted majority voting based on confidence during inference 
+
+- Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
+
+- Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
