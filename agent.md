@@ -83,47 +83,57 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ## Agentic RL
 
+### Compute step-wise rewards
 - SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
-  - Train a progress estimator to assign a contribution score for each step. The sum of the contribution scores is the final reward (either 0 or 1). The training goal is to make the sum of the contribution scores close to the final reward (MSE loss).
+  - Train an LLM as progress estimator to assign a contribution score for each step
+  - The sum of the contribution scores is the final reward (either 0 or 1) 
+  - Model assigns a reward to each step, training objective is to make the sum of the contribution scores close to the final reward (MSE loss) [No constraints on individual step scores]
 
 - Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
-  - A two-level grouping structure: preserving episode-level grouping for holistic performance comparison (GRPO), while dynamically constructing an additional set of step-level groups by retroactively aggregating actions encountering the same environment states.
+  - GRPO with outcome reward  
+  - Step-wise reward: Group similar states and use GRPO to compute the states in the group
 
 - Training Task Reasoning LLM Agents for Multi-turn Task Planning via Single-turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.20616)]
-  - Train LLM agents for multi-turn task planning by decomposing long-horizon tasks into single-turn reasoning problems, where the model (Qwen2.5-1.5B) learns to predict the correct next action at each state using GRPO with dense rewards from expert trajectories (Llama3-70B). Theory proves that improving single-step optimality leads to higher overall multi-turn success rate.
-
-- RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
-  - A new framework for efficient RL training.
+  - Train LLM agents for multi-turn task planning by decomposing long-horizon tasks into single-turn reasoning problems, where the policy (Qwen2.5-1.5B) learns to predict the correct next action at each state using GRPO with dense rewards from expert trajectories (Llama3-70B) 
+  - Theory proves that improving single-step optimality leads to higher overall multi-turn success rate
 
 - Online Process Reward Leanring for Agentic Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.19199v2)]
-  - Similar to PRIME, the differences are 1. DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward.
+  - Similar to PRIME, the differences are 1. DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward
 
-- RLVMR: Reinforcement Learning with Verifiable Meta-Reasoning Rewards for Robust Long-Horizon Agents [[Arxiv'25/07](https://arxiv.org/abs/2507.22844)]
-  - Create different rules to calculate the reward for each step.
-
-- COMPUTERRL: SCALING END-TO-END ONLINE REINFORCEMENT LEARNING FOR COMPUTER USE AGENTS [[Arxiv'25/08](https://arxiv.org/abs/2508.14040)]
-  - Implement API calls (via LLM) for agents to interact with the environment
-  - Step reward is defined as the final reward
-  - Incorporate SFT in the later phase of RL training to mitigate entropy collapse
-
-- MobileGUI-RL: Advancing Mobile GUI Agent through Reinforcement Learning in Online Environment [[Arxiv'25/07](https://arxiv.org/abs/2507.05720)]
-  - Task synthesis and filtering out low-quality tasks
-  - Step reward is defined as the final reward
-  - Define a set of rules to scale the reward of each trajectory
-
-- From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]
-  - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL (similar to )
+- **RLVMR: Reinforcement Learning with Verifiable Meta-Reasoning Rewards for Robust Long-Horizon Agents [[Arxiv'25/07](https://arxiv.org/abs/2507.22844)]**
+  - Create different rules to calculate the reward for each step
 
 - Process reward models for llm agents: Practical framework and directions [[Arxiv'25/02](https://arxiv.org/abs/2502.10325)]
   - Two frameworks:
     - SFT via rollouts (similar to Group-in-Group, group the same states)
     - Inverse RL (collecting expert trajectories to train PRM)
 
+- **From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]**
+  - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL
+
 - Reinforcement Learning for Long-Horizon Interactive LLM Agents [[Arxiv'25/02](https://arxiv.org/abs/2502.01600)]
   - PPO with RLOO to estimate the reward, examined three different variants: token-level, step-level, and trajectory-level. Token-level is the most effective.
 
 - RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
   - Extend PPO and GRPO to multi-turn reasoning
+
+### Different applications 
+
+- COMPUTERRL: SCALING END-TO-END ONLINE REINFORCEMENT LEARNING FOR COMPUTER USE AGENTS [[Arxiv'25/08](https://arxiv.org/abs/2508.14040)]
+  - Implement API calls (via LLM) for agents to interact with the environment
+  - Step reward is the same as the final reward
+  - Incorporate SFT in the later phase of RL training to mitigate entropy collapse
+
+- MobileGUI-RL: Advancing Mobile GUI Agent through Reinforcement Learning in Online Environment [[Arxiv'25/07](https://arxiv.org/abs/2507.05720)]
+  - Task synthesis and filtering out low-quality tasks
+  - Step reward is the same as the final reward
+  - Define a set of rules to scale the reward of each trajectory
+
+### Efficiency, inference, and other issues
+
+- RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
+  - A new framework for efficient RL training.
+
 
 - Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
   - Expected gradient norm is monotonically coupled with policy entropy
