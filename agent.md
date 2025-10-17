@@ -6,12 +6,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - [Agentic model and techniques](#agentic-model-and-techniques)
   - [Table of Contents](#table-of-contents)
   - [Newest models](#newest-models)
-  - [Code reasoning](#code-reasoning)
-  - [SFT-based reasoning](#sft-based-reasoning)
-  - [RL-based reasoning](#rl-based-reasoning)
-    - [Online RL (train LLMs with ORM or PRM)](#online-rl-train-llms-with-orm-or-prm)
-    - [Offline RL](#offline-rl)
-    - [Training with PRM](#training-with-prm)
   - [Agentic RL](#agentic-rl)
   - [Memory management](#memory-management)
   - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
@@ -131,15 +125,19 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
   - Extend PPO and GRPO to multi-turn reasoning
 
-- COMPUTERRL: SCALING END-TO-END ONLINE REINFORCEMENT LEARNING FOR COMPUTER USE AGENTS
+- Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
+  - Expected gradient norm is monotonically coupled with policy entropy
+  - A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
+    - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
+    - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
+  - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
+  - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
 
-Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents
-Expected gradient norm is monotonically coupled with policy entropy
-A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
-g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
-f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
-Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
-LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
+- When Speed Kills Stability: Demystifying RL Collapse from the Training-Inference Mismatch [[Notion'25/10](https://yingru.notion.site/When-Speed-Kills-Stability-Demystifying-RL-Collapse-from-the-Training-Inference-Mismatch-271211a558b7808d8b12d403fd15edda)]
+  - Mismatch between training and inference: cause collapse of RL training: $\mathbb{E} _{x\sim \mathcal{D}}\mathbb{E} _{y\sim \textcolor{red}{\pi _{\theta}^{\mathrm{vllm}}}\left( \cdot |x \right)}\left[ R\left( x,y \right) \nabla _{\theta}\log \textcolor{blue}{\pi _{\theta}^{\mathrm{fsdp}}}\left( y|x \right) \right]$
+  - The **agent** receives a tool response, which is often structured text (e.g., context enveloped by `<python_output>` and `</python_output>` tags) that is OOD compared to its pre-training and SFT data.Faced with this unfamiliar OOD context, the **agent's policy** becomes more uncertain, making it more likely to sample low-probability tokens in its subsequent turns (which is also observed in [**SimpleTIR**](https://github.com/ltzheng/SimpleTIR)).
+  - Hardware difference also contribute to the instability
+  - Solution: Importance Sampling
 
 ## Memory management
 

@@ -7,12 +7,16 @@ On top of the basic training procedure, existing works have proposed many tricks
 Here, we also try to summarize the key training takeaways for both SFT and RL-based reasoning training from our experiences.
 
 ## Table of Contents
-- [Code reasoning](#code-reasoning)
-- [SFT-based reasoning](#sft-based-reasoning)
-- [RL-based reasoning](#rl-based-reasoning)
-  - [Online RL (train LLMs with ORM or PRM)](#online-rl-train-llms-with-orm-or-prm)
-  - [Offline RL](#offline-rl)
-  - [Training with PRM](#training-with-prm)
+- [General LLM reasoning models and techniques](#general-llm-reasoning-models-and-techniques)
+  - [Table of Contents](#table-of-contents)
+  - [Code reasoning](#code-reasoning)
+  - [SFT-based reasoning](#sft-based-reasoning)
+  - [RL-based reasoning](#rl-based-reasoning)
+    - [Online RL](#online-rl)
+    - [Offline RL](#offline-rl)
+    - [Training with process reward](#training-with-process-reward)
+      - [Explicitly train a process reward model](#explicitly-train-a-process-reward-model)
+      - [Non-parametric process reward](#non-parametric-process-reward)
 
 
 ## Code reasoning 
@@ -73,6 +77,20 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
     - Compared to sequence-level calculation (GRPO) token-level loss (DAPO) proves to be more effective on Base models, while showing limited improvement on Instruct models.
   - Overlong filtering:
     - Overlong filtering (DAPO) shows limited effectiveness on long-tail reasoning tasks; however, it can enhance the accuracy and clarity of responses in medium and short-length reasoning tasks. Still better than truncate (GRPO)
+
+- The Art of Scaling Reinforcement Learning Compute for LLMs [[Arxiv'25/10](https://arxiv.org/pdf/2510.13786)]
+  - Propose a scaling law to predict the performance from RL compute budget: log(R) = a + b * sigmoid(log(C)), where R is the performance, C is the RL compute budget.
+  - Scale training compute for different methods, they encounter different ceilings on their achievable performance
+  - Methods that appear superior at small compute budgets can be worse when
+extrapolated to large-compute regime
+
+- RL-Scaling: Scaling Reinforcement Learning for LLMs with Rich Rewards [[Arxiv'25/10](https://arxiv.org/pdf/2510.14021)]
+  - Propose a scaling law to predict the performance from RL compute budget: log(R) = a + b * sigmoid(log(C)), where R is the performance, C is the RL compute budget.
+  - Scale training compute for different methods, they encounter different ceilings on their achievable performance
+  - Methods that appear superior at small compute budgets can be worse when
+extrapolated to large-compute regime
+  - Common interventions thought to improve peak performance (e.g., loss aggregation, data curriculum, length penalty, advantage normalization) mainly adjust compute efficiency, while not changing the performance ceiling considerably.
+
 ### Online RL 
 
 Online RL methods are mainly used for post-training with verifiable outcome reward. Some recent works also explore using RL for [pre-training](https://arxiv.org/pdf/2506.08007) or mid-training (a new training stage between pre-training and post-training, mainly aim to improve agentic capabilities).
