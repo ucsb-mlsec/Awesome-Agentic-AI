@@ -1,14 +1,14 @@
-# Security Agents
+# Security and SWE Agents
 
-This repository contains recent papers and resources related to agentic AI in software security. 
-We categorize the papers based on the problems they tackle, including vulnerability detection, triage, patching, others, and end-to-end frameworks. 
+This repository contains recent papers and resources related to agentic AI in software engineering and security. 
+We categorize the papers based on the problems they tackle. 
 Under each category, we have techniques and benchmarks. Under each paper, we list the summary of key techniques and our key takeaways.  
 
 [Back to home](README.md)
 
 
 ## Table of Contents
-
+  - [General coding agents](#general-coding-agents)
   - [Agentic Training](#agentic-training)
   - [Survey](#survey)
   - [End-to-end frameworks](#end-to-end-frameworks)
@@ -24,11 +24,25 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - [Others](#others)
     - [🛠️ Techniques](#️-techniques-3)
     - [📋 Benchmarks](#-benchmarks-3)
+  - [SWE tasks](#swe-tasks)
+    - [Issue resolving](#️issue-resolving)
+    - [Test generation](#test-generation)
+
+## General coding agents
+
+Below, we list some widely used coding agents that are mostly commercial products. These agents are mostly used for code development. They mainly use search, retrieval, file edit, and bash tools. They can also be connected to other software applications through MCP.
+
+- ClaudeCode
+- Cursor
+- Github Copilot
+- OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'24](https://arxiv.org/abs/2407.16741)]
+
 
 ## Agentic Training
 
-- Cyber-Zero: TRAINING CYBERSECURITY AGENTS WITHOUT RUNTIME ([Arxiv'25/08](https://www.arxiv.org/pdf/2508.00910)]
-
+- Cyber-Zero: Training Cybersecurity Agents without Runtime [[Arxiv'25/08](https://www.arxiv.org/pdf/2508.00910)]
+  - Use EnlGMA as the agent scaffold and target CTF benchmarks
+  - Use LLM to simulate trajectories and SFT for training 
 
 ## Survey
 
@@ -46,15 +60,10 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - Trail of Bits: [[Final code](https://github.com/trailofbits/afc-buttercup)] [[Semifinal code](https://github.com/trailofbits/asc-buttercup)]
   - All You Need IS A Fuzzing Brain: [[Final code](https://github.com/o2lab/afc-crs-all-you-need-is-a-fuzzing-brain)] [[Semifinal code](https://github.com/o2lab/asc-crs-all-you-need-is-a-fuzzing-brain)]
     - Simple pipeline, fuzzer (libfuzzer and llm-based poc gen) + llm-based patching
-    - Multiple prompts and multiple models, cwe-specific prompts.
-    - Poc Gen
-       - Delta mode:
-         - For poc gen, prompt includes coverage summarization + commit diff + cwe-specifc constitution (optional) + call path from harness entrypoint to a modified function (optional)
-       - Full mode:
-         - Find all reachable functions from entrypoint (static analysis)
-         - llm-based ranking for reachable funcs (all reachable function concatenated as a huge prompt)
+      - Multiple prompts and multiple models, cwe-specific prompts.
+    - Poc Gen: Find all reachable functions from entrypoint (static analysis) & LLM-based ranking for reachable funcs (all reachable function concatenated as a huge prompt)
      - Patching
-       - Llm-based patching location identification, prompt includes commit diff + crash log + history from poc gen (optional) + coverage(optional) + rag
+       - LLM-based patching location identification, prompt includes commit diff + crash log + history from poc gen (optional) + coverage(optional) + RAG
   - 42 b3yond 6ug: [[Final code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-crs)] [[Semifinal code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-asc)]
   - Lacrosse: [[Final code](https://github.com/siftech/afc-crs-lacrosse)] [[Semifinal code](https://github.com/siftech/asc-crs-lacrosse)]
 
@@ -73,7 +82,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - Target on finding variants of previously found and patched vulnerabilities
     - Scan one commit at a time, collected recent commits to the SQLite repository, manually removing trivial and documentation-only changes and provide the agent with both the commit message and a diff for the change (and previous fixed vulns), let the agent review whether there is unfixed variants
     - Toolset: debugger_run (just run the project, without a debugger) and code_browser_source (search in the codebase) are used
-
 - **LLM-based detection with additional information**
   - LLMxCPG: Context-Aware Vulnerability Detection Through Code Property Graph-Guided Large Language Models [ [USENIX Security'25/07](https://arxiv.org/abs/2507.16585)]
     - Use Code property graph together with LLMs for detection
@@ -101,17 +109,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - No tool calls; Target on Java
 - **LLM-facilitated fuzzer**
   - Papers that use LLM to generate seeds or grammars 
-- **Claim to be an agent**
-    - Autonomously Uncovering and Fixing a Hidden Vulnerability in SQLite3 with an LLM-Based System (team Atlanta in AIXCC) [[blog'24/08](https://team-atlanta.github.io/blog/post-asc-sqlite/)]
-        - Not much information
-        - “Incorporate traditional program analysis techniques (both dynamic and static) to assist LLMs in decision-making”
-        - “distilled our collective experience and common practices in manual auditing and reverse engineering into structured prompts, significantly enhancing the system’s capabilities”
-    - From Naptime to Big Sleep: Using Large Language Models To Catch Vulnerabilities In Real-World Code (Google) [[blog'24/11](https://googleprojectzero.blogspot.com/2024/10/from-naptime-to-big-sleep.html)]
-        - Target on finding variants of previously found and patched vulnerabilities
-        - Scan one commit at a time
-            - Collected a number of recent commits to the SQLite repository, manually removing trivial and documentation-only changes
-            - Provide the agent with both the commit message and a diff for the change (and previous fixed vulns), let the agent review whether there is unfixed variants
-        - Did not provide the tool set, only know that debugger_run (just run the project, without a debugger) and code_browser_source (search in the codebase) are provided
 
 ### 📋 Benchmarks
 
@@ -128,9 +125,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
             - It’s explicitly mentioned in the CVE description
         - Temporal Splits: oldest 80% as the training set, 10% most recent as the testing set, and other samples as the validation set
 - LLMs Cannot Reliably Identify and Reason About Security Vulnerabilities (Yet?): A Comprehensive Evaluation, Framework, and Benchmarks (SecLLMHolmes) [[IEEE S&P'24/05](https://arxiv.org/abs/2312.12575)]
-    - 228 code scenarios across 8 vulns for C and python with **augmentation**
-        - Trivial augmentation (84): mutate vuln codes from hand-crafted code scenarios by randomly renaming funcs/params, adding unreachable code, inserting whitespace or \n, and adding comments
-        - Non-trivial augmentation (66): mutate vuln and benign codes from hand-crafted code scenarios by changing func/param names to vulnerability-related keywords or `non_vulnerable`, adding a potentially dangerous library function (e.g., ‘strcpy’ or ‘strcat’) but use it in a safe way
+    - 228 code scenarios across 8 vulns for C and python with augmentation
     - Prompt templates: the set contains combinations of strategies including zero-shot/few shot, task-oriented (assign a task in the prompt), role-oriented (assign a role), step-by-step, definition-based (provide the definition of a vuln while asking the model to detect that vuln)
     - Metrics: Accuracy, cosine similarity, Gpt-4, Rouge score
 
@@ -140,30 +135,6 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 - **PoC generation**
 
-  - LLM with simple tools (non-PL tools)
-      - LLM Agents can Autonomously Exploit One-day Vulnerabilities [[arxiv'24/04](https://arxiv.org/abs/2404.08144)]
-          - Tools:
-              - Web browsing elements (retrieving HTML, clicking on elements, etc.)
-              - A terminal 
-              - Web search results 
-              - File creation and editing 
-              - A code interpreter.
-          - Did not disclose the prompt
-          - All web vulns, xss, rce, csrf
-          - Tested on 15 hand-picked CVEs.
-              - When providing vulnerability description and documentation of the target, 87% success rate
-              - When removing vulnerability description, 7% success rate
-      - Teams of LLM Agents can Exploit Zero-Day Vulnerabilities [[arxiv'25/03](https://arxiv.org/abs/2406.01637)]
-          - Target on web vulns
-          - Has 3 kinds of agents, a hierarchical planner which explores the environment and generates a plan, a team manager which determines which expert agent to use for a specific page, and some expert agents, each for one vuln type (SQLi, xss, csrf, …)
-          - Tools in common for expert agents
-              - Playwright (a browser testing framework to access the websites), the terminal, and file management tools
-              - Each expert agent has specific tools for the specific vuln
-                  - E.g., SQLi agent has access to sqlmap
-                  - Zap agent has access to zap (a scanner for xss, csrf, ..)
-  - FaultLine: Automated Proof-of-Vulnerability Generation Using LLM Agents [[arxiv'25/07](https://arxiv.org/abs/2507.15241)]
-      - It is a good agent with slicing and fixed workflow
-  - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks [[arxiv'25/05](https://arxiv.org/abs/2501.16466)]
   - Agentic Concolic Execution (S&P'26)
     - Use llm to perform basic-block level instrumentation
     - Has a corpus that contains interesting inputs, initially a random input, in each iteration
@@ -172,16 +143,35 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
       - LLM selects a branch to flip, and generate a new set of constraints
       - Use LLM agent to solve the constraint (with code retrieval and z3) and generate an input.
       - If the generated input yields new coverage, add the new input to the corpus
-    - Evaluation: 48 hours, targeting programs with several to tens of thousands of lines of code. exit if no coverage increase in 30 mins, 115%-233% higher code coverage than klee, and 11 0-days （pretty wired that the initial coverage at time 0 is not the same in Figure 5)
+
   - Claude-Sonnet-4-5-System-Card
-    - Improvement on cybergym over openhands can be attributed to more flexible token constraints (a 200k token context window vs 2048 token output in openhands) and auto-summarization.
+    - Improvement on cybergym over openhands can be attributed to more flexible token constraints (a 200k token context window vs 2048 token output in openhands) and auto-summarization
     - Has editing tool and bash tool, in a kali virtual machine, with pwntools(for pwn challenges)、Metasploit(N-day vulns)、Ghidra(rev) and tshark(for cybench web challenge)
     - asynchronous management of multiple terminal sessions
-    - Refinement is useful.
+    - Refinement is useful
+
+  - FaultLine: Automated Proof-of-Vulnerability Generation Using LLM Agents [[arxiv'25/07](https://arxiv.org/abs/2507.15241)]
+      - It is a good agent with slicing and fixed workflow
+
   - FalseCrashReducer: Mitigating False Positive Crashes in OSS-Fuzz-Gen Using Agentic AI (arxiv 25)
-    - The motivation is that they think the llm-based fuzz driver generator of oss-fuzz is not good enough that the fuzz driver generates infeasible inputs to a target function for fuzz.
+    - LLM-based fuzz driver generator of oss-fuzz is not good enough that the fuzz driver generates infeasible inputs to a target function for fuzz.
     - Has one agent to extract constraints of inputs to the target function, with grep and function search tool (given func name return func implementation), the constraint is used to generate fuzz driver
     - Has another agent to validate whether the crash is triggerable from program entry point
+
+  - LLM Agents can Autonomously Exploit One-day Vulnerabilities [[arxiv'24/04](https://arxiv.org/abs/2404.08144)]
+      - Tools: Web browsing elements (retrieving HTML, clicking on elements, etc.), A terminal, Web search results, File creation and editing, A code interpreter
+      - All web vulns, xss, rce, csrf
+      - Tested on 15 hand-picked CVEs
+          - When providing vulnerability description and documentation of the target, 87% success rate
+          - When removing vulnerability description, 7% success rate
+  - Teams of LLM Agents can Exploit Zero-Day Vulnerabilities [[arxiv'25/03](https://arxiv.org/abs/2406.01637)]
+      - Has 3 kinds of agents, a hierarchical planner which explores the environment and generates a plan, a team manager which determines which expert agent to use for a specific page, and some expert agents, each for one vuln type (SQLi, xss, csrf, …)
+      - Tools in common for expert agents
+          - Playwright (a browser testing framework to access the websites), the terminal, and file management tools
+          - Each expert agent has specific tools for the specific vuln
+              - E.g., SQLi agent has access to sqlmap
+              - Zap agent has access to zap (a scanner for xss, csrf, ..)
+  - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks [[arxiv'25/05](https://arxiv.org/abs/2501.16466)]
 
   - General agents
       - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'25/04](https://arxiv.org/abs/2407.16741)]
@@ -201,7 +191,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - Lacking tools and only using simple tools
 
 ### 📋 Benchmarks
-
+- CyberGym: Evaluating AI Agents' Real-World Cybersecurity Capabilities at Scale [[Arxiv'25/08](https://arxiv.org/abs/2506.02548)]
 - BountyBench: Dollar Impact of AI Agent Attackers and Defenders on Real-World Cybersecurity Systems [[arxiv'25/07](https://bountybench.github.io/)]
 
 ## Vulnerability patching
@@ -242,6 +232,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 - CVE-Bench: Benchmarking LLM-based Software Engineering Agent’s Ability to Repair Real-World CVE Vulnerabilities [[NAACL'25/04](https://aclanthology.org/2025.naacl-long.212/)]
 - SEC-bench: Automated Benchmarking of LLM Agents on Real-World Software Security Tasks [[arxiv'25/06](https://arxiv.org/abs/2506.11791)]
 - Introducing AutoPatchBench: A Benchmark for AI-Powered Security Fixes (Meta AI) [[blog'25/04](https://engineering.fb.com/2025/04/29/ai-research/autopatchbench-benchmark-ai-powered-security-fixes/)]
+
 ## Others
 
 ### 🛠️ Techniques 
@@ -271,3 +262,131 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 - SECURE: Benchmarking Large Language Models for Cybersecurity [[IEEE ACSAC'24/12](https://www.computer.org/csdl/proceedings-article/acsac/2024/208800a015/25bv7zxqzyo)]
 - CTIBench: A Benchmark for Evaluating LLMs in Cyber Threat Intelligence [[NeurIPS'24/12](https://arxiv.org/abs/2406.07599)]
+
+## SWE tasks
+
+- TerminalBench [[link](https://www.tbench.ai/)]
+  - Tier 1: Infrastructure & Core Systems: 
+    - Software Build & CompilationGoal: Build from source, fix compilation errors, and handle complex dependencies.
+      - Skills: make, gcc, cmake, cython, rustc, version compatibility debugging.
+      - Typical Tasks: build-linux-kernel-qemu, build-cython-ext, compile-compcert, magsac-install.
+    - System Administration & DevOpsGoal: Configure services, manage environments, and debug system-level issues.
+      - Skills: nginx, ssh, git server, docker, qemu, conda/npm dependency management, cron.
+      - Typical Tasks: configure-git-webserver, home-server-https, conda-env-conflict-resolution, broken-networking.
+    - Security, Reverse Engineering & ForensicsGoal: Exploit vulnerabilities, patch bugs, reverse engineer binaries/protocols, and recover deleted or corrupted data.
+      - Skills: SQL Injection, RCE, password cracking, git history analysis, binary analysis, gdb, file system forensics.
+      - Typical Tasks: sql-injection-attack, security-celery-redis-rce, git-leak-recovery, db-wal-recovery.
+  - Tier 2: Data & Algorithm Applications
+    - Data Processing & ETLGoal: Clean, transform, and aggregate data from various sources and formats.
+      - Skills: pandas, duckdb, jq, awk/sed/grep, SQL, file format conversion (CSV, JSON, Parquet).
+      - Typical Tasks: multi-source-data-merger, pandas-sql-query, log-summary-date-ranges, jq-data-processing.
+    - Machine Learning & MLOpsGoal: Implement, train, evaluate, debug, and deploy machine learning models.
+      - Skills: pytorch, huggingface transformers/peft, scikit-learn, LoRA, model parallelism, MLOps tools (mlflow, mteb).
+      - Typical Tasks: hf-train-lora-adapter, torch-pipeline-parallelism, classifier-debug, sam-cell-seg.
+    - Algorithms & Logic PuzzlesGoal: Solve self-contained puzzles that require algorithmic or logical reasoning.
+      - Skills: Search algorithms (BFS), constraint satisfaction, mathematical modeling, image recognition (for Sudoku, chess).
+      - Typical Tasks: huarong-dao-solver, assign-seats, solve-sudoku, code-from-image.
+  - Tier 3: Specialized Domains & Advanced Development
+    - Software Development, Porting & Bug FixingGoal: Develop new features, port code between languages/frameworks, and fix bugs in real-world open-source libraries.
+      - Skills: Multi-language programming (Python, C++, Rust), web frameworks (Flask), API design, code refactoring (MATLAB->Python, C->Rust).
+      - Typical Tasks: swe-bench-* (series), port-compressor (C to Safe Rust), cobol-modernization, solana-data (API dev).
+    - Scientific & Domain-Specific ComputingGoal: Solve problems in specific scientific fields like biology, chemistry, physics, or statistics.
+      - Skills: R, Stan (statistics), rdkit (chemistry), mujoco (physics), bioinformatics algorithms.
+      - Typical Tasks: dna-assembly, rstan-to-pystan, fmri-encoding-r, rare-mineral-allocation.
+    - Interactive Environments & GamesGoal: Complete tasks by interacting in multiple steps with a running process, API, or game.
+      - Skills: Process I/O redirection, socket programming, curl (REST API), game strategy.
+      - Typical Tasks: blind-maze-explorer-5x5, interactive-maze-game, find-restaurant, play-zork.
+    - Distributed & Parallel ComputingGoal: Leverage multi-core or multi-node capabilities to accelerate computation.
+      - Skills: OpenMP, MPI, multiprocessing, Spark, Hadoop.
+      - Typical Tasks: parallel-particle-simulator, torch-tensor-parallelism, predicate-pushdown-bench.
+    - Formal Verification & GraphicsGoal: Prove theorems using formal methods, or perform 3D rendering and image processing.
+      - Skills: Coq, Lean, SAT/SMT solvers, pyrender, osmesa, path tracing algorithms.
+      - Typical Tasks: lean4-proof, weighted-max-sat-solver, path-tracing, unprivileged-headless-pyrender.
+## DevOps agents
+
+- Enabling Autonomic Microservice Management through Self-Learning Agents [[Arxiv'25](https://arxiv.org/abs/2501.19056)]
+
+- An LLM-based Agent for Reliable Docker Environment Configuration [[Arxiv'25](https://www.arxiv.org/pdf/2502.13681v2)]
+
+
+### Issue resolving
+
+Issue resolving is a typical SWE task on the development side. Below, we list and discuss some most representative works and top ranking works on SWE-bench. A more complete list can be found in this [document](https://docs.google.com/document/d/1UuoWGaVmk_W7tSGeVm0Eb4-Hi4HU1BJ9YLcPQ-fKrEE/edit?usp=sharing) as well as this [repo](https://github.com/codefuse-ai/Awesome-Code-LLM).
+
+- ***SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution***
+
+- ***DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL***
+
+- ToolCoder: A Systematic Code-Empowered Tool Learning Framework for Large Language Models
+
+- Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks
+
+- SWE-Fixer: Training Open-Source LLMs for Effective and Efficient GitHub Issue Resolution
+
+- Thinking Longer, Not Larger: Enhancing Software Engineering Agents via Scaling Test-Time Compute
+
+- SWE-RL: Advancing LLM Reasoning via Reinforcement Learning on Open Software Evolution
+
+- SWE-Gym: Training Software Engineering Agents and Verifiers with SWE-Gym
+
+- Training Long-Context, Multi-Turn Software Engineering Agents with Reinforcement Learning
+
+- Agent-RLVR: Training Software Engineering Agents via Guidance and Environment Rewards
+
+- Co-PatcheR: Collaborative Software Patching with Component(s)-specific Small Reasoning Models
+
+- Skywork-SWE: Unveiling Data Scaling Laws for Software Engineering in LLMs
+  - New data creation technique
+
+- Training Software Engineering Agents and Verifiers with SWE-Gym
+
+- SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering [[NeurIPS'24](https://arxiv.org/abs/2405.15793)]
+  - Proposes an agent-computer interface between the LM agent and computer to facilitate tool use  
+  - Offer a set of tools for file-related tasks with fewer options and shorter documents than bash commands (e.g., LM-friendly commands of viewing, searching through, and editing files, find_file(), scroll_up(), scroll_down(), open(), edit())
+  - A simplified version: [mini-swe-agent](https://github.com/SWE-agent/mini-swe-agent)
+
+- AutoCodeRover: Autonomous Program Improvement [[ISSTA'24](https://arxiv.org/abs/2404.05427)]
+  - Early agents on issue resolving
+  - Context retrieval agent: search for related functions in the AST; Use SBFL for root cause analysis based on path differences
+
+- Agentless: Demystifying LLM-based Software Engineering Agents [[ASE'25](https://arxiv.org/abs/2407.01489)]
+  - Have three sub-agents for localization, generation and validation, 
+  - Localization is divided into a three-step procedure
+
+- Moatless [[link](https://github.com/aorwall/moatless-tools)]
+  - Agentic loop that functions as a finite state machine, transitioning between states. Each state can have its own prompts and response handling
+    - Search&Identify: find and identify relevant code 
+    - PlanToCode: task decomposition, breaking large code changes into smaller changes 
+    - ClarifyChange: If the proposed changes affect too large a portion of the code, ask llm to reduce the amount of modifications.
+    - EditCode: search/replace code block: generate replace block 
+    Modularize and isolate the code that needs to be patched  
+
+- PathPilot: A Cost-Efficient Software Engineering Agent with Early Attempts on Formal Verification [[ICML'25](https://arxiv.org/abs/2502.02747)]
+  - Optimization over Agentless to improve resolve rate and cost efficiency
+  - Early attempts on formal verification after generation
+
+- UTBoost: Rigorous Evaluation of Coding Agents on SWE-Bench
+
+
+### Test generation
+
+- CURE: Co-Evolving LLM Coder and Unit Tester via Reinforcement Learning
+- CoCoEvo: Co-Evolution of Programs and Test Cases to Enhance Code Generation
+- CodeContests+: High-Quality Test Case Generation for Competitive Programming
+- Learning to Generate Unit Tests for Automated Debugging
+- ASTER: Natural and Multi-language Unit Test Generation with LLMs
+- Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
+- LLM-based Unit Test Generation via Property Retrieval
+- Automatic Unit Test Data Generation and Actor-Critic Reinforcement Learning for Code Synthesis
+
+- CompileAgent: Automated Real-World Repo-Level Compilation with Tool-Integrated LLM-based Agent System [[Arxiv'25](https://arxiv.org/abs/2502.01821)]
+
+- Agentic Bug Reproduction for Effective Automated Program Repair at Google [[Arxiv'25](https://arxiv.org/abs/2502.01821)]
+
+- AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]
+
+- TestForge: Feedback-Driven, Agentic Test Suite Generation [[Arxiv'25](https://arxiv.org/abs/2503.14713)]
+
+- What Makes Large Language Models Reason in (Multi-Turn) Code Generation? [[Arxiv'25](https://arxiv.org/abs/2410.08105)]
+- Beyond Syntax: How Do LLMs Understand Code? [[IEEE'25](https://ieeexplore.ieee.org/document/11023969)]
+- How Does LLM Reasoning Work for Code? A Survey and a Call to Action [[Arxiv'25](https://arxiv.org/abs/2506.13932)]
