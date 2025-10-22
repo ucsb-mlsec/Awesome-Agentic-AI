@@ -85,7 +85,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ### Compute step-wise rewards
 - SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
-  - Train an LLM as progress estimator to assign a contribution score for each step
+  - Train an LLM as a progress estimator to assign a contribution score for each step
   - The sum of the contribution scores is the final reward (either 0 or 1) 
   - Model assigns a reward to each step, training objective is to make the sum of the contribution scores close to the final reward (MSE loss) [No constraints on individual step scores]
 
@@ -145,8 +145,9 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - When Speed Kills Stability: Demystifying RL Collapse from the Training-Inference Mismatch [[Notion'25/10](https://yingru.notion.site/When-Speed-Kills-Stability-Demystifying-RL-Collapse-from-the-Training-Inference-Mismatch-271211a558b7808d8b12d403fd15edda)]
   - Mismatch between training and inference: cause collapse of RL training: $\mathbb{E} _{x\sim \mathcal{D}}\mathbb{E} _{y\sim \textcolor{red}{\pi _{\theta}^{\mathrm{vllm}}}\left( \cdot |x \right)}\left[ R\left( x,y \right) \nabla _{\theta}\log \textcolor{blue}{\pi _{\theta}^{\mathrm{fsdp}}}\left( y|x \right) \right]$
+  - Long context amplifies this issue as the difference is accumulated 
   - The **agent** receives a tool response, which is often structured text (e.g., context enveloped by `<python_output>` and `</python_output>` tags) that is OOD compared to its pre-training and SFT data.Faced with this unfamiliar OOD context, the **agent's policy** becomes more uncertain, making it more likely to sample low-probability tokens in its subsequent turns (which is also observed in [**SimpleTIR**](https://github.com/ltzheng/SimpleTIR)).
-  - Hardware difference also contribute to the instability
+  - Hardware differences also contribute to the instability
   - Solution: sequence-level importance sampling ($\frac{\textcolor{blue}{\pi_{\theta}^{\mathrm{fsdp}}}(y|x)}{\textcolor{red}{\pi_{\theta}^{\mathrm{vllm}}}(y|x)}$)
 
 ## Memory management
