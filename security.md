@@ -255,6 +255,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 - **Binary analysis/reverse engineering**
 
+  - FidelityGPT: Correcting Decompilation Distortions with Retrieval-Augmented Generation[[[NDSS'26](https://arxiv.org/abs/2510.19615)]
   - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
   - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
 
