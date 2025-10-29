@@ -152,17 +152,17 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ## Memory management
 
-- Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models [[Arxiv'25](https://arxiv.org/)]
+- Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models [[Arxiv'25](https://arxiv.org/abs/2510.04618)]
   - About curating prompts adaptive to a specific kind of tasks
   - General process: Several adaptive steps (run some tasks with guidelines -> llm generate guidelines) use guidelines to run other similar tasks
   - Previous methods tend to provide brief, generic prompts. After several adaptive step, context would be summarized.
   - This method instead constructs the guidelines in a structured way called playbook with bullet points. And manage it using an agent, which selects what bullet entries to use, labels how many times a bullet entry is useful or misleading, and performs incremental edition.
 
-- Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory [[Arxiv'25](https://arxiv.org/)]
+- Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory [[Arxiv'25](https://arxiv.org/abs/2504.07952)]
 
-- Scaling Agent Self-Evolving with Reasoning Memory [[Arxiv'25](https://arxiv.org/)]
+- Scaling Agent Self-Evolving with Reasoning Memory [[Arxiv'25](https://arxiv.org/abs/2509.25140)]
 
-- Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory [[Arxiv'25](https://arxiv.org/)]
+- Mem0: Building Production-Ready AI Agents with Scalable Long-Term Memory [[Arxiv'25](https://arxiv.org/abs/2504.19413)]
   - Proposed two memory systems, mem0 and mem0g (graph-based)
   - Mem0:
     - Store and update:
@@ -176,38 +176,38 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Retrieve:
       - Two mechanisms: embedding-based and filtered by similarity, Graph-based (find entities in query, find related nodes, then retrieve in and out edges)
 
-- A-MEM: Agentic Memory for LLM Agents [[Arxiv'25](https://arxiv.org/)]
+- A-MEM: Agentic Memory for LLM Agents [[Arxiv'25](https://arxiv.org/abs/2502.12110)]
   - Llm extract info to store
   - Whenever a memory stored into the kb, ask llm whether it's related to each existing memory, create relations
 
-- STMA: A Spatio-Temporal Memory Agent for Long-Horizon Embodied Task Planning [[Arxiv'25](https://arxiv.org/)]
+- STMA: A Spatio-Temporal Memory Agent for Long-Horizon Embodied Task Planning [[Arxiv'25](https://arxiv.org/abs/2502.10177)]
   - Targeted of embodied tasks
   - Has a summarization for actions and observations, structured representation of finished actions, objectives, observations, provided in each query (temporal)
   - Has a graph-based knowledge graph for spatio modeling, can be updated to reflect the spatio changes, has a pre-induction of the relations, e.g., a is west of b, b is west of c -> a is west of c
   - When retrieve, find top n entities, for each entity, find top k neighbors
 
-- HIAGENT: Hierarchical Working Memory Management for Solving Long-Horizon Agent Tasks with Large Language Model [[ACL'25](https://arxiv.org/)]
+- HIAGENT: Hierarchical Working Memory Management for Solving Long-Horizon Agent Tasks with Large Language Model [[ACL'25](https://aclanthology.org/2025.acl-long.1575.pdf)]
   - First, let the LLM generate subgoals during task execution
   - For the current subgoal, retain all action-observation pairs
   - Once the subgoal is accomplished, compress its corresponding action-observation pairs into a summary, keeping only the parts relevant to the current subgoal
 
-- Optimus-1: Hybrid multimodal memory empowered agents excel in long-horizon tasks [[NeurIPS'24](https://arxiv.org/)]
+- Optimus-1: Hybrid multimodal memory empowered agents excel in long-horizon tasks [[NeurIPS'24](https://openreview.net/pdf?id=XXOMCwZ6by)]
   - Evaluated with minecraft
   - Has a Hierarchical Directed Knowledge Graph storing the task dependency and crafting relationship (in minecraft, e.g., Stick + coal -> torch)
   - Has a Abstracted Multimodal Experience Pool, storing failed and successful sub-objectives (like find the river, etc), including the planning, the trajectory (action-observation pairs), summary of the trajectory, env snapshot (e.g., minecraft map states), visual info (including 1. Raw video stream, 2. image buffer (sliding window) → dynamically filter similar frames and retain key frames)
 
-- MemOS: A Memory OS for AI System [[Arxiv'25](https://arxiv.org/)]
+- MemOS: A Memory OS for AI System [[Arxiv'25](https://arxiv.org/pdf/2507.03724)]
   - Offers a unified interface for Plaintext Memory, Activation Memory, and Parameter Memory. Not really related to our objective, which is to optimize Plaintext Memory management
 
-- State and Memory is All You Need for Robust and Reliable AI Agents [[Arxiv'25](https://arxiv.org/)]
+- State and Memory is All You Need for Robust and Reliable AI Agents [[Arxiv'25](https://arxiv.org/abs/2507.00081)]
   - Trivial rag, human designed finite state automaton to maintain states
 
-- RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval [[ICLR'24](https://arxiv.org/)]
+- RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval [[ICLR'24](https://openreview.net/forum?id=GN921JHCRw)]
   - Augment retrieval for long text document, other methods only retrieve continuous small chunks
   - Divide document to small trunks by 100 bytes, cluster the chunks, layered summarization of each chunk, for a tree
   - Retrieval strategies: tree traversal (layer-by-layer) and collapsed tree (global comparison), they found collapsed tree is better
 
-- Enhancing Reasoning with Collaboration and Memory [[Arxiv'25](https://arxiv.org/)]
+- Enhancing Reasoning with Collaboration and Memory [[Arxiv'25](https://arxiv.org/abs/2503.05944)]
   - Evaluation of some early explorations
   - Note that the memory bank in this paper stores exemplars with reasoning chain, like demo of tasks, the insights may not apply to works where the memory stores more fine-grained info within one task
   - Insights:
@@ -221,21 +221,21 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Summarizer agent is most helpful when the reasoning agents are weaker and less so when they are already strong
     - Summarizer reviews the others' responses before determining the final answer
 
-- MemoRAG: Boosting Long Context Processing with Global Memory-Enhanced Retrieval Augmentation [[WWW'25](https://arxiv.org/)]
+- MemoRAG: Boosting Long Context Processing with Global Memory-Enhanced Retrieval Augmentation [[WWW'25](https://dl.acm.org/doi/abs/10.1145/3696410.3714805?casa_token=fMTI1HaWSJEAAAAA:9Ik8jS9DYHnj0HYH0nRByTTc2Z0YGXkNy5qyCGDWVKKbrRPEPPpKP64mEzIT08ZFruSgsxzgluf3rE0)]
   - A trained-model to replace cosine similarity for embedding matching
 
-- Cognitive Memory in Large Language Models [[Arxiv'25](https://arxiv.org/)]
+- Cognitive Memory in Large Language Models [[Arxiv'25](https://arxiv.org/pdf/2504.02441)]
 
-- MemGPT: Towards LLMs as Operating Systems [[Arxiv'23](https://arxiv.org/)]
+- MemGPT: Towards LLMs as Operating Systems [[Arxiv'23](https://par.nsf.gov/servlets/purl/10524107)]
 
-- SRMT: Shared Memory for Multi-agent Lifelong Pathfinding [[Arxiv'25](https://arxiv.org/)]
+- SRMT: Shared Memory for Multi-agent Lifelong Pathfinding [[Arxiv'25](https://arxiv.org/pdf/2501.13200)]
   - Not llm agent, but rl agents
 
-- Zep: A Temporal Knowledge Graph Architecture for Agent Memory [[Arxiv'25](https://arxiv.org/)]
+- Zep: A Temporal Knowledge Graph Architecture for Agent Memory [[Arxiv'25](https://arxiv.org/abs/2501.13956)]
 
-- Intrinsic Memory Agents: Heterogeneous Multi-Agent LLM Systems through Structured Contextual Memory [[Arxiv'25](https://arxiv.org/)]
+- Intrinsic Memory Agents: Heterogeneous Multi-Agent LLM Systems through Structured Contextual Memory [[Arxiv'25](https://arxiv.org/abs/2508.08997)]
 
-- MIRIX: Multi-Agent Memory System for LLM-Based Agents [[Arxiv'25](https://arxiv.org/)]
+- MIRIX: Multi-Agent Memory System for LLM-Based Agents [[Arxiv'25](https://arxiv.org/abs/2507.07957)]
   - Layered memory, hand-designed levels
 
 ## Agentic modeling (linear attentions)
