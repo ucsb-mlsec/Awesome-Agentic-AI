@@ -129,6 +129,10 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Step reward is the same as the final reward
   - Define a set of rules to scale the reward of each trajectory
 
+- Webrl: Training llm web agents via self-evolving online curriculum reinforcement learning [[ICLR 25](https://arxiv.org/abs/2411.02337)]
+  - web navigation tasks
+  - long-horizon interaction yet provide sparse and delayed rewards. Making policy improvement challenging and costly, and often result in training collapse
+
 ### Efficiency, inference, and other issues
 
 - RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
