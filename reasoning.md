@@ -91,6 +91,7 @@ extrapolated to large-compute regime
 extrapolated to large-compute regime
   - Common interventions thought to improve peak performance (e.g., loss aggregation, data curriculum, length penalty, advantage normalization) mainly adjust compute efficiency, while not changing the performance ceiling considerably.
 
+- Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model? [[Arxiv'25/04](https://arxiv.org/abs/2504.13837)]
 ### Online RL 
 
 Online RL methods are mainly used for post-training with verifiable outcome reward. Some recent works also explore using RL for [pre-training](https://arxiv.org/pdf/2506.08007) or mid-training (a new training stage between pre-training and post-training, mainly aim to improve agentic capabilities).
