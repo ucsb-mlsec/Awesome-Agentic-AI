@@ -154,7 +154,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Generate explanations for state transitions: why action leads to the next state and reward
   - Train an experience model with both objectives
   - Inference: Experience model predicts next state and reward given current state and action; any RL algorithm can then be applied
-  - Related: Can potentially apply to Petri (https://alignment.anthropic.com/2025/petri/), a synthetic environment for AI safety auditing, though Petri's environment has limitations (ambiguous tools, lacking implementation details, impossible scenarios)
 
 - RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
   - A new framework for efficient RL training.
