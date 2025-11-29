@@ -66,6 +66,16 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
  
 ## RL-based reasoning
 
+- DeepSeek-Math-V2 [[Github](https://github.com/deepseek-ai/DeepSeek-Math-V2)]
+  - Training:
+    - Train an initial verifier with GRPO using format reward and score reward (expert-labeled proof scores: 1/0.5/0)
+    - Meta-verifier: Train a meta-verifier to evaluate verification quality; integrate meta-verification score into verifier reward
+    - Proof generator initialized from trained verifier; iteratively train generator and verifier
+  - Inference (IMO gold medal):
+    - Generate 64 proofs, each with 64 verifications
+    - Iterative refinement (up to 16 rounds): select top-64 proofs by avg score, pair each with 8 analyses (prioritize low-score ones), generate 512 new proofs
+    - Stop when a proof passes all 64 verifications
+
 - **Part I: Tricks or Traps? A Deep Dive into RL for LLM Reasoning** [[Arxiv'25/08](https://arxiv.org/pdf/2508.08221)]
   - Normalization:
     - Group-level normalization is stable under different datasets (easy and hard math dataset) and different model sizes (Qwen 4B & 8B, base and aligned)

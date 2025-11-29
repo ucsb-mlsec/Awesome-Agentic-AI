@@ -7,6 +7,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - [Table of Contents](#table-of-contents)
   - [Newest models](#newest-models)
   - [Agentic RL](#agentic-rl)
+    - [Agent training framework](#agent-training-framework)
   - [Memory management](#memory-management)
   - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
 
@@ -155,6 +156,13 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Train an experience model with both objectives
   - Inference: Experience model predicts next state and reward given current state and action; any RL algorithm can then be applied
 
+- Simulating Environments with Reasoning Models for Agent Training [[Arxiv'25/11](https://arxiv.org/abs/2511.01824)]
+  - Simia-SFT: Use LLM to generate environment feedback from seed trajectories
+  - Simia-RL: Generate next state and reward; LLM-generated error messages may be more helpful than real environment
+
+- LLMs as Scalable, General-Purpose Simulators For Evolving Digital Agent Training [[Arxiv'25/10](https://arxiv.org/abs/2510.14969)]
+  - Simulator generates next state; guided rollout decides actions with reasoning; wrap infers overall user task
+
 - RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
   - A new framework for efficient RL training.
 
@@ -174,8 +182,13 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Hardware differences also contribute to the instability
   - Solution: sequence-level importance sampling ($\frac{\textcolor{blue}{\pi_{\theta}^{\mathrm{fsdp}}}(y|x)}{\textcolor{red}{\pi_{\theta}^{\mathrm{vllm}}}(y|x)}$)
 
-### Agent training framework
+- Effective Harnesses for Long-Running Agents [[Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)]
+  - Problems: Agent tries to one-shot complex tasks, runs out of context mid-implementation; later agent sees progress and declares done prematurely
+  - Solution: Initializer agent sets up environment and progress file; coding agent makes incremental progress with structured updates
+  - Open questions: Single general-purpose agent vs multi-agent architecture; generalization to other domains (scientific research, financial modeling)
 
+### Agent training framework
+- Compare of different frameworks [[anatomy-of-rl-frameworks](https://www.hanifleo.com/anatomy-of-rl-frameworks/)]
 - Slime [[Github](https://github.com/THUDM/slime)]
   - Asynchronous rollout: Training and inference are fully separated using sglang
   - Customized rollout: Supports task-specific handling such as filtering incomplete/invalid trajectories
