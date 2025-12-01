@@ -50,6 +50,8 @@ Below, we list some widely used coding agents that are mostly commercial product
   - Summarize recent works on agentic AI in security (including analysis on AIxCC CRSs)
   - Summarize recent benchmarks on AI for security
   - Provide concrete recommendations for future research
+- Beyond Syntax: How Do LLMs Understand Code? [[IEEE'25](https://ieeexplore.ieee.org/document/11023969)]
+- How Does LLM Reasoning Work for Code? A Survey and a Call to Action [[Arxiv'25](https://arxiv.org/abs/2506.13932)]
 
 ## End-to-end frameworks
 - AIxCC frameworks
@@ -189,6 +191,10 @@ Below, we list some widely used coding agents that are mostly commercial product
         - Debugger Agent: Construct a call graph, provide LLM with the concatenated most likely root cause method of each group, give LLM tools of get_callers, get_callees, and get_method body, let LLM rank all provided methods.
         - Reviewer Agent: let LLM critique, provide get_callgraph, get_callers, get_callees, and get_method body.
     - Lacking tools and only using simple tools
+  - **Agentic Bug Reproduction for Effective Automated Program Repair at Google [[Arxiv'25](https://arxiv.org/abs/2502.01821)]**
+  - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
+  - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
+
 
 ### 📋 Benchmarks
 - CyberGym: Evaluating AI Agents' Real-World Cybersecurity Capabilities at Scale [[Arxiv'25/08](https://arxiv.org/abs/2506.02548)]
@@ -266,6 +272,8 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 ## SWE tasks
 
+### Benchmarks
+
 - TerminalBench [[link](https://www.tbench.ai/)]
   - Tier 1: Infrastructure & Core Systems: 
     - Software Build & CompilationGoal: Build from source, fix compilation errors, and handle complex dependencies.
@@ -303,7 +311,11 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Formal Verification & GraphicsGoal: Prove theorems using formal methods, or perform 3D rendering and image processing.
       - Skills: Coq, Lean, SAT/SMT solvers, pyrender, osmesa, path tracing algorithms.
       - Typical Tasks: lean4-proof, weighted-max-sat-solver, path-tracing, unprivileged-headless-pyrender.
-## DevOps agents
+- SWE-Gym: Training Software Engineering Agents and Verifiers with SWE-Gym
+- What Makes Large Language Models Reason in (Multi-Turn) Code Generation? [[Arxiv'25](https://arxiv.org/abs/2410.08105)]
+  - Not a benchmark but studies the impact of different prompting strategies on multi-turn code generation tasks & fine-tuning with the good prompting strategies
+
+### DevOps agents
 
 - Enabling Autonomic Microservice Management through Self-Learning Agents [[Arxiv'25](https://arxiv.org/abs/2501.19056)]
 
@@ -314,32 +326,26 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 Issue resolving is a typical SWE task on the development side. Below, we list and discuss some most representative works and top ranking works on SWE-bench. A more complete list can be found in this [document](https://docs.google.com/document/d/1UuoWGaVmk_W7tSGeVm0Eb4-Hi4HU1BJ9YLcPQ-fKrEE/edit?usp=sharing) as well as this [repo](https://github.com/codefuse-ai/Awesome-Code-LLM).
 
-- ***SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution***
+- **SkyRL-Agent: Efficient RL Training for Multi-turn LLM Agent [[Arxiv'25/11](https://arxiv.org/abs/2511.16108)]**
+  - Training recipe for SA-SWE-32B
+  - Motivation: Error localization is a key bottleneck; agents over-rely on viewing files instead of leveraging search utilities; multi-turn RL suffers from repetitive/unproductive behaviors
+  - Bootstrap training with better tools: AST-based search tool supporting fuzzy matching and structural pattern search
+  - RL: Fully on-policy setup; mask out trajectories exceeding max context length or step limit during gradient updates
+  - Use leave-one-out advantage estimation; remove standard deviation and length normalization in advantage computation
+  - Disable KL and entropy loss in RL training
+  - Add hints: structured cues to help agents recover from failed actions (suggestions on tool failure, notifications about remaining budget/context, corrections for invalid function calls)
 
-- ***DeepSWE: Training a Fully Open-sourced, State-of-the-Art Coding Agent by Scaling RL***
+- **SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution***
 
-- ToolCoder: A Systematic Code-Empowered Tool Learning Framework for Large Language Models
-
-- Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks
-
-- SWE-Fixer: Training Open-Source LLMs for Effective and Efficient GitHub Issue Resolution
-
-- Thinking Longer, Not Larger: Enhancing Software Engineering Agents via Scaling Test-Time Compute
-
-- SWE-RL: Advancing LLM Reasoning via Reinforcement Learning on Open Software Evolution
-
-- SWE-Gym: Training Software Engineering Agents and Verifiers with SWE-Gym
-
-- Training Long-Context, Multi-Turn Software Engineering Agents with Reinforcement Learning
-
-- Agent-RLVR: Training Software Engineering Agents via Guidance and Environment Rewards
+- **Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks [[ICLR'25/06](https://arxiv.org/pdf/2505.16901)]**
 
 - Co-PatcheR: Collaborative Software Patching with Component(s)-specific Small Reasoning Models
-
-- Skywork-SWE: Unveiling Data Scaling Laws for Software Engineering in LLMs
-  - New data creation technique
-
-- Training Software Engineering Agents and Verifiers with SWE-Gym
+  - SFT and 46% on SWE-bench-Verified
+  - Some other earlier works 
+    - SWE-Fixer: Training Open-Source LLMs for Effective and Efficient GitHub Issue Resolution
+    - Thinking Longer, Not Larger: Enhancing Software Engineering Agents via Scaling Test-Time Compute
+    - SWE-RL: Advancing LLM Reasoning via Reinforcement Learning on Open Software Evolution
+    - Agent-RLVR: Training Software Engineering Agents via Guidance and Environment Rewards
 
 - SWE-agent: Agent-Computer Interfaces Enable Automated Software Engineering [[NeurIPS'24](https://arxiv.org/abs/2405.15793)]
   - Proposes an agent-computer interface between the LM agent and computer to facilitate tool use  
@@ -377,17 +383,8 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
 - Learning to Generate Unit Tests for Automated Debugging
 - ASTER: Natural and Multi-language Unit Test Generation with LLMs
 - Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
-- LLM-based Unit Test Generation via Property Retrieval
-- Automatic Unit Test Data Generation and Actor-Critic Reinforcement Learning for Code Synthesis
-
-- CompileAgent: Automated Real-World Repo-Level Compilation with Tool-Integrated LLM-based Agent System [[Arxiv'25](https://arxiv.org/abs/2502.01821)]
-
-- Agentic Bug Reproduction for Effective Automated Program Repair at Google [[Arxiv'25](https://arxiv.org/abs/2502.01821)]
-
-- AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]
-
 - TestForge: Feedback-Driven, Agentic Test Suite Generation [[Arxiv'25](https://arxiv.org/abs/2503.14713)]
+  - A test generation agent with feedback from coverage tool and a test oracle
 
-- What Makes Large Language Models Reason in (Multi-Turn) Code Generation? [[Arxiv'25](https://arxiv.org/abs/2410.08105)]
-- Beyond Syntax: How Do LLMs Understand Code? [[IEEE'25](https://ieeexplore.ieee.org/document/11023969)]
-- How Does LLM Reasoning Work for Code? A Survey and a Call to Action [[Arxiv'25](https://arxiv.org/abs/2506.13932)]
+
+

@@ -119,13 +119,6 @@ Online RL methods are mainly used for post-training with verifiable outcome rewa
       - Dynamically adjust the length based on the accuracy of small model rollout
     - SFT + GRPO
 
-- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models [[Arxiv'25/06](https://arxiv.org/abs/2505.22617)]
-  - Resolve entropy collapse (Entropy dropped sharply at the early training stage, leading to an overly
-confident policy model) 
-  - Propose a scaling Law to predict downstream performance from policy entropy
-    - R = - a exp(H) + b
-    - A positive correlation between log(a|s) and A(s,a) tends to decrease the entropy
-  - Clip a fraction of high-covariance tokens out of the policy update
 
 - Open-Reasoner-Zero: An Open Source Approach to Scaling Up Reinforcement Learning on the Base Model [[Arxiv'25/07](https://arxiv.org/pdf/2503.24290)]
   - Shows that PPO with GAE and rule-based reward without KL 
@@ -241,3 +234,18 @@ This line of methods explore using generation entropy or confidence as the proce
 - Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
 
 - Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
+
+### Misc
+
+#### Combat entropy collapse
+
+As an extension of the entropy and confidence based PRM, some works find that the post-training process is likely to encounter entropy collapse issue, where the model becomes overly confident and stops exploring better reasoning paths. Some works propose techniques to mitigate this issue. 
+
+- The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models [[Arxiv'25/06](https://arxiv.org/abs/2505.22617)]
+  - The change in policy entropy is driven by the covariance between action probability and the change in logits
+    - The change in logits is proportional to the advantage A(s, a)
+      - If an action is better (measured by advantage), we want to increase its logits
+    - A high-probability action with high advantage would reduce policy entropy, while a rare action with high advantage would increase policy entropy
+      - High covariance means the action is already good but the advantage is still high
+  - Clip-Cov and KL-Cov, which clip and apply KL penalty to tokens with high covariances respectively 
+
