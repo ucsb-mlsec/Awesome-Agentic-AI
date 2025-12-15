@@ -192,6 +192,13 @@ Below, we list some widely used coding agents that are mostly commercial product
         - Reviewer Agent: let LLM critique, provide get_callgraph, get_callers, get_callees, and get_method body.
     - Lacking tools and only using simple tools
   - **Agentic Bug Reproduction for Effective Automated Program Repair at Google [[Arxiv'25](https://arxiv.org/abs/2502.01821)]**
+    - Agent Scaffold
+      - React style
+      - Two LLMs, one for planning and general tool calling, one for code-editing.
+      - Input: Bug report + Identified buggy file content
+      - Tools: cat, code_search, bazel test, finish, edit
+        - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
+      - How the models are fine-tuned are not mentioned.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
 
