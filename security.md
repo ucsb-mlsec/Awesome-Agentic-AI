@@ -198,9 +198,20 @@ Below, we list some widely used coding agents that are mostly commercial product
       - Input: Bug report + Identified buggy file content
       - Tools: cat, code_search, bazel test, finish, edit
         - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
-      - How the models are fine-tuned are not mentioned.
+      - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
+    - 
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
+    - Build a code graph G(V,E,A,R) using python ast to support graph-based retrieval, where
+      - V = {vᵢ}, nodes
+      - E ⊆ V × V, edges,
+      - For nodes, τ (v) ∶ V → A maps to types A = {directory, file, class, function}
+      - For edges, ϕ(e) ∶ E → R maps to relationships R = {contain, import, invoke, inherit}
+    - Tools:
+      - SearchEntity: input is a keyword, output is an entity id and code snippet
+        - Support exact match (filepath+func name) and three levels of fuzzy match (all func with same name, BM25, code content inverted index) 
+      - TraverseGraph: performs BFS uder rules specified by LLM. Input is a starting entity and some rules provided by LLM, e.g., number of hops, only consider what type of nodes, only consider what type of edges. output is a subgraph.
+      - RetrieveEntity: input is an entity id, output is all attributes of an entity, including filepath, linenum, code, other metadata.   
 
 
 ### 📋 Benchmarks
