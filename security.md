@@ -200,7 +200,6 @@ Below, we list some widely used coding agents that are mostly commercial product
         - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
       - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
-    - 
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
     - Build a code graph G(V,E,A,R) using python ast to support graph-based retrieval, where
       - V = {vᵢ}, nodes
@@ -353,7 +352,7 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
   - Disable KL and entropy loss in RL training
   - Add hints: structured cues to help agents recover from failed actions (suggestions on tool failure, notifications about remaining budget/context, corrections for invalid function calls)
 
-- **SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution***
+- **SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution[[Blog](https://www.notion.so/SWE-Swiss-A-Multi-Task-Fine-Tuning-and-RL-Recipe-for-High-Performance-Issue-Resolution-21e174dedd4880ea829ed4c861c44f88#245174dedd488067a9e7eea04315dad5)]**
 
 - **Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks [[ICLR'25/06](https://arxiv.org/pdf/2505.16901)]**
 
