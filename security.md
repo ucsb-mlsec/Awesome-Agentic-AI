@@ -353,6 +353,32 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
   - Add hints: structured cues to help agents recover from failed actions (suggestions on tool failure, notifications about remaining budget/context, corrections for invalid function calls)
 
 - **SWE-Swiss: A Multi-Task Fine-Tuning and RL Recipe for High-Performance Issue Resolution[[Blog](https://www.notion.so/SWE-Swiss-A-Multi-Task-Fine-Tuning-and-RL-Recipe-for-High-Performance-Issue-Resolution-21e174dedd4880ea829ed4c861c44f88#245174dedd488067a9e7eea04315dad5)]**
+  - Agent framework
+    - Localize, input: issue description + repo's file structure, output: predicted relevant files
+    - Repair, input: predicted files + files retrieved via text-embedding-3-small, output: a candidate patch
+    - Validation, input: patches + existing regression test, process: first filter out patches that do not pass existing regression test, then generate multiple unit tests and select one genearted test by majority voting, then use the final test to filter out patches and do majority voting for patches.
+  - Recipe: first SFT for localization, repair, and unit test gen, then GRPO for repair
+    - SFT
+      - Rejection sampling for each task
+      - teacher model: DeepSeek-R1-0528, generates reasoning data, base model: Qwen2.5-32B-Instruct, jointly trained on three tasks, 36.0% pass@1 on SWE-bench Verified
+        - Localization:
+          - data: SWE-bench and SWE-Gym-Raw training set
+          - input: issue description + repo's file structure, output: files that need to be changed
+          - only keep recall=1.0 and predicted file num <=5, 5.3K data
+        - Repair:
+          - data: SWE-bench and SWE-smith
+          - input: issue description + ground-truth files +  distractor files (incorrect files predicted by an LLM to make the task more challenging), output: patch
+          - only keep patches that can pass all tests, 3.9K data
+        - Unit test gen
+          - data: SWE-bench and SWE-smith
+          - input: issue description, output: unit tests
+          - only keeps unit tests that fail before patching and pass after patching, 1K data
+      - GRPO
+        - 45.0 pass@1 on SWE-bench Verified
+        - Input:  issue descriptions + relevant files, output: patch
+        - GRPO + no KL loss, clip higher, dynamic sampling, and token-level policy gradient loss from DAPO
+        - Reward: outcome reward, 1 if patch passed all unit tests, -1 if not
+        - Two stages: stage 1 uses all tasks, includes 200 steps; stage 2 removes tasks that the model has already achieved over 90% accuracy, 90 steps
 
 - **Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks [[ICLR'25/06](https://arxiv.org/pdf/2505.16901)]**
 
