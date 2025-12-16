@@ -200,6 +200,7 @@ Below, we list some widely used coding agents that are mostly commercial product
         - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
       - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
+    - 
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
     - Build a code graph G(V,E,A,R) using python ast to support graph-based retrieval, where
       - V = {vᵢ}, nodes
@@ -381,6 +382,23 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
         - Two stages: stage 1 uses all tasks, includes 200 steps; stage 2 removes tasks that the model has already achieved over 90% accuracy, 90 steps
 
 - **Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks [[ICLR'25/06](https://arxiv.org/pdf/2505.16901)]**
+  - Human-based planning+RAG, Qwen2.5-72B, 43% on SWE-bench Lite
+  - Build the repo as a graph (doesn't handle indirect calls):
+    - Nodes: repo, package, file, textfile, class, function, attribute; Edges: contains, calls, extends, imports, implements(only for Java, a class implements an interface)
+  - Agent scaffold:
+    - Rewriter: extract code entities and keywords, rewrite the issue description to queries. E.g., file name containing ‘separable.py’
+    - Retriever: find the relevant nodes from the code graph, and then expand the context by including one-hop neighbors and upstream nodes, form a subgraph
+    - Reranker: Rank the files in subgraph by file name and file skeleton, output top-5 files
+    - Patcher: Fine-tuned model based on Qwen2.5-72B, input: issue description + subgraph + top-5 file content, output: patch
+      - Representation of the subgraph:
+        - Each node is represented as one token. First the code in node are splited by 512-token chunks, then an encoder CodeT5+ produce embedding vectors, these embedding vectors are projected to one token using a 2 layer MLP.
+        - The attention mask is constructed from the adjacency matrix to reflect the graph structure. E.g., if there is an edge from node U to node G, then attention_mask[U][G]=1
+  - Recipe:
+    - Train CodeT5+(lora), 2 layer MLP, and Qwen2.5-72B(lora) at same time
+    - Two phases
+      - Subgraph Reconstruction: input: randomly sampled subgraphs from repo, output: code
+      - Issue resolving: input: subgraph+issue description+top-5 file content, output: patch
+        - include noise:  10% include an irrelevant file, another 10% omit at least one ground-truth file
 
 - Co-PatcheR: Collaborative Software Patching with Component(s)-specific Small Reasoning Models
   - SFT and 46% on SWE-bench-Verified
