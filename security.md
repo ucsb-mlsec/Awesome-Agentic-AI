@@ -201,8 +201,11 @@ Below, we list some widely used coding agents that are mostly commercial product
       - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
     - Agent scaffold:
-      - Concise Context Construction Module: Input: bug report + localization result (containing irrelevant contents), output: structured issue information (issue description + existing reproduction method, current res, expected res), relevant code snippets + explanation of why code snippets are relevant
-      - Defined a Finite State Machine-based workflow, including 7 states, e.g., Create, Execute, Verify. etc, enforce rules that one state can only transfer to some specific states. Restrictions are on system prompt and tools.
+      - Search agent
+        - trivial agent with general retrieval tools, e.g., search_class, review_file, ls, grep, etc.
+      - Bug reproduction agent
+        - Concise Context Construction Module: Input: bug report + localization result by Searcher agent (containing irrelevant contents), output: structured issue information (issue description + existing reproduction method, current res, expected res), relevant code snippets + explanation of why code snippets are relevant
+        - Defined a Finite State Machine-based workflow, including 7 states, e.g., Create, Execute, Verify. etc, enforce rules that one state can only transfer to some specific states. Restrictions are on system prompt and tools.
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
     - Build a code graph G(V,E,A,R) using python ast to support graph-based retrieval, where
       - V = {vᵢ}, nodes
