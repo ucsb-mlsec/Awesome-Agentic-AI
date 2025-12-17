@@ -379,12 +379,12 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
           - data: SWE-bench and SWE-smith
           - input: issue description, output: unit tests
           - only keeps unit tests that fail before patching and pass after patching, 1K data
-      - GRPO
-        - 45.0 pass@1 on SWE-bench Verified
-        - Input:  issue descriptions + relevant files, output: patch
-        - GRPO + no KL loss, clip higher, dynamic sampling, and token-level policy gradient loss from DAPO
-        - Reward: outcome reward, 1 if patch passed all unit tests, -1 if not
-        - Two stages: stage 1 uses all tasks, includes 200 steps; stage 2 removes tasks that the model has already achieved over 90% accuracy, 90 steps
+    - GRPO
+      - 45.0 pass@1 on SWE-bench Verified
+      - Input:  issue descriptions + relevant files, output: patch
+      - GRPO + no KL loss, clip higher, dynamic sampling, and token-level policy gradient loss from DAPO
+      - Reward: outcome reward, 1 if patch passed all unit tests, -1 if not
+      - Two stages: stage 1 uses all tasks, includes 200 steps; stage 2 removes tasks that the model has already achieved over 90% accuracy, 90 steps
 
 - **Code Graph Model (CGM): A Graph-Integrated Large Language Model for Repository-Level Software Engineering Tasks [[ICLR'25/06](https://arxiv.org/pdf/2505.16901)]**
   - Human-based planning+RAG, Qwen2.5-72B, 43% on SWE-bench Lite
