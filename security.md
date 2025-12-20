@@ -199,6 +199,7 @@ Below, we list some widely used coding agents that are mostly commercial product
       - Tools: cat, code_search, bazel test, finish, edit
         - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
       - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
+      - Used a google internal benchmark, GITS-Eval with 178 bugs.
   - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
     - Agent scaffold:
       - Search agent
@@ -216,7 +217,8 @@ Below, we list some widely used coding agents that are mostly commercial product
       - SearchEntity: input is a keyword, output is an entity id and code snippet
         - Support exact match (filepath+func name) and three levels of fuzzy match (all func with same name, BM25, code content inverted index) 
       - TraverseGraph: performs BFS uder rules specified by LLM. Input is a starting entity and some rules provided by LLM, e.g., number of hops, only consider what type of nodes, only consider what type of edges. output is a subgraph.
-      - RetrieveEntity: input is an entity id, output is all attributes of an entity, including filepath, linenum, code, other metadata.   
+      - RetrieveEntity: input is an entity id, output is all attributes of an entity, including filepath, linenum, code, other metadata.
+      - Constructed a LOC-BENCH, including github issues after 2024.10, including bug report, feature requests and security and performance.
 
 
 ### 📋 Benchmarks
@@ -404,6 +406,8 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
       - Subgraph Reconstruction: input: randomly sampled subgraphs from repo, output: code
       - Issue resolving: input: subgraph+issue description+top-5 file content, output: patch
         - include noise:  10% include an irrelevant file, another 10% omit at least one ground-truth file
+  - Ablation:
+    -   a naive graph-based baseline which flattens code snippets based on topological structure achieved 5.33% while the original one achieved 37.67%.
 
 - Co-PatcheR: Collaborative Software Patching with Component(s)-specific Small Reasoning Models
   - SFT and 46% on SWE-bench-Verified
