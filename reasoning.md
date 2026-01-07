@@ -17,6 +17,8 @@ Here, we also try to summarize the key training takeaways for both SFT and RL-ba
     - [Training with process reward](#training-with-process-reward)
       - [Explicitly train a process reward model](#explicitly-train-a-process-reward-model)
       - [Non-parametric process reward](#non-parametric-process-reward)
+    - [Misc](#misc)
+      - [Combat entropy collapse](#combat-entropy-collapse)
 
 
 ## Code reasoning 
@@ -147,6 +149,9 @@ Online RL methods are mainly used for post-training with verifiable outcome rewa
     - Math only (8K-24K) -> Code only (24K-32K) -> Math only (32K)
     - From easy to hard problems based on LLM judge
     - Math only RL improve coding performance; not the other way around
+
+- ICPO: Intrinsic Confidence-Driven Group Relative Preference Optimization for Efficient Reinforcement Learning [[Arxiv'25/11](https://arxiv.org/abs/2511.21005)]
+  - add confidence to the reward, the intuition is: wrong response with high confidence and correct response with low confidence should have more weight
 
 - Earlier methods can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
   - PPO, GRPO, DAPO

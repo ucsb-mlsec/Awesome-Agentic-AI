@@ -8,6 +8,12 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - [Newest models](#newest-models)
   - [Agentic RL](#agentic-rl)
     - [Agent training framework](#agent-training-framework)
+    - [Compute step-wise rewards](#compute-step-wise-rewards)
+    - [Different applications](#different-applications)
+    - [Misc](#misc)
+      - [Environment simulation](#environment-simulation)
+      - [Efficiency, Stability and others](#efficiency-stability-and-others)
+      - [Control Experiments](#control-experiments)
   - [Memory management](#memory-management)
   - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
 
@@ -171,7 +177,38 @@ In general, simulating environments with LLMs or other reasoning models may requ
 - LLMs as Scalable, General-Purpose Simulators For Evolving Digital Agent Training [[Arxiv'25/10](https://arxiv.org/abs/2510.14969)]
   - Simulator generates next state; guided rollout decides actions with reasoning; wrap infers overall user task
 
-#### Efficiency and others
+#### Efficiency, Stability and others
+
+- Stabilizing Reinforcement Learning with LLMs: Formulation and Practices [[Qwen Team, Arxiv'25/12](https://arxiv.org/abs/2512.01374)]
+  - Three issues: (1) training–inference discrepancy (FP8 vs. BF16); (2) policy staleness (due to asynchronous rollout); (3) training–inference discrepancy can cause inconsistent routed experts for MoE models
+  - Existing solution:
+    - (1) & (2): importance sampling
+    - (3): routing replay (fix the expert used by inference when do training)
+  - Given the assumption: the IS for each token is small: $1+\epsilon \ll 1$, the token-level optimization objective can be viewed as the first-order approximation of the sequence-level optimization objective.
+  - Proposed MiniRL: GRPO + Clip (mask the gradient for tokens which are higher than a threshold when reward > 0 and lower than a threshold when reward < 0)
+  - Evalute on Qwen3-30B-A3B with synchronous training:
+    - For on-policy training (the global batch size equals the mini-batch size):
+      - MiniRL is the best, adding length normalization leads to suboptimal performance
+    - For off-policy training:
+      - Routing Replay and clipping become essential for stable training
+
+- Nemotron-Cascade: Scaling Cascaded Reinforcement Learning for General-Purpose Reasoning Models [[Arxiv'25/12](https://arxiv.org/abs/2512.13607)]
+  - Cascade RL process begins with applying general-domain Reinforcement Learning from Human Feedback (RLHF) to the SFT models, followed by domain-wise Reinforcement Learning with Verifiable Rewards (RLVR).
+
+- SimpleTIR: End-to-End Reinforcement Learning  for Multi-Turn Tool-Integrated Reasoning [[Arxiv'25/09](https://arxiv.org/abs/2509.02479)]
+  - problem: LLM generated response after multiple turns (with tool observation) is OOD compared to the pre-training and SFT data, each token has low probability, which leads to extremely high importance sampling ratio ($\frac{\pi_{\text{new}}(y)}{\pi_{\text{old}}(y)}$) for trajs with negative reward.
+  - solution: clipping the importance ratio is appealing but the threshold is hard to set. The authors filter out the trajs with void turns (no tool invocation or final answer).
+  - scenario: Zero RL with math problems
+
+- GenEnv: Difficulty-Aligned Co-Evolution Between  LLM Agents and Environment Simulators [[Arxiv'25/12](https://arxiv.org/abs/2512.19682)]
+  - Env LLM generates tasks, evaluation metrics, and potentially ground truth, the goal is to generate tasks that are challenging for the agent (avg acc = 0.5)
+  - Agent LLM rollouts to generate trajectories, and then use RL (GRPO)to train the agent to improve the performance
+  - Env LLM use Reward-Weighted Regression (weighted SFT loss) to update its parameters
+  - Env LLM is like a task generator, it does not generate new env or simulate the env.
+
+- AgentGym-RL: Training LLM Agents for Long-Horizon Decision Making through Multi-Turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/pdf/2509.08755)]
+  - Provide env and training framework
+  - Propose ScalingInter-RL: progressively add interaction rounds - their experiments show that beginning with a large number of interaction turns often leads the model into redundant reasoning and unproductive actions.
 
 - RollPacker: Mitigating Long-Tail Rollouts for Fast, Synchronous RL Post-Training [[Arxiv'25/09](https://arxiv.org/abs/2509.21009)]
   - A new framework for efficient RL training.
@@ -195,6 +232,10 @@ In general, simulating environments with LLMs or other reasoning models may requ
   - Problems: Agent tries to one-shot complex tasks, runs out of context mid-implementation; later agent sees progress and declares done prematurely
   - Solution: Initializer agent sets up environment and progress file; coding agent makes incremental progress with structured updates
   - Open questions: Single general-purpose agent vs multi-agent architecture; generalization to other domains (scientific research, financial modeling)
+
+#### Control Experiments
+- RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs? [[Arxiv'25/09](https://arxiv.org/abs/2509.21016)]
+  - Using synthetic coding promblems to verify how RL can unlock new algorithms in LLMs
 
 ## Memory management
 
