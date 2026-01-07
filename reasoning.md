@@ -239,6 +239,9 @@ This line of methods explore using generation entropy or confidence as the proce
 - Spurious rewards: rethinking training signals in RLVR [[Arxiv'25/06](https://arxiv.org/abs/2506.10947?)]
 
 - Learning to Reason without External Reward [[Arxiv'25/06](https://arxiv.org/abs/2505.19590)]
+  - Using model internal confidence as reward, encourage the model on its confident outputs
+  - Follow up works propose variants on reward format, but still confidence/entropy related
+  - Mainly help with early stage training and will encounter entropy collapse
 
 ### Misc
 
@@ -248,9 +251,36 @@ As an extension of the entropy and confidence based PRM, some works find that th
 
 - The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models [[Arxiv'25/06](https://arxiv.org/abs/2505.22617)]
   - The change in policy entropy is driven by the covariance between action probability and the change in logits
-    - The change in logits is proportional to the advantage A(s, a)
-      - If an action is better (measured by advantage), we want to increase its logits
     - A high-probability action with high advantage would reduce policy entropy, while a rare action with high advantage would increase policy entropy
       - High covariance means the action is already good but the advantage is still high
   - Clip-Cov and KL-Cov, which clip and apply KL penalty to tokens with high covariances respectively 
+    - Encourage actions with high advantage but low logits
 
+- ICPO: Intrinsic Confidence-Driven Group Relative Preference Optimization for Efficient Reinforcement Learning [[Arxiv'25/12](https://arxiv.org/abs/2511.21005)]
+  - Improvements over confidence-based reward to resolve the entropy collaps issue
+  - Calculates a preference advantage score for each response by comparing the relative generation probabilities of multiple responses under the same input prompt; encourages responses with high reward but low preference (similar as the work above)
+
+- M-GRPO: Stabilizing Self-Supervised Reinforcement Learning for Large Language Models with Momentum-Anchored Policy Optimization [[Arxiv'25/12](https://arxiv.org/pdf/2512.13070)]
+  - Leverage a slowly evolving momentum model to provide a stable training target $\pi_{\theta_k} \leftarrow m\pi_{\theta_k} + (1 - m)\pi_{\theta_q}$ 
+  - Filter out low-entropy trajectories, preserving essential policy diversity
+
+#### Others
+
+- Stop Summation: Min-Form Credit Assignment Is All Process Reward Model Needs for Reasoning [[NeurIPS'25](https://openreview.net/pdf?id=3Sxby0hH1q)]
+  - Prevent the reward hacking introduce in PRM during testing-phase scaling: the canonical summation-form credit assignment (cumulative gamma-decayed future rewards) easily induces LLMs to hack steps with high rewards
+  - Propose minform credit assignment: The return of the steps before the worst step is the same as the worst step, and the returns of the steps after the worst step are all zero
+  - Show that sum form has a larger error bound of Q function than the min form ($\frac{\epsilon}{1-\lambda}$) vs $\epsilon$
+
+- RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs? [[Arxiv'25/10](https://arxiv.org/pdf/2509.21016)]
+  - Propose a new dataset to evalaute LLMs on hard coding tasks that pretrained models always fail as well as OOD test sets
+  - The following techs helps with grokking
+    - Staged warm-up with dense rewards (use per-test pass rate as dense reward)
+    - Experience replay (Retain and reinsert the previously successful traces)
+    - Curriculum training 
+    - Verification-in-the-loop (Include the failure feedback in the generation process; similar to add an explanation)
+
+- Reinforcement Learning with Verifiable Rewards Implicitly Incentivizes Correct Reasoning in Base LLMs [[Arxiv'25/10](https://arxiv.org/pdf/2506.14245)]
+  - Propose an LLM as a judege for CoT internal step correctness
+  - Show that RL with verifiable outcome reward implicitly incentivizes correct reasoning
+
+ 
