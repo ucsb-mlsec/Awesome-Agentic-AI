@@ -209,6 +209,12 @@ Offline RL methods mainly refers to the methods that does not require rollout du
       - New reward design to capture more signal 
     - Use a reasoning model (RL training with GRPO) for assigning reward for each step
   - Math-Shepherd: Verify and Reinforce LLMs Step-by-step without Human Annotations [[Arxiv'23/12](https://arxiv.org/abs/2312.08935)]
+  - DreamPRM-Code: Function-as-Step Process Reward Model with Label Correction for LLM Coding [[Arxiv'25/12](https://arxiv.org/pdf/2512.15000)]
+    - Define the PRM for coding as individual functions
+    - Obtain the PRM through bi-level optimization and meta-learning: 
+      - Update the PRM using the MCTS rollout data and labels $\theta(Y) = \text{argmin} \ \mathcal{L}(f_{\theta}(X), Y)$ 
+      - Update the intermediate steps' labels with ground truth labels 
+      $Y = \text{argmin} \ \mathcal{L}(f_{\theta}(X_{meta}), Y_{meta})$
 
 
 #### Non-parametric process reward
@@ -283,4 +289,21 @@ As an extension of the entropy and confidence based PRM, some works find that th
   - Propose an LLM as a judege for CoT internal step correctness
   - Show that RL with verifiable outcome reward implicitly incentivizes correct reasoning
 
- 
+ - Reinforcement Learning for Reasoning in Large Language Models with One Training Example [[NeurIPS'25](https://arxiv.org/pdf/2504.20571)]
+   - RLVR with one training example for math reasoning
+   - Had some useful observations: cross-category generalization, increased frequency of self-reflection, and post-saturation generalization (sustained test performance improvement even after the training accuracy has saturated)
+   - 1-shot RLVR primarily arises from the policy gradient loss, distinguishing it from the "grokking" phenomenon
+
+- S-GRPO: Early Exit via Reinforcement Learning in Reasoning Models [[NeurIPS'25](https://arxiv.org/pdf/2505.07686)]
+  - Train the model to prevent overthinking and exit early
+  - Unlike parallel group,  S-GRPO only samples one reasoning path and serially selects multiple temporal positions from the path to exit thinking and directly generate answers (serial group)
+    - Propose a decay reward strategy to (penalize long but correct answers) encourage early exit
+
+- Improving Data Efficiency for LLM Reinforcement Fine-tuning Through Difficulty-targeted Online Data Selection and Rollout Replay [[NeurIPS'25](https://openreview.net/pdf?id=uwUkETPIJN)]
+  - Difficulty-targeted online data selection: select moderate difficulty questions based on similiarity with reference questions and their ground difficulty
+    - Reference questions will be rollouted during training to evaluate their in-training difficulty
+  - Rollout replay: reuse recent rollouts
+
+- Act Only When It Pays: Efficient Reinforcement Learning for LLM Reasoning via Selective Rollouts [[NeurIPS'25](https://arxiv.org/pdf/2506.02177)]
+  - Filter out uninformative prompts during training based on the previous rollouts
+
