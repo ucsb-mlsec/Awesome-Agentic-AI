@@ -94,7 +94,10 @@ Below, we list some widely used coding agents that are mostly commercial product
   - High-level ideas:
     - Given sources and sinks (potential vulns) and decide if there is a valid path between them
     - Taint analysis types of vulns: command injection, path traversals, SQL injection, null pointer dereference 
-    - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths 
+    - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths
+  - Automated Static Vulnerability Detection via a Holistic Neuro-symbolic Approach  [[arxiv'25/04](https://arxiv.org/abs/2504.16057)]
+    - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semenatic feedbacks
+    - LLM should be able to write these queries by itself in the near future.
   - RepoAudit: An Autonomous LLM-Agent for Repository-Level Code Auditing [[ICML'25/07](https://arxiv.org/abs/2501.18160)]
     - For each kind of vulnerability, 
       - Use tree-sitter parser to find all possible sources (e.g, for npd, every place that ptr=null, return null or an attribute is set to null) and sinks (for npd, every place a ptr or field is about to deref)
