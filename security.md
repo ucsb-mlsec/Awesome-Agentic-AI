@@ -232,6 +232,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 ## Vulnerability patching
 
 ### 🛠️ Techniques 
+- PortGPT: Towards Automated Backporting Using Large Language Models [[S&P'26](https://arxiv.org/abs/2510.22396)]
 - A Case Study of LLM for Automated Vulnerability Repair: Assessing Impact of Reasoning and Patch Validation Feedback [[ACM AIware'24/07](https://dl.acm.org/doi/10.1145/3664646.3664770)]
     - Human-based planning
     - Procedure
@@ -297,7 +298,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 - **General Program Analysis**
   - Enhancing LLM-based Specification Generation via Program Slicing and Logical Deletion[[arxiv'25/09](https://arxiv.org/abs/2509.09917)]
   - SLICEMATE: Accurate and Scalable Static Program Slicing via LLM-Powered Agents[[arxiv'25/07](https://arxiv.org/abs/2507.18957)]
-  - Program Slicing in the Era of Large Language Models [COMPSAC'25/08(https://ieeexplore.ieee.org/abstract/document/11126732)]
+  - Program Slicing in the Era of Large Language Models [[COMPSAC'25/08](https://ieeexplore.ieee.org/abstract/document/11126732)]
 
 ### 📋 Benchmarks
 
