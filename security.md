@@ -293,6 +293,11 @@ Below, we list some widely used coding agents that are mostly commercial product
   - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
   - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
 
+- **General Program Analysis**
+  - Enhancing LLM-based Specification Generation via Program Slicing and Logical Deletion[[arxiv'25/09](https://arxiv.org/abs/2509.09917)]
+  - SLICEMATE: Accurate and Scalable Static Program Slicing via LLM-Powered Agents[[arxiv'25/07](https://arxiv.org/abs/2507.18957)]
+  - Program Slicing in the Era of Large Language Models [COMPSAC'25/08(https://ieeexplore.ieee.org/abstract/document/11126732)]
+
 ### 📋 Benchmarks
 
 - SECURE: Benchmarking Large Language Models for Cybersecurity [[IEEE ACSAC'24/12](https://www.computer.org/csdl/proceedings-article/acsac/2024/208800a015/25bv7zxqzyo)]
@@ -458,6 +463,7 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
 - Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
 - TestForge: Feedback-Driven, Agentic Test Suite Generation [[Arxiv'25](https://arxiv.org/abs/2503.14713)]
   - A test generation agent with feedback from coverage tool and a test oracle
+- HITS: High-coverage LLM-based Unit Test Generation via Method Slicing
 
 
 
