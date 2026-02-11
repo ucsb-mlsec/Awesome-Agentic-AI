@@ -94,7 +94,10 @@ Below, we list some widely used coding agents that are mostly commercial product
   - High-level ideas:
     - Given sources and sinks (potential vulns) and decide if there is a valid path between them
     - Taint analysis types of vulns: command injection, path traversals, SQL injection, null pointer dereference 
-    - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths 
+    - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths
+  - Automated Static Vulnerability Detection via a Holistic Neuro-symbolic Approach  [[arxiv'25/04](https://arxiv.org/abs/2504.16057)]
+    - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semenatic feedbacks
+    - LLM should be able to write these queries by itself in the near future.
   - RepoAudit: An Autonomous LLM-Agent for Repository-Level Code Auditing [[ICML'25/07](https://arxiv.org/abs/2501.18160)]
     - For each kind of vulnerability, 
       - Use tree-sitter parser to find all possible sources (e.g, for npd, every place that ptr=null, return null or an attribute is set to null) and sinks (for npd, every place a ptr or field is about to deref)
@@ -174,6 +177,13 @@ Below, we list some widely used coding agents that are mostly commercial product
               - E.g., SQLi agent has access to sqlmap
               - Zap agent has access to zap (a scanner for xss, csrf, ..)
   - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks [[arxiv'25/05](https://arxiv.org/abs/2501.16466)]
+  - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
+    - Agent scaffold:
+      - Search agent
+        - trivial agent with general retrieval tools, e.g., search_class, review_file, ls, grep, etc.
+      - Bug reproduction agent
+        - Concise Context Construction Module: Input: bug report + localization result by Searcher agent (containing irrelevant contents), output: structured issue information (issue description + existing reproduction method, current res, expected res), relevant code snippets + explanation of why code snippets are relevant
+        - Defined a Finite State Machine-based workflow, including 7 states, e.g., Create, Execute, Verify. etc, enforce rules that one state can only transfer to some specific states. Restrictions are on system prompt and tools.
 
   - General agents
       - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'25/04](https://arxiv.org/abs/2407.16741)]
@@ -200,13 +210,7 @@ Below, we list some widely used coding agents that are mostly commercial product
         - The edit tool will call another code-editing LLM, with bug report, file content, and change description as prompt. The code-editing LLM will generate a patch which will be auto applied.
       - How the models are fine-tuned are not mentioned. Only mentioned fine-tuned on Google’s internal code.
       - Used a google internal benchmark, GITS-Eval with 178 bugs.
-  - **AEGIS: An Agent-based Framework for General Bug Reproduction from Issue Descriptions [[Arxiv'25](https://arxiv.org/abs/2411.18015)]**
-    - Agent scaffold:
-      - Search agent
-        - trivial agent with general retrieval tools, e.g., search_class, review_file, ls, grep, etc.
-      - Bug reproduction agent
-        - Concise Context Construction Module: Input: bug report + localization result by Searcher agent (containing irrelevant contents), output: structured issue information (issue description + existing reproduction method, current res, expected res), relevant code snippets + explanation of why code snippets are relevant
-        - Defined a Finite State Machine-based workflow, including 7 states, e.g., Create, Execute, Verify. etc, enforce rules that one state can only transfer to some specific states. Restrictions are on system prompt and tools.
+
   - **Locagent: Graph-guided LLM Agents for Code Localization [[Arxiv'25/03](https://arxiv.org/abs/2503.09089)]**
     - Build a code graph G(V,E,A,R) using python ast to support graph-based retrieval, where
       - V = {vᵢ}, nodes
@@ -228,6 +232,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 ## Vulnerability patching
 
 ### 🛠️ Techniques 
+- PortGPT: Towards Automated Backporting Using Large Language Models [[S&P'26](https://arxiv.org/abs/2510.22396)]
 - A Case Study of LLM for Automated Vulnerability Repair: Assessing Impact of Reasoning and Patch Validation Feedback [[ACM AIware'24/07](https://dl.acm.org/doi/10.1145/3664646.3664770)]
     - Human-based planning
     - Procedure
@@ -289,6 +294,11 @@ Below, we list some widely used coding agents that are mostly commercial product
   - FidelityGPT: Correcting Decompilation Distortions with Retrieval-Augmented Generation[[[NDSS'26](https://arxiv.org/abs/2510.19615)]
   - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
   - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
+
+- **General Program Analysis**
+  - Enhancing LLM-based Specification Generation via Program Slicing and Logical Deletion[[arxiv'25/09](https://arxiv.org/abs/2509.09917)]
+  - SLICEMATE: Accurate and Scalable Static Program Slicing via LLM-Powered Agents[[arxiv'25/07](https://arxiv.org/abs/2507.18957)]
+  - Program Slicing in the Era of Large Language Models [[COMPSAC'25/08](https://ieeexplore.ieee.org/abstract/document/11126732)]
 
 ### 📋 Benchmarks
 
@@ -455,6 +465,7 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
 - Reinforcement Learning from Automatic Feedback for High-Quality Unit Test Generation
 - TestForge: Feedback-Driven, Agentic Test Suite Generation [[Arxiv'25](https://arxiv.org/abs/2503.14713)]
   - A test generation agent with feedback from coverage tool and a test oracle
+- HITS: High-coverage LLM-based Unit Test Generation via Method Slicing
 
 
 

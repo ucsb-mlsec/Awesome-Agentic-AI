@@ -135,7 +135,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - PPO with RLOO to estimate the reward, examined three different variants: token-level, step-level, and trajectory-level. Token-level is the most effective.
 
 - RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
-  - Extend PPO and GRPO to multi-turn reasoning
+  - Extend PPO and GRPO to multi-turn reasoning, the equations are the same
 
 - Reinforcement Learning via Self-Distillation [[Arxiv'26/01](https://arxiv.org/pdf/2601.20802)]
   - $$\mathcal{L}_{\text{SDPO}}(\theta) := \sum_{t} \text{KL}(\pi_{\theta}(\cdot \mid x, y_{<t}) \| \text{stopgrad}(\pi_{\theta}(\cdot \mid x, f, y_{<t})))$$
