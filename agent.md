@@ -17,7 +17,63 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - [Memory management](#memory-management)
   - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
 
-## Newest models
+## QWEN models
+
+- Qwen3.5 Towards Native Multimodal Agents [[26/02](https://qwen.ai/blog?id=qwen3.5)]
+  - Qwen3.5-397B-A17B, a vision-language model with 1M context window
+  - Scaling of virtual RL tasks and enviornments compared to Qwen3 series
+    - More than 15K environments
+  - Pre-training: More tokens, more efficient MoEs, early text-vision token fusion
+  - Infrastructure: 
+    - MM training via a heterogeneous infrastructure that decouples parallelism strategies across vision and language components (exploiting sparse activations for cross-component computation overlap)
+    - A native FP8 pipeline applies low precision to activations, MoE routing, and GEMM operations—with runtime monitoring preserving BF16 in sensitive layers
+    - asynchronous RL framework: improve hardware utilization, dynamic load balancing, and fine-grained fault recovery
+      - FP8 end-to-end training, rollout router replay, speculative decoding, and multi-turn rollout locking
+
+- Qwen3 Technical Report [[Arxiv'25/5](https://arxiv.org/abs/2505.09388)]
+  - Model: Both dense and MoE model, flagship model -- Qwen3-235B-A22B
+    - Grouped Query Attention, SwiGLU, Rotary Positional Embeddings, and RMSNorm with pre-normalization; Remove QKV-bias and introduce QK-Norm
+  - Pre-training: 36 trillion tokens (length 32,768 tokens), with synthetic data generated from other Qwen models
+    - General stage, reasoning stage, long context stage
+    - Scaling low for optimal hyper-parameters 
+  - Post-training: 
+    - Long CoT cold-start SFT
+      - Data: math, code, logical reasoning, and general STEM problems
+      - **Filter**: Query filtering (filter out non-verifiable queries) and response filtering (filter out simple questions) 
+        - incorrect answers; repetition; hallucinations; Inconsistencies between the thinking and summary contents; inappropriate language mixing or stylistic shifts; being overly similar to potential validation set items
+    - Reasoning RL with GRPO
+      - Data: Challenging but learnable data pairs (3,995)
+      - Use a large batch size and a high number of rollouts; off-policy training (reuse logged data for training); Control model entropy
+    - Hybrid thinking with SFT 
+      - Combine data with and without reasoning paths into a unified dataset to combine thinking with non-thinking mode 
+      - Provide final answers with partial thinking with a manually stop thinking token  
+    - General RL: Instruction following; format following; preference alignment; agent ability (tasks with tool invoke); ability to understand specific context
+      - Outcome rewards: Rule-based reward; model-based reward with/without reference answers
+  - **Strong-to-weak distillation** for small models, outperforms RL
+    - Off-policy Distillation: Combine the outputs of teacher models generated with both /think and /no think modes for response distillation
+    - On-policy Distillation: Student model generates on-policy sequences, query teacher models to get the targets, and is then fine-tuned by aligning its logits with those of a teacher model to minimize the KL divergence
+  
+## DeepSeek 
+  - DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models [[2025/12](https://arxiv.org/pdf/2512.02556)]
+    - DeepSeek Sparse Attention: lightning indexer and fine-grained token selection
+      - lightning indexer to compute the weights for preceding tokens and only the selected tokens will be used for computing attentions.
+      - MQA (expand the dim of queries) with sparse attention (adding indexing)
+    - Scalable RL training framework
+      - [K3 estimator](http://joschu.net/blog/kl-approx.html) with impprtance score for unbiased KL estimation
+      - Merge different tasks requiring RL into one stage
+      - Off-policy RL with a threshold for controling whether the rollouts are useful based on policy divergence
+    - Synthesize agentic tasks 
+
+  - DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
+    - Hybrid thinking with different templates (Mixed thinking with non-thinking when answering) 
+    - Higher thinking efficiency and smarter tool calling **[only support in non-thinking mode]**
+
+## GLM & Kimi
+- [GLM-5](https://docs.z.ai/guides/llm/glm-5)
+  - Performs a little bit worse than Kimi-2.5 on coding tasks
+  - Scalabilty for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated), with pre-training data upgraded from 23T to 28.5T
+  - Asynchronous RL: SLIME-based RL with async rollout and off-policy learning
+  - Sparse Attention from DeepSeek is integrated
 
 -  ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
     - Model: MoE with 335B and 32B active parameters
@@ -44,11 +100,21 @@ Below, we summarize the latest agentic models, as well as some notable and recen
         - Instruction following 
         - Function calling: step-wise (part of general RL) and multi-turn RL (distill from specialized models)
         - Pathology RL (Final step)
-  - RL infra 
 
-- DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
-  - Hybrid thinking with different templates (Mixed thinking with non-thinking when answering) 
-  - Higher thinking efficiency and smarter tool calling **[only support in non-thinking mode]**
+- Kimi 2.5: Visual Agentic intelligence [[26/2]](https://arxiv.org/pdf/2602.02276)
+  - Similar performance as QWEN-3.5
+  - Model is common; token-efficient MuonClip optimizer with QK-clip
+  - Post training: 
+    - RL loss: strict clip without timing advantage, use k2 estimator
+    - Rule-based reward, budget-control reward, intermediate reward with a critic model
+      - helpfulness, response readiness, contextual relevance, appropriate level of detail, aesthetic quality of generated artifacts, and strict instruction following
+    - Token efficient RL: when task acc is high, encourage the model to generate more concise answers
+  - Agentic training:
+    - Infra: Rollout manager with async and partial rollout
+    - Agent swarm: dynamically creates specialized frozen subagents and decomposes complex tasks into parallelizable subtasks 
+    - a trainable orchestrator and frozen subagents; make training more stable and avoid credit assignment ambiguity
+    - Parallel agent RL: performance reward, parallel reward (avoid single agent), sub-agent finish reward (avoid too many sub-agents)
+    - Critical steps as resource constraints: constrain training based critical steps (main agent steps + max step of sub-agents) -> incentive parallel strategies that minimize the total steps
 
 - ***Kimi K2: Open Agentic Intelligence*** [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
   - MoE model with 1 trillion total params and 32B active params
@@ -63,28 +129,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
         - GRPO with KL diff + PTX loss for preventing forget critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
-- Qwen3 Technical Report [[Arxiv'25/5](https://arxiv.org/abs/2505.09388)]
-  - Model: Both dense and MoE model, flagship model -- Qwen3-235B-A22B
-    - Grouped Query Attention, SwiGLU, Rotary Positional Embeddings, and RMSNorm with pre-normalization; Remove QKV-bias and introduce QK-Norm
-  - Pre-training: 36 trillion tokens (length 32,768 tokens), with synthetic data generated from other Qwen models
-    - General stage, reasoning stage, long context stage
-    - Scaling low for optimal hyper-parameters 
-  - Post-training: 
-    - Long CoT cold-start SFT
-      - Data: math, code, logical reasoning, and general STEM problems with ground truth
-      - Filter: Query filtering (filter out non-verifiable queries) and response filtering (filter out simple questions)
-      - Use QwQ for reasoning data generation and filter out: incorrect answers; repetition; hallucinations; Inconsistencies between the thinking and summary contents; inappropriate language mixing or stylistic shifts; being overly similar to potential validation set items
-    - Reasoning RL with GRPO
-      - Data: Challenging but learnable data pairs (3,995)
-      - Use a large batch size and a high number of rollouts; off-policy training (reuse logged data for training); Control model entropy
-    - Hybrid thinking with SFT: 
-      - Combine data with and without reasoning paths into a unified dataset to combine thinking with non-thinking mode 
-      - Provide final answers with partial thinking with a manually stop thinking token  
-    - General RL: Instruction following; format following; preference alignment; **agent ability (tasks with tool invoke)**; ability to understand specific context
-      - Outcome rewards: Rule-based reward; model-based reward with/without reference answers
-  - Strong-to-weak distillation for small models, outperforms RL
-    - Off-policy Distillation: Combine the outputs of teacher models generated with both /think and /no think modes for response distillation
-    - On-policy Distillation: Student model generates on-policy sequences, query teacher models to get the targets, and is then fine-tuned by aligning its logits with those of a teacher model to minimize the KL divergence
+
 
 
 ## Agentic RL
