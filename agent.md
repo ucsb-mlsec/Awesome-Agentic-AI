@@ -5,7 +5,9 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 ## Table of Contents
 - [Agentic model and techniques](#agentic-model-and-techniques)
   - [Table of Contents](#table-of-contents)
-  - [Newest models](#newest-models)
+  - [QWEN models](#qwen-models)
+  - [DeepSeek](#deepseek)
+  - [GLM & Kimi](#glm--kimi)
   - [Agentic RL](#agentic-rl)
     - [Agent training framework](#agent-training-framework)
     - [Compute step-wise rewards](#compute-step-wise-rewards)
@@ -163,7 +165,10 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 ### Compute step-wise rewards
 
 - Maximum Likelihood Reinforcement Learning [[Arxiv'26'02](https://arxiv.org/abs/2602.02710)]
-  - Use pass-rate as sample weight for training -> mimic the maximum likelihood loss
+  - Use pass k rate as sample weight for training -> mimic the maximum likelihood loss
+  - Compute gradient estimation as a REINFORCE-style with score function
+  - Use unbiased estimation to reduce variance
+  - Final gradient is similar as GRPO with pass rate as the sample weight 
 
 - RLAnything: Forge Environment, Policy, and Reward Model in Completely Dynamic RL System [[Arxiv'26/02](https://www.arxiv.org/pdf/2602.02488)]
   - Intermediate reward: Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standarizing rewards across trajectories at the same step index.
