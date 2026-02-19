@@ -141,6 +141,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 - **PoC generation**
 
+  - Orion: Fuzzing Workflow Automation [[arxiv'25/09](https://arxiv.org/abs/2509.15195)]
   - FirmAgent: Leveraging Fuzzing to Assist LLM Agents with IoT Firmware Vulnerability Discovery [[arxiv'26/02](https://netsec.ccert.edu.cn/files/papers/ndss26-firmagent.pdf)]
   - Execution-State-Aware LLM Reasoning for Automated Proof-of-Vulnerability Generation [[arxiv'26/02](https://arxiv.org/abs/2602.14012v1)]
   - Agentic Concolic Execution (S&P'26)
