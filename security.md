@@ -95,6 +95,7 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Given sources and sinks (potential vulns) and decide if there is a valid path between them
     - Taint analysis types of vulns: command injection, path traversals, SQL injection, null pointer dereference 
     - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths
+  - From SFT to RL: Demystifying the Post-Training Pipeline for LLM-based Vulnerability Detection [[arxiv'26/02](https://arxiv.org/abs/2602.14012v1)]
   - Automated Static Vulnerability Detection via a Holistic Neuro-symbolic Approach  [[arxiv'25/04](https://arxiv.org/abs/2504.16057)]
     - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semenatic feedbacks
     - LLM should be able to write these queries by itself in the near future.
@@ -140,6 +141,8 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 - **PoC generation**
 
+  - FirmAgent: Leveraging Fuzzing to Assist LLM Agents with IoT Firmware Vulnerability Discovery [[arxiv'26/02](https://netsec.ccert.edu.cn/files/papers/ndss26-firmagent.pdf)]
+  - Execution-State-Aware LLM Reasoning for Automated Proof-of-Vulnerability Generation [[arxiv'26/02](https://arxiv.org/abs/2602.14012v1)]
   - Agentic Concolic Execution (S&P'26)
     - Use llm to perform basic-block level instrumentation
     - Has a corpus that contains interesting inputs, initially a random input, in each iteration
