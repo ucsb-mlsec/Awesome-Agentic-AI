@@ -75,7 +75,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Asynchronous RL: SLIME-based RL with async rollout and off-policy learning
   - Sparse Attention from DeepSeek is integrated
 
--  ***GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models*** [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
+-  GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
     - Model: MoE with 335B and 32B active parameters
     - Mid-training: repo-level code training, synthetic reasoning data, Long-context & agent training
     - Post-training:
@@ -116,14 +116,14 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Parallel agent RL: performance reward, parallel reward (avoid single agent), sub-agent finish reward (avoid too many sub-agents)
     - Critical steps as resource constraints: constrain training based critical steps (main agent steps + max step of sub-agents) -> incentive parallel strategies that minimize the total steps
 
-- ***Kimi K2: Open Agentic Intelligence*** [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
+- Kimi K2: Open Agentic Intelligence [[Arxiv'25/7](https://arxiv.org/pdf/2507.20534)]
   - MoE model with 1 trillion total params and 32B active params
   - Pre-training: 
     - 15.5 trillion tokens + data efficiency techniques
     - MuonClip optimizer: Muon + weight decay + QK clip 
     - Post-training:
       -  SFT
-         -  **Agentic data synthesis**: Tool spec generation, agent and task generation, trajectory generation; simulated env with real execution env
+         -  Agentic data synthesis: Tool spec generation, agent and task generation, trajectory generation; simulated env with real execution env
       - RL 
         - Verifiable rewards gym; Self-critique rubric reward 
         - GRPO with KL diff + PTX loss for preventing forget critical data
@@ -136,6 +136,12 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ### Agent training framework
 - Compare of different frameworks [[anatomy-of-rl-frameworks](https://www.hanifleo.com/anatomy-of-rl-frameworks/)]
+  - Rollout Architecture: Engine (Rollout happens in process) vs Server (Rollout runs as a seperate service)
+  - Weight Synchronization Strategy & worker organization
+  - Parallelism model & Data flow pattern
+- AREAL: A Large-Scale Asynchronous Reinforcement Learning System for Language Reasoning [[25/11](https://arxiv.org/pdf/2505.24298)]
+  - Fully async with staleness-aware RL, better handle off-policy
+  - SLIME is better at modularize and support partial rollout
 - Slime [[Github](https://github.com/THUDM/slime)]
   - Asynchronous rollout: Training and inference are fully separated using sglang
   - Customized rollout: Supports task-specific handling such as filtering incomplete/invalid trajectories
@@ -149,43 +155,17 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Note: Inference and training may have different precision, which can cause problems
 
 ### Compute step-wise rewards
-- SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
-  - Train an LLM as a progress estimator to assign a contribution score for each step
-  - The sum of the contribution scores is the final reward (either 0 or 1) 
-  - Model assigns a reward to each step, training objective is to make the sum of the contribution scores close to the final reward (MSE loss) [No constraints on individual step scores]
 
-- Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
-  - GRPO with outcome reward  
-  - Step-wise reward: Group similar states and use GRPO to compute the states in the group
-
-- Training Task Reasoning LLM Agents for Multi-turn Task Planning via Single-turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.20616)]
-  - Train LLM agents for multi-turn task planning by decomposing long-horizon tasks into single-turn reasoning problems, where the policy (Qwen2.5-1.5B) learns to predict the correct next action at each state using GRPO with dense rewards from expert trajectories (Llama3-70B) 
-  - Theory proves that improving single-step optimality leads to higher overall multi-turn success rate
-
-- Online Process Reward Leanring for Agentic Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.19199v2)]
-  - Similar to PRIME, the differences are 1. DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward
-
-- **RLVMR: Reinforcement Learning with Verifiable Meta-Reasoning Rewards for Robust Long-Horizon Agents [[Arxiv'25/07](https://arxiv.org/abs/2507.22844)]**
-  - Create different rules to calculate the reward for each step
-
-- Process reward models for llm agents: Practical framework and directions [[Arxiv'25/02](https://arxiv.org/abs/2502.10325)]
-  - Two frameworks:
-    - SFT via rollouts (similar to Group-in-Group, group the same states)
-    - Inverse RL (collecting expert trajectories to train PRM)
-
-- **From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]**
-  - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL
-
-- Reinforcement Learning for Long-Horizon Interactive LLM Agents [[Arxiv'25/02](https://arxiv.org/abs/2502.01600)]
-  - PPO with RLOO to estimate the reward, examined three different variants: token-level, step-level, and trajectory-level. Token-level is the most effective.
-
-- RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
-  - Extend PPO and GRPO to multi-turn reasoning, the equations are the same
+- RLAnything: Forge Environment, Policy, and Reward Model in Completely Dynamic RL System [[Arxiv'26/02](https://www.arxiv.org/pdf/2602.02488)]
+  - Intermediate reward: Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standarizing rewards across trajectories at the same step index.
+  - The reward model is jointly optimized with the policy using a consistency feedback signal: $R_{S_{\tau_{i},j}} = R_{\tau_{i}} \cdot S_{\tau_{i,j}}$. 
+    - USE RL loss to train or not? it needs to compute advantage...
+  - The framework dynamically adjusts task difficulty when policy accuracy falls outside predefined thresholds ($\alpha_{low}=0.2, \alpha_{high}=0.8$). A language model modifies tasks to be harder or easier based on "critic feedback"—summarized error patterns provided by the reward model
 
 - Reinforcement Learning via Self-Distillation [[Arxiv'26/01](https://arxiv.org/pdf/2601.20802)]
   - $$\mathcal{L}_{\text{SDPO}}(\theta) := \sum_{t} \text{KL}(\pi_{\theta}(\cdot \mid x, y_{<t}) \| \text{stopgrad}(\pi_{\theta}(\cdot \mid x, f, y_{<t})))$$
   - $y$ is generated by given only $x$ and model $\pi_{\theta}$, $f$ is the feedback from the environment.
-  - In RLVR env (only final reward is available, no intermediate feedback, such as Math), $f$ is set to be the successful attempts sampled in the current batch.
+  - Use $\text{log} \frac{\pi(y|x,f,y)}{\pi(y|x,y)}$ as the intermediate reward, $\pi(y|x,f,y)$ is self polic as the teacher model.
   - All the experiments are conducted on single-turn tasks. When comparing this method with GRPO, the models are trained 1 hr and 5 hrs (a strange setting).
   - This methd can work depends on if the policy itself knows where is wrong given the feedback.
   - Similar paper: Self-Distilled Reasoner: On-Policy Self-Distillation for Large Language Models [[Arxiv'26/01](https://arxiv.org/abs/2601.18734)]
@@ -194,33 +174,68 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Ask the policy to 'identify' the current state (in system prompt): either in expolore state or normal thinking state (differentiated by the tag `[EXPLORING]` and `[THINKING]`). If identified as explore state, then the system will force beam search. The experiments show it is more effective than GRPO.
 
 - R3L: Reflect-then-Retry Reinforcement Learning with Language-Guided Exploration, Pivotal Credit, and Positive Amplification [[Arxiv'26/01](https://arxiv.org/pdf/2601.03715)]
-  - Algorithm:
+  - Algorithm (Use LLM to find important steps)
     - step 1: sample n/2 trajectories.
-    - step 2: For each trajectory, use the current model to perform structural analysis: for example, error analysis, then provide improvement suggestions, and determine which step is the pivot step that caused the error.
-    - step 3: Retain the trajectory before the pivot step, given the error analysis and improvement suggestions, ask the LLM to continue generating the trajectory after the pivot.
+    - step 2: For each trajectory, use the current model to perform structural analysis: for example, error analysis, then provide improvement suggestions, and determine which step is the pivot step that caused the error
+    - step 3: Retain the trajectory before the pivot step, given the error analysis and improvement suggestions, ask the LLM to continue generating the trajectory after the pivot
     - step 4: Combine the steps before the pivot step and the trajectory generated by step 3 after the pivot, forming a new set of n/2 trajectories.
-  - Shared prefix does not calculate gradients.
-  - Scaling advantages to address difficult problems are mostly negative reward issues.
+  - Shared prefix does not calculate gradients
+  - Scaling advantages to address difficult problems are mostly negative reward issues
   - Two additional SFT objectives were designed to enhance the model’s diagnostic and retry capabilities (useful for steps 2 and 3).
 
+- TL-GRPO: Turn-Level RL for Reasoning-Guided Iterative Optimization [[Arxiv'26/01](https://arxiv.org/pdf/2601.16480)]
+  - Designed for iterative optimization - play the same game multiple times and take the best reward
+  - First generate only one traj, then for each step, generate n alternative steps, calculate the reward for each step, then using GRPO to calculate the advantage of each step.
+
 - Meta-RL Induces Exploration in Language Agents [[Arxiv'25/12](https://arxiv.org/abs/2512.16848)]
+  - Rollout and training with cross-traj signals
   - After each traj finishes, prompt the agent to generate the textual reflection on this traj, providing specific feedback and plan to guide the next traj.
-  - The return for each action is the sum of the discounted return of future actions plus the discounted return of future trajectories at step 0. (The step reward is provided by the environment or the task.)
+  - The return for each action is the sum of the discounted return of future actions plus the discounted return of future trajectories at step 0 (The step reward is provided by the environment or the task)
 
 - Differentiable Evolutionary Reinforcement Learning [[Arxiv'25/12](https://arxiv.org/abs/2512.13399)]
-  - Automatically search the best combination of different reward functions, (e.g., format reward, length reward, etc.)
+  - Automatically search the best combination of reward functions, (e.g., format reward, length reward) via a meta reward func. and train this reward func together with policy
 
 - CriticSearch: Fine-Grained Credit Assignment for Search Agents via a Retrospective Critic [[Arxiv'25/11](https://arxiv.org/pdf/2511.12159)]
-  - Use a teacher model to produce step-wise reward, the step-wise reward are normalized within one trajectory.
+  - Use a teacher model to produce step-wise reward, the step-wise reward are normalized within one trajectory
   - Focus on search agents
 
-- RLAnything: Forge Environment, Policy, and Reward Model in Completely Dynamic RL System [[Arxiv'26/02](https://www.arxiv.org/pdf/2602.02488)]
-  - 1. Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standarizing rewards across trajectories at the same step index.
-  - 2. The reward model is jointly optimized with the policy using a consistency feedback signal: $R_{S_{\tau_{i},j}} = R_{\tau_{i}} \cdot S_{\tau_{i,j}}$. 
-  - 3. The framework dynamically adjusts task difficulty when policy accuracy falls outside predefined thresholds ($\alpha_{low}=0.2, \alpha_{high}=0.8$). A language model modifies tasks to be harder or easier based on "critic feedback"—summarized error patterns provided by the reward model
+- Training Task Reasoning LLM Agents for Multi-turn Task Planning via Single-turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.20616)]
+  - Train LLM agents for multi-turn task planning by decomposing long-horizon tasks into single-turn reasoning problems, where the policy (Qwen2.5-1.5B) learns to predict the correct next action at each state using GRPO with dense rewards from expert trajectories (Llama3-70B)
+  - Mainly for planning tasks with deterministic environment 
+  - Theory proves that improving single-step optimality leads to higher overall multi-turn success rate
 
-- TL-GRPO: Turn-Level RL for Reasoning-Guided Iterative Optimization [[Arxiv'26/01](https://arxiv.org/pdf/2601.16480)]
-  - First generate only one traj, then for each step, generate n alternative steps, calculate the reward for each step, then using GRPO to calculate the advantage of each step.
+- Online Process Reward Leanring for Agentic Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/abs/2509.19199v2)]
+  - Similar to PRIME, the differences are 1. DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward
+
+- RLVMR: Reinforcement Learning with Verifiable Meta-Reasoning Rewards for Robust Long-Horizon Agents [[Arxiv'25/07](https://arxiv.org/abs/2507.22844)]
+  - Create three meta rewards: planning, exploration, and reflection (traj has the pattern of <reflection> + corrective actions)
+
+- Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
+  - GRPO with outcome reward  
+  - Step-wise reward: Group similar states, where the reward each state is its discounted return, and use GRPO to compute the advantages for actions in each group
+  - May suffer if the states are diverse
+
+- SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
+  - Train an LLM as a progress estimator to assign a contribution score for each step
+  - The sum of the contribution scores is the final reward (either 0 or 1) 
+  - Model assigns a reward to each step, training objective is to make the sum of the contribution scores close to the final reward (MSE loss) [No constraints on individual step scores]
+
+- RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
+  - Extend PPO and GRPO to multi-turn reasoning, the equations are the same
+  - Assume the reward for each turn is available
+
+- Process reward models for llm agents: Practical framework and directions [[Arxiv'25/02](https://arxiv.org/abs/2502.10325)]
+  - Two frameworks:
+    - SFT via rollouts (similar to Group-in-Group, group the same states)
+    - Inverse RL (collecting expert trajectories to train PRM)
+
+- Reinforcement Learning for Long-Horizon Interactive LLM Agents [[Arxiv'25/02](https://arxiv.org/abs/2502.01600)]
+  - PPO with RLOO to estimate the reward, examined three different variants: token-level, step-level, and trajectory-level. Token-level is the most effective.
+
+- From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]
+  - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL
+
+
 
 ### Different applications
 
