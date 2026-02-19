@@ -69,11 +69,17 @@ Below, we summarize the latest agentic models, as well as some notable and recen
     - Higher thinking efficiency and smarter tool calling **[only support in non-thinking mode]**
 
 ## GLM & Kimi
-- [GLM-5](https://docs.z.ai/guides/llm/glm-5)
+- GLM-5 [[26/02](https://arxiv.org/pdf/2602.15763)]
   - Performs a little bit worse than Kimi-2.5 on coding tasks
-  - Scalabilty for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated), with pre-training data upgraded from 23T to 28.5T
+  - Scalabilty for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated with pre-training data upgraded from 23T to 28.5T
+    - Vallina MLA cannot match GQA; propose Muon split that splits K/Q/V matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices
+    - Use multi-token prediction and DSA
+  - SFT: three different thinking modes: interleaved thinking, preserved thinking, turn-level thinking 
   - Asynchronous RL: SLIME-based RL with async rollout and off-policy learning
-  - Sparse Attention from DeepSeek is integrated
+    - Remove off-policy trajs from the rollout if the distribution discrepancy is large
+    - On-policy distillation
+      - Sequentially optimizing for distinct objectives can lead to the cumulative degradation of previously acquired capabilities
+      - Use the log poilcy diff as the per-token reward
 
 -  GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
     - Model: MoE with 335B and 32B active parameters
@@ -155,6 +161,9 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Note: Inference and training may have different precision, which can cause problems
 
 ### Compute step-wise rewards
+
+- Maximum Likelihood Reinforcement Learning [[Arxiv'26'02](https://arxiv.org/abs/2602.02710)]
+  - Use pass-rate as sample weight for training -> mimic the maximum likelihood loss
 
 - RLAnything: Forge Environment, Policy, and Reward Model in Completely Dynamic RL System [[Arxiv'26/02](https://www.arxiv.org/pdf/2602.02488)]
   - Intermediate reward: Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standarizing rewards across trajectories at the same step index.
