@@ -10,14 +10,13 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - [GLM & Kimi](#glm--kimi)
   - [Agentic RL](#agentic-rl)
     - [Agent training framework](#agent-training-framework)
-    - [Compute step-wise rewards](#compute-step-wise-rewards)
-    - [Different applications](#different-applications)
-    - [Misc](#misc)
-      - [Environment simulation](#environment-simulation)
-      - [Efficiency, Stability and others](#efficiency-stability-and-others)
+    - [Agentic RL methods](#agentic-rl-methods)
+  - [Misc](#misc)
+    - [Application-specific RL](#application-specific-rl)
+    - [Environment simulation](#environment-simulation)
+    - [Efficiency, Stability and others](#efficiency-stability-and-others)
       - [Control Experiments](#control-experiments)
   - [Memory management](#memory-management)
-  - [Agentic modeling (linear attentions)](#agentic-modeling-linear-attentions)
 
 ## QWEN models
 
@@ -137,9 +136,6 @@ Below, we summarize the latest agentic models, as well as some notable and recen
         - GRPO with KL diff + PTX loss for preventing forget critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
-
-
-
 ## Agentic RL
 
 ### Agent training framework
@@ -162,7 +158,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Importance sampling for data reuse: Save logits at generation time to correct for policy drift ($\mathbb{E}_{a \sim \pi_{\text{old}}}[f(a)] = \mathbb{E}_{a \sim \pi_{\text{old}}}[\frac{\pi_{\text{new}}(a|s)}{\pi_{\text{old}}(a|s)} \cdot f(a)]$)
   - Note: Inference and training may have different precision, which can cause problems
 
-### Compute step-wise rewards
+### Agentic RL methods
 
 - Maximum Likelihood Reinforcement Learning [[Arxiv'26'02](https://arxiv.org/abs/2602.02710)]
   - Use pass k rate as sample weight for training -> mimic the maximum likelihood loss
@@ -249,9 +245,14 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 - From novice to expert: Llm agent policy optimization via step-wise reinforcement learning [[Arxiv'24/11](https://arxiv.org/abs/2411.03817)]
   - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL
 
+## Agentic modeling
+- Kimi Linear [[ArxXiv'25.10](https://arxiv.org/abs/2510.26692)]
+  - Propose Kimi Delta Attention
+  - Kimi Linear can be a drop-in replacement for full attention architectures with superior performance and efficiency, including tasks with longer input and output lengths.
 
+## Misc
 
-### Different applications
+### Application-specific RL
 
 - UI-TARS-2 Technical Report: Advancing GUI Agent with Multi-Turn Reinforcement Learning [[Arxiv'2/9](https://arxiv.org/pdf/2509.02544v1)]
   
@@ -269,9 +270,7 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - web navigation tasks
   - long-horizon interaction yet provide sparse and delayed rewards. Making policy improvement challenging and costly, and often result in training collapse
 
-### Misc
-
-#### Environment simulation 
+### Environment simulation 
 
 In general, simulating environments with LLMs or other reasoning models may require a large amount of high-quality data with broad state and action coverage. This may be similar as GAN where we train a generator to generate data but the generator itself requires a lot of data to train.
 
@@ -291,7 +290,7 @@ In general, simulating environments with LLMs or other reasoning models may requ
 - LLMs as Scalable, General-Purpose Simulators For Evolving Digital Agent Training [[Arxiv'25/10](https://arxiv.org/abs/2510.14969)]
   - Simulator generates next state; guided rollout decides actions with reasoning; wrap infers overall user task
 
-#### Efficiency, Stability and others
+### Efficiency, Stability and others
 - S-GRPO: Early Exit via Reinforcement Learning in Reasoning Models [[Arxiv'25/05](https://arxiv.org/abs/2505.07686)]
   - One reasoning path with several early-exit branches. For example, early-exit at 50% of the current reasoning path. Using this to create a group (like GRPO) and calculate the advantage.
   - Aim to reduce the reasoning length and improve the efficiency.
@@ -454,10 +453,4 @@ The latest works on memory management are moving towards building specific sub-a
 
 - MIRIX: Multi-Agent Memory System for LLM-Based Agents [[Arxiv'25](https://arxiv.org/abs/2507.07957)]
   - Layered memory, hand-designed levels
-
-## Agentic modeling (linear attentions)
-
-- Kimi Linear [[Arxiv'25/10](https://arxiv.org/abs/2510.26692)]
-  - Propose Kimi Delta Attention 
-  - Kimi Linear can be a drop-in replacement for full attention architectures with superior performance and efficiency, including tasks with longer input and output lengths.
 
