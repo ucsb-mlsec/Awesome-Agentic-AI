@@ -160,6 +160,11 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 ### Agentic RL methods
 
+- Experiential Reinforcement Learning [[Arxiv'26'02](https://www.arxiv.org/abs/2602.13949)]
+  - Ask the policy to do two attempts in one response round, where the second response leverages the model's reflection of the first one   
+  - Use RL to update the policy based on both attempts 
+  - Use the second response for distillation (ask the model to output the second response without the reflection) 
+
 - Maximum Likelihood Reinforcement Learning [[Arxiv'26'02](https://arxiv.org/abs/2602.02710)]
   - Use pass k rate as sample weight for training -> mimic the maximum likelihood loss
   - Compute gradient estimation as a REINFORCE-style with score function
