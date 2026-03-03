@@ -140,8 +140,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 ### 🛠️ Techniques 
 
 - **PoC generation**
-
-  - Orion: Fuzzing Workflow Automation [[arxiv'25/09](https://arxiv.org/abs/2509.15195)]
+  
   - FirmAgent: Leveraging Fuzzing to Assist LLM Agents with IoT Firmware Vulnerability Discovery [[arxiv'26/02](https://netsec.ccert.edu.cn/files/papers/ndss26-firmagent.pdf)]
     - Detect and generate PoC for taint-style vulns for binary-only firmware backends with a frontend.
     - Procedure:
@@ -172,6 +171,8 @@ Below, we list some widely used coding agents that are mostly commercial product
   - PoCo: Agentic Proof-of-Concept Exploit Generation for Smart Contracts [[arxiv'26/02](https://arxiv.org/abs/2511.02780)]
     - setting: vuln description as input
     - React style, with file read/write, search, planning, smart-contract-compile, smart-contract-test (with forge)
+   
+  - Orion: Fuzzing Workflow Automation [[arxiv'25/09](https://arxiv.org/abs/2509.15195)]
     
   - Agentic Concolic Execution (S&P'26)
     - Use llm to perform basic-block level instrumentation
