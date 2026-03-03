@@ -96,6 +96,8 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Taint analysis types of vulns: command injection, path traversals, SQL injection, null pointer dereference 
     - They leverage LLM’s capabilities in reasoning about program states and also conditions -> filter out wrong paths
   - From SFT to RL: Demystifying the Post-Training Pipeline for LLM-based Vulnerability Detection [[arxiv'26/02](https://arxiv.org/abs/2602.14012v1)]
+    -  why dpo works
+    -  how to set reward
   - Automated Static Vulnerability Detection via a Holistic Neuro-symbolic Approach  [[arxiv'25/04](https://arxiv.org/abs/2504.16057)]
     - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semenatic feedbacks
     - LLM should be able to write these queries by itself in the near future.
