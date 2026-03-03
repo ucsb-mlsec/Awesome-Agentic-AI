@@ -171,7 +171,8 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Evaluated on secbench
   - PoCo: Agentic Proof-of-Concept Exploit Generation for Smart Contracts [[arxiv'26/02](https://arxiv.org/abs/2511.02780)]
     - setting: vuln description as input
-    - React style
+    - React style, with file read/write, search, planning, smart-contract-compile, smart-contract-test (with forge)
+    
   - Agentic Concolic Execution (S&P'26)
     - Use llm to perform basic-block level instrumentation
     - Has a corpus that contains interesting inputs, initially a random input, in each iteration
