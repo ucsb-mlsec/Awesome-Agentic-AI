@@ -524,6 +524,7 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
 - SWE-MiniSandbox: Container-Free Reinforcement Learning for Building Software Engineering Agents [[Arxiv'26](https://arxiv.org/abs/2602.11210)]
   - chroot
 - Implementing a secure sandbox for local agents [[cursor blog](https://cursor.com/blog/agent-sandboxing)]
+- amla-sandbox[[amla-sandbox](https://github.com/amlalabs/amla-sandbox)]
 
 
 
