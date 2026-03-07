@@ -520,5 +520,10 @@ Issue resolving is a typical SWE task on the development side. Below, we list an
   - A test generation agent with feedback from coverage tool and a test oracle
 - HITS: High-coverage LLM-based Unit Test Generation via Method Slicing
 
+### Sandbox techniques 
+- SWE-MiniSandbox: Container-Free Reinforcement Learning for Building Software Engineering Agents [[Arxiv'26](https://arxiv.org/abs/2602.11210)]
+  - chroot
+- Implementing a secure sandbox for local agents [[cursor blog](https://cursor.com/blog/agent-sandboxing)]
+
 
 
