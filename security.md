@@ -68,6 +68,7 @@ Below, we list some widely used coding agents that are mostly commercial product
        - LLM-based patching location identification, prompt includes commit diff + crash log + history from poc gen (optional) + coverage(optional) + RAG
   - 42 b3yond 6ug: [[Final code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-crs)] [[Semifinal code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-asc)]
   - Lacrosse: [[Final code](https://github.com/siftech/afc-crs-lacrosse)] [[Semifinal code](https://github.com/siftech/asc-crs-lacrosse)]
+  - OSS-CRS: Liberating AlxCCCyber Reasoning Systems forReal-World Open-SourceSecurity [[Arxiv 26/03](https://arxiv.org/abs/2603.08566v1)]
 
     
 
@@ -315,6 +316,7 @@ Below, we list some widely used coding agents that are mostly commercial product
                 - Sample failed patches and instructing the LLM not to generate similar patches again
 
 - AutoSafeCoder: A Multi-Agent Framework for Securing LLM Code Generation through Static Analysis and Fuzz Testing [[Arxiv'24](https://arxiv.org/abs/2409.10737)]
+- Why LLMs Fail: A Failure Analysis and Partial Success Measurement for Automated Security Patch Generation [[Arxiv'26/03] (https://arxiv.org/html/2603.10072v1)]
 
 ### 📋 Benchmarks
 
