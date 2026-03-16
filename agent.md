@@ -1,7 +1,5 @@
 # Agentic model and techniques
 
-Below, we summarize the latest agentic models, as well as some notable and recent reasoning techniques.  
-
 ## Table of Contents
 - [Agentic model and techniques](#agentic-model-and-techniques)
   - [Table of Contents](#table-of-contents)
@@ -143,9 +141,11 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Rollout Architecture: Engine (Rollout happens in process) vs Server (Rollout runs as a seperate service)
   - Weight Synchronization Strategy & worker organization
   - Parallelism model & Data flow pattern
+
 - AREAL: A Large-Scale Asynchronous Reinforcement Learning System for Language Reasoning [[25/11](https://arxiv.org/pdf/2505.24298)]
   - Fully async with staleness-aware RL, better handle off-policy
   - SLIME is better at modularize and support partial rollout
+
 - Slime [[Github](https://github.com/THUDM/slime)]
   - Asynchronous rollout: Training and inference are fully separated using sglang
   - Customized rollout: Supports task-specific handling such as filtering incomplete/invalid trajectories
@@ -158,7 +158,9 @@ Below, we summarize the latest agentic models, as well as some notable and recen
   - Importance sampling for data reuse: Save logits at generation time to correct for policy drift ($\mathbb{E}_{a \sim \pi_{\text{old}}}[f(a)] = \mathbb{E}_{a \sim \pi_{\text{old}}}[\frac{\pi_{\text{new}}(a|s)}{\pi_{\text{old}}(a|s)} \cdot f(a)]$)
   - Note: Inference and training may have different precision, which can cause problems
 
-### Agentic RL methods
+### Process rewards
+
+
 
 - Experiential Reinforcement Learning [[Arxiv'26'02](https://www.arxiv.org/abs/2602.13949)]
   - Ask the policy to do two attempts in one response round, where the second response leverages the model's reflection of the first one   
@@ -232,8 +234,30 @@ Below, we summarize the latest agentic models, as well as some notable and recen
 
 - SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
   - Train an LLM as a progress estimator to assign a contribution score for each step
-  - The sum of the contribution scores is the final reward (either 0 or 1) 
+  - The sum of the contribution scores is the final reward (either 0 or 1)
   - Model assigns a reward to each step, training objective is to make the sum of the contribution scores close to the final reward (MSE loss) [No constraints on individual step scores]
+
+- Reinforcing Multi-Turn Reasoning in LLM Agents via Turn-Level Reward Design [[Arxiv'25/05](https://arxiv.org/abs/2505.11821)]
+  - Design multi-turn GRPO and PPO, the intermediate rewards are obtained using verifiable rewards / LLM-as-Judge
+
+- Reflect, Retry, Reward: Self-Improving LLMs via Reinforcement Learning [Arxiv'25/05]
+  - If a traj fails, the model is prompted to generate a self-reflection to continue generate (question + failed traj + reflection + ...)
+  - If it succeeds, use GRPO to reward only the tokens that were generated in the self-reflection
+
+- Agent-RLVR: Training Software Engineering Agents via Guidance and Environment Rewards [Arxiv'25/06]
+  - If a traj fails, the model is prompted to generate a self-reflection to continue generate (question + reflection + ...)
+  - Use DPO for training
+
+- Exploration by Random Network Distillation [[Arxiv'18/10](https://arxiv.org/abs/1810.12894)]
+  - Encourages the agent to explore novel, unseen states
+  - Two networks: a randomly initialized fixed target network and a predictor network trained to predict the target's output
+  - Prediction error between the two networks is used as the intrinsic exploration bonus (higher error = state is novel = higher reward)
+  - Based on visual games; using PPO with a Dual Value Head to separately estimate stationary extrinsic and non-stationary intrinsic rewards
+
+- First return, then explore [[Nature'21/09](https://www.nature.com/articles/s41586-020-03157-9)]
+  - Visual game exploration
+  - Phase 1: Return and explore until solved -- record states based on similarity, select promising states (less explored or leading to more new states), replace states with better solutions (fewer steps)
+  - Phase 2: Use SFT for robustification
 
 - RAGEN: Understanding self-evolution in LLM agents via multi-turn reinforcement learning [[Arxiv'25/04](https://arxiv.org/abs/2504.20073)]
   - Extend PPO and GRPO to multi-turn reasoning, the equations are the same
@@ -295,7 +319,17 @@ In general, simulating environments with LLMs or other reasoning models may requ
 - LLMs as Scalable, General-Purpose Simulators For Evolving Digital Agent Training [[Arxiv'25/10](https://arxiv.org/abs/2510.14969)]
   - Simulator generates next state; guided rollout decides actions with reasoning; wrap infers overall user task
 
+- Agent Data Protocol: Unifying Datasets for Diverse, Effective Fine-tuning of LLM Agents
+  - Unified a broad collection of 13 existing agent training datasets using a standardized protocol
+
+- CLI-Gym: Scalable CLI Task Generation via Agentic Environment Inversion [Arxiv'26/02]
+  - Scalable generation of CLI-based tasks via environment inversion for agent training
+
 ### Efficiency, Stability and others
+- Good SFT Optimizes for SFT, Better SFT Prepares for Reinforcement Learning [Arxiv'26/02]
+  - Token-level importance sampling, assigning large weights to SFT samples whose distribution more closely matches the policy model
+  - Addresses distribution mismatch between SFT samples (generated by teacher models) and RL samples (generated by the policy)
+
 - S-GRPO: Early Exit via Reinforcement Learning in Reasoning Models [[Arxiv'25/05](https://arxiv.org/abs/2505.07686)]
   - One reasoning path with several early-exit branches. For example, early-exit at 50% of the current reasoning path. Using this to create a group (like GRPO) and calculate the advantage.
   - Aim to reduce the reasoning length and improve the efficiency.
@@ -357,6 +391,10 @@ In general, simulating environments with LLMs or other reasoning models may requ
 #### Control Experiments
 - RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs? [[Arxiv'25/09](https://arxiv.org/abs/2509.21016)]
   - Using synthetic coding promblems to verify how RL can unlock new algorithms in LLMs
+
+## Multimodal Pre-training
+
+- Beyond Language Modeling: An Exploration of Multimodal Pretraining [Arxiv'26/03]
 
 ## Memory management
 
