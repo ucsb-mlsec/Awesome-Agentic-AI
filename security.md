@@ -345,6 +345,8 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 - **CTF**
 
+  - KryptoPilot: An Open-World Knowledge-Augmented LLM Agent for Automated Cryptographic Exploitation [[arxiv'26/01](https://arxiv.org/abs/2502.10931)]
+  - Comparing AI Agents to Cybersecurity Professionals in Real-World Penetration Testing [[arxiv'25/12](https://arxiv.org/abs/2512.09882)]
   - D-CIPHER: Dynamic Collaborative Intelligent Multi-Agent System with Planner and Heterogeneous Executors for Offensive Security [[arxiv'25/05](https://arxiv.org/abs/2502.10931)]
   - EnIGMA: Interactive Tools Substantially Assist LM Agents in Finding Security Vulnerabilities [[ICML'25/07](https://arxiv.org/abs/2409.16165)]
   - Measuring and Augmenting Large Language Models for Solving Capture-the-Flag Challenges [[ACM CCS'25/10](https://arxiv.org/abs/2506.17644)]
