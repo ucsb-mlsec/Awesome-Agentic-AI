@@ -78,9 +78,6 @@ Below, we list some widely used coding agents that are mostly commercial product
 ### 🛠️ Techniques 
 
 - **Agent system**
-  - EnIGMA: Interactive Tools Substantially Assist LM Agents in Finding Security Vulnerabilities [[ICML'25/07](https://arxiv.org/abs/2409.16165)]
-    - Agent with interactive tools and debuggers for CTF challenges
-    - Agent does not use the tool feedback efficiently; The prompts are restricted to CTF
   - From Naptime to Big Sleep: Using Large Language Models To Catch Vulnerabilities In Real-World Code (Google Blog 2024)
     - Target on finding variants of previously found and patched vulnerabilities
     - Scan one commit at a time, collected recent commits to the SQLite repository, manually removing trivial and documentation-only changes and provide the agent with both the commit message and a diff for the change (and previous fixed vulns), let the agent review whether there is unfixed variants
@@ -236,9 +233,7 @@ Below, we list some widely used coding agents that are mostly commercial product
   - General agents
       - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'25/04](https://arxiv.org/abs/2407.16741)]
       - Evaluating Large Language Models Trained on Code (Codex of openai) [[arxiv'21/07](https://arxiv.org/abs/2107.03374)]
-  - CTF agents
-      - Cybench: A Framework for Evaluating Cybersecurity Capabilities and Risks of Language Models [[ICLR'25/04](https://arxiv.org/abs/2408.08926)]
-      - NYU CTF Bench: A Scalable Open-Source Benchmark Dataset for Evaluating LLMs in Offensive Security [[NeurIPS'24/12](https://arxiv.org/abs/2406.05590)]
+
 
 - **Root cause analysis**
 
@@ -333,33 +328,58 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 ## Others
 
+
+
+## Penn test
+
 ### 🛠️ Techniques 
-
-- **Penn test**
-
   - PentestGPT: Evaluating and Harnessing Large Language Models for Automated Penetration Testing [[USENIX Security'24/08](https://www.usenix.org/conference/usenixsecurity24/presentation/deng)]
   - On the Feasibility of Using LLMs to Autonomously Execute Multi-host Network Attacks [[arxiv'25/05](https://arxiv.org/abs/2501.16466)]
   - From Sands to Mansions: Towards Automated Cyberattack Emulation with Classical Planning and Large Language Models [[arxiv'25/04](https://arxiv.org/abs/2407.16928)]
   - VulnBot: Autonomous Penetration Testing for A Multi-Agent Collaborative Framework [[arxiv'25/01](https://arxiv.org/abs/2501.13411)]
   - AutoAttacker: A Large Language Model Guided System to Implement Automatic Cyber-attacks [[arxiv'24/03](https://arxiv.org/abs/2403.01038)]
 
-- **CTF**
+## CTF
+
+### 🛠️ Techniques 
 
   - KryptoPilot: An Open-World Knowledge-Augmented LLM Agent for Automated Cryptographic Exploitation [[arxiv'26/01](https://arxiv.org/abs/2502.10931)]
+  
   - Comparing AI Agents to Cybersecurity Professionals in Real-World Penetration Testing [[arxiv'25/12](https://arxiv.org/abs/2512.09882)]
+    - Proposes a pentest agent and evaluates it on a large university network, with 8000 hosts and 12 subnets. Compared it with 6 other agents and 10 humans.
+    - Agent design: supervisor and sub-agent, sub-agents' sys prompt are written by supervisor
+      - Supervisor tools：spawn agent, read logs, search web, submit vuln , manage TODO, 
+      - Sub-agents are based off OpenAI Codex scaffold
+      - A triage module for determine relevance, reproduce, and then classify and report (need to see the code to check why low fp, 82% valid)
+      - Average 3 subagents in parallel at any time.
+    - Long running: if orchestrator calls finish, then summarize historical todos/notes/history and relaunch
+    - Limitations:
+      - struggle with GUI-based tasks
   - D-CIPHER: Dynamic Collaborative Intelligent Multi-Agent System with Planner and Heterogeneous Executors for Offensive Security [[arxiv'25/05](https://arxiv.org/abs/2502.10931)]
+    - Planner-Executor architecture, planner only spins up executors, executors does the real work
+      - Planner tools: RunCommand (only lightweight explore to decide tasks), Delegate, SubmitFlag and Giveup
+      - Executor tools: RunCommand, CreateFile, Decompile (by ghidra), Disassemble (by ghidra), FinishTask
+    - Authors’ Rationale and Insights: less hallucination, long-horizon by more focused tasks and executors with fresh context
   - EnIGMA: Interactive Tools Substantially Assist LM Agents in Finding Security Vulnerabilities [[ICML'25/07](https://arxiv.org/abs/2409.16165)]
+    - Agent with interactive tools and debuggers for CTF challenges
+    - Agent does not use the tool feedback efficiently; The prompts are restricted to CTF
   - Measuring and Augmenting Large Language Models for Solving Capture-the-Flag Challenges [[ACM CCS'25/10](https://arxiv.org/abs/2506.17644)]
       - CTF QA benchmark
       - Propose an agent with RAG and terminal tools
+### 📋 Benchmarks
+  - Cybench: A Framework for Evaluating Cybersecurity Capabilities and Risks of Language Models [[ICLR'25/04](https://arxiv.org/abs/2408.08926)]
+  - NYU CTF Bench: A Scalable Open-Source Benchmark Dataset for Evaluating LLMs in Offensive Security [[NeurIPS'24/12](https://arxiv.org/abs/2406.05590)]
 
-- **Binary analysis/reverse engineering**
+## Binary analysis/reverse engineering
 
+### 🛠️ Techniques
   - FidelityGPT: Correcting Decompilation Distortions with Retrieval-Augmented Generation[[[NDSS'26](https://arxiv.org/abs/2510.19615)]
   - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
   - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
 
-- **General Program Analysis**
+## General Program Analysis
+
+### 🛠️ Techniques
   - Enhancing LLM-based Specification Generation via Program Slicing and Logical Deletion[[arxiv'25/09](https://arxiv.org/abs/2509.09917)]
   - SLICEMATE: Accurate and Scalable Static Program Slicing via LLM-Powered Agents[[arxiv'25/07](https://arxiv.org/abs/2507.18957)]
   - Program Slicing in the Era of Large Language Models [[COMPSAC'25/08](https://ieeexplore.ieee.org/abstract/document/11126732)]
