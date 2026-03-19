@@ -260,6 +260,10 @@
 
 ### Sampling strategies 
 
+- Beyond Precision: Training-Inference Mismatch is an Optimization Problem and Simple LR Scheduling Fixes It [[Arxiv'26/02](https://arxiv.org/abs/2602.01826)]
+  - Training-inference mismatch (e.g., vLLM vs FSDP) amplifies gradient noise, and both escalate together as training progresses. Since LR directly controls update magnitude, shrinking LR suppresses the mismatch by reducing the update size.
+  - Response length serves as an early-warning signal for impending instability (longer responses → more gradient noise). Propose a dynamic LR scheduler that decays LR when response length grows, proactively preventing divergence.
+
 - Spark: Strategic Policy-Aware Exploration via Dynamic Branching for Long-Horizon Agentic Learning [[Arxiv'26/01](https://arxiv.org/pdf/2601.20209)]
   - Ask the policy to 'identify' the current state (in system prompt): either in expolore state or normal thinking state (differentiated by the tag `[EXPLORING]` and `[THINKING]`). If identified as explore state, then the system will force beam search. The experiments show it is more effective than GRPO.
 
@@ -306,7 +310,12 @@
   - Prediction error between the two networks is used as the intrinsic exploration bonus (higher error = state is novel = higher reward)
   - Based on visual games; using PPO with a Dual Value Head to separately estimate stationary extrinsic and non-stationary intrinsic rewards
 
+
 ### Stability and others
+- The Optimal Token Baseline: Variance Reduction for Long-Horizon LLM-RL [[Arxiv'26/03](https://arxiv.org/abs/2602.07078)]
+  - Standard REINFORCE-style lead to high variance for long-horizon tasks as the noises will accumulate and the reward is sparse
+    - Existing baseline does not consider sequence heterogeneity and diff in sequence energy 
+  - Propose a per-token optimal baseline: weighted average of the return, where the weight depends on the squared norm of the score function at each token (Each token has their own baseline rather than a shared baseline for the sequence)
 
 - Stabilizing Reinforcement Learning with LLMs: Formulation and Practices [[Qwen Team, Arxiv'25/12](https://arxiv.org/abs/2512.01374)]
   - Three issues: (1) training–inference discrepancy (FP8 vs. BF16); (2) policy staleness (due to asynchronous rollout); (3) training–inference discrepancy can cause inconsistent routed experts for MoE models

@@ -221,6 +221,14 @@ Offline RL methods mainly refers to the methods that does not require rollout du
 
 This line of methods explore using generation entropy or confidence as the process reward signal or factual knowledge constraint for token-level reward. There are also some works on exploring using entropy for hallucination detection. 
 
+- How Far Can Unsupervised RLVR Scale LLM Training? [[Arxiv'26/03](https://arxiv.org/abs/2603.08660)]
+  - Method: Classify unsupervised RLVR methods into two categories: intrinsic (deriving rewards from model's own signals, e.g., consistency, confidence) and external (grounding verification in computational asymmetries). Establish a unified framework showing intrinsic methods work by sharpening the model's initial distribution.
+  - Finding 1: Intrinsic reward methods succeed when initial confidence aligns with correctness, but fail catastrophically when misaligned (confidence-correctness misalignment).
+  - Finding 2: Intrinsic rewards consistently exhibit a rise-then-fall pattern; collapse timing is determined by the model's prior knowledge rather than engineering choices.
+  - Finding 3: Intrinsic rewards remain useful for test-time training on small datasets. Propose "Model Collapse Step" as a metric for measuring model priors and predicting RL trainability.
+  - Finding 4: External reward methods grounded in computational asymmetries show preliminary evidence of escaping the confidence-correctness ceiling, offering more scalable alternatives
+    - confidence-correctness ceiling: intrinsic methods can only refine existing knowledge, not discover new knowledge
+
 - Emergent Hierarchical Reasoning in LLMs through Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/pdf/2509.03646)]
   - Classify token into high-level planning tokens (i.e., i notice that, let's look at) and low-level execution tokens
   - Force the model to learn high-level strategic planning tokens
