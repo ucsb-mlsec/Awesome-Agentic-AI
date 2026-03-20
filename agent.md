@@ -238,7 +238,7 @@
   - Collect expert trajectories, fix n steps of the trajectory, and train the model to generate the next step using RL
   - Still the idea of distillation; turn distillation into a RL problem (not exactly PRM; similar to using expert as PRM)
 
-### Objective functions (Mainly about weighting different rollouts)
+### Objective functions & training scheduling 
 
 - Maximum Likelihood Reinforcement Learning [[Arxiv'26'02](https://arxiv.org/abs/2602.02710)]
   - Use pass k rate as sample weight for training -> mimic the maximum likelihood loss
@@ -248,21 +248,32 @@
 
 - Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents [[Arxiv'25/09](https://arxiv.org/abs/2509.09265)]
   - Expected gradient norm is monotonically coupled with policy entropy
-  - A_mod(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})
+  - $A_{mod}(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})$
     - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
     - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
   - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
   - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
 
+- Tackling Length Inflation Without Trade-offs: Group Relative Reward Rescaling for Reinforcement Learning (GR³) [[Arxiv'26/03](https://arxiv.org/abs/2603.10535)]
+  - Problem: length inflation — model learns verbosity to maximize rewards. 
+    - Additive length penalty $R' = R - \lambda \cdot L$ creates optimization shortcuts (model inflates $R$ to offset $\lambda \cdot L$)
+  - GR³: multiplicative rescaling $\hat{R}^{(i)} = R^{(i)} \cdot \frac{1}{1 + \alpha \cdot \ell^{(i)} / \bar{\ell}}$ where $\ell^{(i)}$ is response length and $\bar{\ell}$ is group mean length.
+    - Encourage high reward and short responses
+    - This works within a group so only consider the relative length
+
 - Differentiable Evolutionary Reinforcement Learning [[Arxiv'25/12](https://arxiv.org/abs/2512.13399)]
   - Automatically search the best combination of reward functions, (e.g., format reward, length reward) via a meta reward func. and train this reward func together with policy
-
-
-### Sampling strategies 
 
 - Beyond Precision: Training-Inference Mismatch is an Optimization Problem and Simple LR Scheduling Fixes It [[Arxiv'26/02](https://arxiv.org/abs/2602.01826)]
   - Training-inference mismatch (e.g., vLLM vs FSDP) amplifies gradient noise, and both escalate together as training progresses. Since LR directly controls update magnitude, shrinking LR suppresses the mismatch by reducing the update size.
   - Response length serves as an early-warning signal for impending instability (longer responses → more gradient noise). Propose a dynamic LR scheduler that decays LR when response length grows, proactively preventing divergence.
+
+
+### Sampling strategies 
+- In-Context Reinforcement Learning for Tool Use in Large Language Models (ICRL) [[Arxiv'26/03](https://arxiv.org/abs/2603.08068)]
+  - RL-only framework that eliminates SFT by using few-shot in-context examples during RL rollouts to teach tool invocation
+  - Procedure: (1) prepend $k$ few-shot tool-use demos to the rollout prompt → (2) model generates its own tool-augmented trajectory and receives outcome reward → (3) update policy via RL → (4) curriculum: gradually reduce $k$ across stages (e.g., $5 \to 3 \to 1 \to 0$) until the model invokes tools zero-shot
+  - In-context examples bootstrap exploration (so the model doesn't start from random tool calls), then get removed as the model internalizes the format
 
 - Spark: Strategic Policy-Aware Exploration via Dynamic Branching for Long-Horizon Agentic Learning [[Arxiv'26/01](https://arxiv.org/pdf/2601.20209)]
   - Ask the policy to 'identify' the current state (in system prompt): either in expolore state or normal thinking state (differentiated by the tag `[EXPLORING]` and `[THINKING]`). If identified as explore state, then the system will force beam search. The experiments show it is more effective than GRPO.

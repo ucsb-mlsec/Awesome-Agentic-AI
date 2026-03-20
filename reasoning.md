@@ -263,6 +263,11 @@ This line of methods explore using generation entropy or confidence as the proce
 
 As an extension of the entropy and confidence based PRM, some works find that the post-training process is likely to encounter entropy collapse issue, where the model becomes overly confident and stops exploring better reasoning paths. Some works propose techniques to mitigate this issue. 
 
+- Entropy-Preserving Reinforcement Learning [[Arxiv'26/03](https://arxiv.org/abs/2603.11682)]
+  - Policy gradient algorithms naturally reduce entropy during training, limiting exploration diversity
+  - REPO: $A_{\text{REPO}}(s, a) = A(s, a) - \beta_s \cdot L(s, a)$ where $L(s,a) = \log \pi(a|s) - \mathbb{E}[\log \pi(a'|s)]$ is mean-centered log-prob. Subtracting $\beta_s \cdot L$ reduces advantage of high-prob actions and boosts rare actions, counteracting natural entropy decay
+  - ADAPO: asymmetric clipping $[\epsilon_{\text{low}}, \epsilon_{\text{high}}]$ with $\epsilon_{\text{low}} < \epsilon_{\text{high}}$. Tighter clip on entropy-reducing updates (model doubling down on confident tokens), looser clip on entropy-increasing updates (model exploring rare tokens)
+
 - The Entropy Mechanism of Reinforcement Learning for Reasoning Language Models [[Arxiv'25/06](https://arxiv.org/abs/2505.22617)]
   - The change in policy entropy is driven by the covariance between action probability and the change in logits
     - A high-probability action with high advantage would reduce policy entropy, while a rare action with high advantage would increase policy entropy
