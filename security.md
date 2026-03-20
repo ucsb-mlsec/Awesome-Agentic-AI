@@ -344,6 +344,9 @@ Below, we list some widely used coding agents that are mostly commercial product
 ### 🛠️ Techniques 
 
   - KryptoPilot: An Open-World Knowledge-Augmented LLM Agent for Automated Cryptographic Exploitation [[arxiv'26/01](https://arxiv.org/abs/2502.10931)]
+    - Workflow: human designed workflow (Recon → Analysis → Modeling → Exploit → Verify), prompt engineering，inject sketchy knowledge (e.g., some repos are useful etc)
+    - Tools: sagemath backend
+    - Memory: deep research (web search, github search, arxiv search) and file-based memory (storing the retrieved files, eg., papers), no cross-task sharing
   
   - Comparing AI Agents to Cybersecurity Professionals in Real-World Penetration Testing [[arxiv'25/12](https://arxiv.org/abs/2512.09882)]
     - Proposes a pentest agent and evaluates it on a large university network, with 8000 hosts and 12 subnets. Compared it with 6 other agents and 10 humans.
