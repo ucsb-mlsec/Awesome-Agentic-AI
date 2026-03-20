@@ -278,7 +278,23 @@
   - Response length serves as an early-warning signal for impending instability (longer responses → more gradient noise). Propose a dynamic LR scheduler that decays LR when response length grows, proactively preventing divergence.
 
 
-### Sampling strategies 
+### Sampling strategies
+
+- Meta-Reinforcement Learning with Self-Reflection for Agentic Search (MR-Search) [[Arxiv'26/03](https://arxiv.org/abs/2603.11327)]
+  - Instead of generating each traj independently, generate later trajs based on the reflection of existing ones 
+  - Train the policy with these reflection trajs using RLOO
+
+- Complementary Reinforcement Learning [[Arxiv'26/03](https://arxiv.org/abs/2603.17621)]
+  - Two co-evolving components: (1) policy actor optimized via sparse outcome rewards, (2) experience extractor that distills useful experiences from past episodes
+  - The experience extractor is trained based on whether its distilled experiences actually help the actor succeed — get reward based on the outcome reward of the traj it guides
+  - Two models are trained async and interact via an experience manager
+  - Improves sample efficiency by leveraging cross-episode experience; 10% improvement in single-task, scales to multi-task
+
+- RAPO: Expanding Exploration for LLM Agents via Retrieval-Augmented Policy Optimization [[Arxiv'26/03](https://arxiv.org/abs/2603.03078)]
+  - Hybrid-policy Agentic Rollout: retrieve off-policy step-level traces to expand reasoning scope during rollout
+  - Retrieval-aware Policy Optimization: 
+    - Add a retrieval reward to guide the model retrieve helpful trajs
+
 - In-Context Reinforcement Learning for Tool Use in Large Language Models (ICRL) [[Arxiv'26/03](https://arxiv.org/abs/2603.08068)]
   - RL-only framework that eliminates SFT by using few-shot in-context examples during RL rollouts to teach tool invocation
   - Procedure: (1) prepend $k$ few-shot tool-use demos to the rollout prompt → (2) model generates its own tool-augmented trajectory and receives outcome reward → (3) update policy via RL → (4) curriculum: gradually reduce $k$ across stages (e.g., $5 \to 3 \to 1 \to 0$) until the model invokes tools zero-shot
