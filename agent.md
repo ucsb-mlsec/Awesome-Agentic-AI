@@ -18,7 +18,7 @@
 
 - Qwen3.5 Towards Native Multimodal Agents [[26/02](https://qwen.ai/blog?id=qwen3.5)]
   - Qwen3.5-397B-A17B, a vision-language model with 1M context window
-  - Scaling of virtual RL tasks and enviornments compared to Qwen3 series
+  - Scaling of virtual RL tasks and environments compared to Qwen3 series
     - More than 15K environments
   - Pre-training: More tokens, more efficient MoEs, early text-vision token fusion
   - Infrastructure: 
@@ -32,7 +32,7 @@
     - Grouped Query Attention, SwiGLU, Rotary Positional Embeddings, and RMSNorm with pre-normalization; Remove QKV-bias and introduce QK-Norm
   - Pre-training: 36 trillion tokens (length 32,768 tokens), with synthetic data generated from other Qwen models
     - General stage, reasoning stage, long context stage
-    - Scaling low for optimal hyper-parameters 
+    - Scaling law for optimal hyper-parameters 
   - Post-training: 
     - Long CoT cold-start SFT
       - Data: math, code, logical reasoning, and general STEM problems
@@ -56,9 +56,9 @@
       - lightning indexer to compute the weights for preceding tokens and only the selected tokens will be used for computing attentions.
       - MQA (expand the dim of queries) with sparse attention (adding indexing)
     - Scalable RL training framework
-      - [K3 estimator](http://joschu.net/blog/kl-approx.html) with impprtance score for unbiased KL estimation
+      - [K3 estimator](http://joschu.net/blog/kl-approx.html) with importance score for unbiased KL estimation
       - Merge different tasks requiring RL into one stage
-      - Off-policy RL with a threshold for controling whether the rollouts are useful based on policy divergence
+      - Off-policy RL with a threshold for controlling whether the rollouts are useful based on policy divergence
     - Synthesize agentic tasks 
 
   - DeepSeek-V3.1 [[2025/8](https://huggingface.co/deepseek-ai/DeepSeek-V3.1)]
@@ -68,15 +68,15 @@
 ## GLM & Kimi
 - GLM-5 [[26/02](https://arxiv.org/pdf/2602.15763)]
   - Performs a little bit worse than Kimi-2.5 on coding tasks
-  - Scalabilty for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated with pre-training data upgraded from 23T to 28.5T
-    - Vallina MLA cannot match GQA; propose Muon split that splits K/Q/V matrices into smaller matrices for different heads and apply matrix orthogonalization to these independent matrices
+  - Scalability for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated) with pre-training data upgraded from 23T to 28.5T
+    - Vanilla MLA cannot match GQA; propose Muon split that splits K/Q/V matrices into smaller matrices for different heads and applies matrix orthogonalization to these independent matrices
     - Use multi-token prediction and DSA
   - SFT: three different thinking modes: interleaved thinking, preserved thinking, turn-level thinking 
   - Asynchronous RL: SLIME-based RL with async rollout and off-policy learning
     - Remove off-policy trajs from the rollout if the distribution discrepancy is large
     - On-policy distillation
       - Sequentially optimizing for distinct objectives can lead to the cumulative degradation of previously acquired capabilities
-      - Use the log poilcy diff as the per-token reward
+      - Use the log policy diff as the per-token reward
 
 -  GLM-4.5: Agentic, Reasoning, and Coding (ARC) Foundation Models [[Arxiv'25/8](https://arxiv.org/pdf/2508.06471)]
     - Model: MoE with 335B and 32B active parameters
@@ -85,7 +85,7 @@
       - SFT: 
         - Expert SFT: Empower the model with basic chat, reasoning, and tool-use capabilities; enable hybrid reasoning (short & long) 
         - Unified SFT: Distill the capabilities of different expert models into one hybrid reasoning model
-        - Rejected sampling: answer correctness, prevent hallucination, toll-calling (invoke proper protocols, reach expected terminal states)
+        - Rejection sampling: answer correctness, prevent hallucination, tool-calling (invoke proper protocols, reach expected terminal states)
         - Agentic SFT data collection: 
           - Agentic Framework and Tool Collection: MCP (standard format)
           - Task Synthesis: Single step and multi-step
@@ -99,7 +99,7 @@
         - ORM with process format penalty (stop traj with wrong format)
         - Self distillation and encourage interaction
       - General RL 
-        - Holistic RL: Rule-based, human, and model-based feedback on generate tasks
+        - Holistic RL: Rule-based, human, and model-based feedback on generated tasks
         - Instruction following 
         - Function calling: step-wise (part of general RL) and multi-turn RL (distill from specialized models)
         - Pathology RL (Final step)
@@ -129,26 +129,26 @@
          -  Agentic data synthesis: Tool spec generation, agent and task generation, trajectory generation; simulated env with real execution env
       - RL 
         - Verifiable rewards gym; Self-critique rubric reward 
-        - GRPO with KL diff + PTX loss for preventing forget critical data
+        - GRPO with KL diff + PTX loss for preventing forgetting critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
 ## Agentic RL
 
 ### Agent training framework
-- Compare of different frameworks [[anatomy-of-rl-frameworks](https://www.hanifleo.com/anatomy-of-rl-frameworks/)]
-  - Rollout Architecture: Engine (Rollout happens in process) vs Server (Rollout runs as a seperate service)
+- Comparison of different frameworks [[anatomy-of-rl-frameworks](https://www.hanifleo.com/anatomy-of-rl-frameworks/)]
+  - Rollout Architecture: Engine (Rollout happens in process) vs Server (Rollout runs as a separate service)
   - Weight Synchronization Strategy & worker organization
   - Parallelism model & Data flow pattern
 
 - AREAL: A Large-Scale Asynchronous Reinforcement Learning System for Language Reasoning [[25/11](https://arxiv.org/pdf/2505.24298)]
   - Fully async with staleness-aware RL, better handle off-policy
-  - SLIME is better at modularize and support partial rollout
+  - SLIME is better at modularization and supports partial rollout
 
 - Slime [[Github](https://github.com/THUDM/slime)]
   - Asynchronous rollout: Training and inference are fully separated using sglang
   - Customized rollout: Supports task-specific handling such as filtering incomplete/invalid trajectories
   - **Support partial rollout for efficiency:**
-    - Issuer: response lengths vary greatly between samples; traditional approach waits for the longest rollout, causing GPU idle time
+    - Issue: response lengths vary greatly between samples; traditional approach waits for the longest rollout, causing GPU idle time
     - Solution
       - Unfinished partial results are stored in a buffer and continued in the next round
       - Completed rollouts are immediately used for loss computation and optimization
@@ -159,23 +159,23 @@
 ### Overall recipes 
 
 - Agentic Critical Training [[Arxiv'26/03](https://arxiv.org/abs/2603.08706)]
-  - Collect expert data as reference and train the model to select better actions between reference and the model's own actions (enable the model to do critics)
-  - Continue train the model with normal RL 
+  - Collect expert data as reference and train the model to select better actions between reference and the model's own actions (enable the model to do critique)
+  - Continue training the model with normal RL 
 
 - Good SFT Optimizes for SFT, Better SFT Prepares for Reinforcement Learning [[Arxiv'26/02](https://arxiv.org/abs/2602.01058)]
-  - Claim to ddresses distribution mismatch between SFT samples (generated by teacher models) and RL samples (generated by the policy)
+  - Claims to address distribution mismatch between SFT samples (generated by teacher models) and RL samples (generated by the policy)
   - Token-level importance sampling, assigning large weights to SFT samples whose distribution more closely matches the current model
   - Train the model to not change too much from the current policy (based on the importance weights)
 
 - Experiential Reinforcement Learning [[Arxiv'26/02](https://www.arxiv.org/abs/2602.13949)]
-  - Teach the model let to do self critic (similar to self distillation but different methods)
+  - Teach the model to do self-critique (similar to self-distillation but different methods)
   - Ask the policy to do two attempts in one response round, where the second response leverages the model's reflection of the first one   
   - Use RL to update the policy based on both attempts 
   - Use the second response for distillation (ask the model to output the second response without the reflection) 
 
 - RLAnything: Forge Environment, Policy, and Reward Model in Completely Dynamic RL System [[Arxiv'26/02](https://www.arxiv.org/pdf/2602.02488)]
   - Train a parametric and discrete intermediate reward model
-  - Intermediate reward: Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standarizing rewards across trajectories at the same step index.
+  - Intermediate reward: Reward model rates the quality of each step m times, the final reward is the average of the m scores plus the final reward. The step-wise advantage is calculated by standardizing rewards across trajectories at the same step index.
   - The reward model is jointly optimized with the policy using a consistency feedback signal: $R_{S_{\tau_{i},j}} = R_{\tau_{i}} \cdot S_{\tau_{i,j}}$. 
     - USE RL loss to train or not? it needs to compute advantage...
   - The framework dynamically adjusts task difficulty when policy accuracy falls outside predefined thresholds ($\alpha_{low}=0.2, \alpha_{high}=0.8$). A language model modifies tasks to be harder or easier based on "critic feedback"—summarized error patterns provided by the reward model
@@ -199,9 +199,9 @@
 #### Parametric reward model
 
 - Agentic Reinforcement Learning with Implicit Step Rewards [[Arxiv’25/09](https://arxiv.org/abs/2509.19199)]
-  - Train a PRO through DPO using the DPO loss and use it to train the policy together
-  - Similar as PRIME and show marginal improvements
-  - PRIME uses MSE loss and this one use preference loss but use the policy model loss to train PRM
+  - Train a PRM through DPO using the DPO loss and use it to train the policy together
+  - Similar to PRIME and shows marginal improvements
+  - PRIME uses MSE loss and this one uses preference loss but uses the policy model loss to train PRM
   - DPO vs CE loss for training PRM; 2. GRPO vs RLOO for calculating the reward
 
 - SPA-RL: Reinforcing LLM Agents via Stepwise Progress Attribution [[Arxiv'25/05](https://arxiv.org/abs/2505.20732)]
@@ -220,10 +220,10 @@
 
 - Reinforcement Learning via Self-Distillation [[Arxiv'26/01](https://arxiv.org/pdf/2601.20802)]
   - $\mathcal{L}_{\text{SDPO}}(\theta) := \sum_{t} \text{KL}(\pi_{\theta}(\cdot \mid x, y_{<t}) \| \text{stopgrad}(\pi_{\theta}(\cdot \mid x, f, y_{<t})))$
-  - $y$ is generated by given only $x$ and model $\pi_{\theta}$, $f$ is the feedback from the environment.
-  - Use $\text{log} \frac{\pi(y|x,f,y)}{\pi(y|x,y)}$ as the intermediate reward, $\pi(y|x,f,y)$ is self polic as the teacher model.
+  - $y$ is generated by giving only $x$ to model $\pi_{\theta}$, $f$ is the feedback from the environment.
+  - Use $\text{log} \frac{\pi(y|x,f,y)}{\pi(y|x,y)}$ as the intermediate reward, $\pi(y|x,f,y)$ is the self policy as the teacher model.
   - All the experiments are conducted on single-turn tasks. When comparing this method with GRPO, the models are trained 1 hr and 5 hrs (a strange setting).
-  - This methd can work depends on if the policy itself knows where is wrong given the feedback.
+  - This method can work depending on whether the policy itself knows where it is wrong given the feedback.
   - Similar paper: Self-Distilled Reasoner: On-Policy Self-Distillation for Large Language Models [[Arxiv'26/01](https://arxiv.org/abs/2601.18734)]
 
 - CriticSearch: Fine-Grained Credit Assignment for Search Agents via a Retrospective Critic [[Arxiv'25/11](https://arxiv.org/pdf/2511.12159)]
@@ -237,7 +237,7 @@
 
 - Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
   - GRPO with outcome reward  
-  - Step-wise reward: Group similar states, where the reward each state is its discounted return, and use GRPO to compute the advantages for actions in each group
+  - Step-wise reward: Group similar states, where the reward of each state is its discounted return, and use GRPO to compute the advantages for actions in each group
   - May suffer if the states are diverse
 
 - Reinforcement Learning for Long-Horizon Interactive LLM Agents [[Arxiv'25/02](https://arxiv.org/abs/2502.01600)]
@@ -253,12 +253,12 @@
   - Use pass k rate as sample weight for training -> mimic the maximum likelihood loss
   - Compute gradient estimation as a REINFORCE-style with score function
   - Use unbiased estimation to reduce variance
-  - Final gradient is similar as GRPO with pass rate as the sample weight 
+  - Final gradient is similar to GRPO with pass rate as the sample weight 
 
 - Harnessing Uncertainty: Entropy-Modulated Policy Gradients for Long-Horizon LLM Agents [[Arxiv'25/09](https://arxiv.org/abs/2509.09265)]
   - Expected gradient norm is monotonically coupled with policy entropy
   - $A_{mod}(i, t) = A^{i} * g(H_{t}) + f(H_{t+1})$
-    - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplify its gradient; Conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
+    - g(H_{t}): For a confident step, g(H_{t}) > 1, which amplifies its gradient; conversely, for an uncertain step, g(H_{t}) < 1, which attenuates its gradient.
     - f(H_{t+1}): encourages the agent to select actions that lead to a more predictable and less ambiguous future state
   - Task: Webshop and ALFWorld (i.e., agent benchmark with sparse reward)
   - LLM model: Qwen2.5-1.5B-Instruct, Qwen2.5-7B-Instruct
@@ -271,7 +271,7 @@
     - This works within a group so only consider the relative length
 
 - Differentiable Evolutionary Reinforcement Learning [[Arxiv'25/12](https://arxiv.org/abs/2512.13399)]
-  - Automatically search the best combination of reward functions, (e.g., format reward, length reward) via a meta reward func. and train this reward func together with policy
+  - Automatically search the best combination of reward functions (e.g., format reward, length reward) via a meta reward function and train this reward function together with the policy
 
 - Beyond Precision: Training-Inference Mismatch is an Optimization Problem and Simple LR Scheduling Fixes It [[Arxiv'26/02](https://arxiv.org/abs/2602.01826)]
   - Training-inference mismatch (e.g., vLLM vs FSDP) amplifies gradient noise, and both escalate together as training progresses. Since LR directly controls update magnitude, shrinking LR suppresses the mismatch by reducing the update size.
@@ -293,7 +293,7 @@
 - RAPO: Expanding Exploration for LLM Agents via Retrieval-Augmented Policy Optimization [[Arxiv'26/03](https://arxiv.org/abs/2603.03078)]
   - Hybrid-policy Agentic Rollout: retrieve off-policy step-level traces to expand reasoning scope during rollout
   - Retrieval-aware Policy Optimization: 
-    - Add a retrieval reward to guide the model retrieve helpful trajs
+    - Add a retrieval reward to guide the model to retrieve helpful trajs
 
 - In-Context Reinforcement Learning for Tool Use in Large Language Models (ICRL) [[Arxiv'26/03](https://arxiv.org/abs/2603.08068)]
   - RL-only framework that eliminates SFT by using few-shot in-context examples during RL rollouts to teach tool invocation
@@ -301,7 +301,7 @@
   - In-context examples bootstrap exploration (so the model doesn't start from random tool calls), then get removed as the model internalizes the format
 
 - Spark: Strategic Policy-Aware Exploration via Dynamic Branching for Long-Horizon Agentic Learning [[Arxiv'26/01](https://arxiv.org/pdf/2601.20209)]
-  - Ask the policy to 'identify' the current state (in system prompt): either in expolore state or normal thinking state (differentiated by the tag `[EXPLORING]` and `[THINKING]`). If identified as explore state, then the system will force beam search. The experiments show it is more effective than GRPO.
+  - Ask the policy to 'identify' the current state (in system prompt): either in explore state or normal thinking state (differentiated by the tag `[EXPLORING]` and `[THINKING]`). If identified as explore state, then the system will force beam search. The experiments show it is more effective than GRPO.
 
 - R3L: Reflect-then-Retry Reinforcement Learning with Language-Guided Exploration, Pivotal Credit, and Positive Amplification [[Arxiv'26/01](https://arxiv.org/pdf/2601.03715)]
   - Algorithm (Use LLM to find important steps)
@@ -319,16 +319,16 @@
   - The return for each action is the sum of the discounted return of future actions plus the discounted return of future trajectories at step 0 (The step reward is provided by the environment or the task)
 
 - Reflect, Retry, Reward: Self-Improving LLMs via Reinforcement Learning [[Arxiv'25/05](https://arxiv.org/abs/2505.24726)]
-  - If a traj fails, the model is prompted to generate a self-reflection to continue generate (question + failed traj + reflection + ...)
-  - If it succeeds, use GRPO to reward only the tokens that were generated in the self-reflection
+  - If a traj fails, the model is prompted to generate a self-reflection and continue generating (question + failed traj + reflection + ...)
+  - If it succeeds, use GRPO to reward only the tokens generated in the self-reflection
 
 - Agent-RLVR: Training Software Engineering Agents via Guidance and Environment Rewards [[Arxiv'25/06](https://arxiv.org/abs/2506.11425)]
-  - If a traj fails, the model is prompted to generate a self-reflection to continue generate (question + reflection + ...)
+  - If a traj fails, the model is prompted to generate a self-reflection and continue generating (question + reflection + ...)
   - Use DPO for training
 
 - S-GRPO: Early Exit via Reinforcement Learning in Reasoning Models [[Arxiv'25/05](https://arxiv.org/abs/2505.07686)]
   - One reasoning path with several early-exit branches. For example, early-exit at 50% of the current reasoning path. Using this to create a group (like GRPO) and calculate the advantage.
-  - Aim to reduce the reasoning length and improve the efficiency.
+  - Aims to reduce the reasoning length and improve efficiency.
 
 - Effective Harnesses for Long-Running Agents [[Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)]
   - Problems: Agent tries to one-shot complex tasks, runs out of context mid-implementation; later agent sees progress and declares done prematurely
@@ -349,9 +349,9 @@
 
 ### Stability and others
 - The Optimal Token Baseline: Variance Reduction for Long-Horizon LLM-RL [[Arxiv'26/03](https://arxiv.org/abs/2602.07078)]
-  - Standard REINFORCE-style lead to high variance for long-horizon tasks as the noises will accumulate and the reward is sparse
-    - Existing baseline does not consider sequence heterogeneity and diff in sequence energy 
-  - Propose a per-token optimal baseline: weighted average of the return, where the weight depends on the squared norm of the score function at each token (Each token has their own baseline rather than a shared baseline for the sequence)
+  - Standard REINFORCE-style leads to high variance for long-horizon tasks as noise accumulates and the reward is sparse
+    - Existing baselines do not consider sequence heterogeneity and differences in sequence energy 
+  - Propose a per-token optimal baseline: weighted average of the return, where the weight depends on the squared norm of the score function at each token (each token has its own baseline rather than a shared baseline for the sequence)
 
 - Stabilizing Reinforcement Learning with LLMs: Formulation and Practices [[Qwen Team, Arxiv'25/12](https://arxiv.org/abs/2512.01374)]
   - Three issues: (1) training–inference discrepancy (FP8 vs. BF16); (2) policy staleness (due to asynchronous rollout); (3) training–inference discrepancy can cause inconsistent routed experts for MoE models
@@ -360,19 +360,19 @@
     - (3): routing replay (fix the expert used by inference when do training)
   - Given the assumption: the IS for each token is small: $1+\epsilon \ll 1$, the token-level optimization objective can be viewed as the first-order approximation of the sequence-level optimization objective.
   - Proposed MiniRL: GRPO + Clip (mask the gradient for tokens which are higher than a threshold when reward > 0 and lower than a threshold when reward < 0)
-  - Evalute on Qwen3-30B-A3B with synchronous training:
+  - Evaluated on Qwen3-30B-A3B with synchronous training:
     - For on-policy training (the global batch size equals the mini-batch size):
       - MiniRL is the best, adding length normalization leads to suboptimal performance
     - For off-policy training:
       - Routing Replay and clipping become essential for stable training
 
 - SimpleTIR: End-to-End Reinforcement Learning  for Multi-Turn Tool-Integrated Reasoning [[Arxiv'25/09](https://arxiv.org/abs/2509.02479)]
-  - problem: LLM generated response after multiple turns (with tool observation) is OOD compared to the pre-training and SFT data, each token has low probability, which leads to extremely high importance sampling ratio ($\frac{\pi_{\text{new}}(y)}{\pi_{\text{old}}(y)}$) for trajs with negative reward.
-  - solution: clipping the importance ratio is appealing but the threshold is hard to set. The authors filter out the trajs with void turns (no tool invocation or final answer).
-  - scenario: Zero RL with math problems
+  - Problem: LLM-generated responses after multiple turns (with tool observation) are OOD compared to the pre-training and SFT data; each token has low probability, which leads to extremely high importance sampling ratio ($\frac{\pi_{\text{new}}(y)}{\pi_{\text{old}}(y)}$) for trajs with negative reward.
+  - Solution: clipping the importance ratio is appealing but the threshold is hard to set. The authors filter out trajs with void turns (no tool invocation or final answer).
+  - Scenario: Zero RL with math problems
 
 - When Speed Kills Stability: Demystifying RL Collapse from the Training-Inference Mismatch [[Notion'25/10](https://yingru.notion.site/When-Speed-Kills-Stability-Demystifying-RL-Collapse-from-the-Training-Inference-Mismatch-271211a558b7808d8b12d403fd15edda)]
-  - Mismatch between training and inference: cause collapse of RL training: $\mathbb{E} _{x\sim \mathcal{D}}\mathbb{E} _{y\sim \textcolor{red}{\pi _{\theta}^{\mathrm{vllm}}}\left( \cdot |x \right)}\left[ R\left( x,y \right) \nabla _{\theta}\log \textcolor{blue}{\pi _{\theta}^{\mathrm{fsdp}}}\left( y|x \right) \right]$
+  - Mismatch between training and inference causes collapse of RL training: $\mathbb{E} _{x\sim \mathcal{D}}\mathbb{E} _{y\sim \textcolor{red}{\pi _{\theta}^{\mathrm{vllm}}}\left( \cdot |x \right)}\left[ R\left( x,y \right) \nabla _{\theta}\log \textcolor{blue}{\pi _{\theta}^{\mathrm{fsdp}}}\left( y|x \right) \right]$
   - Long context amplifies this issue as the difference is accumulated
   - The **agent** receives a tool response, which is often structured text (e.g., context enveloped by `<python_output>` and `</python_output>` tags) that is OOD compared to its pre-training and SFT data.Faced with this unfamiliar OOD context, the **agent's policy** becomes more uncertain, making it more likely to sample low-probability tokens in its subsequent turns (which is also observed in [**SimpleTIR**](https://github.com/ltzheng/SimpleTIR)).
   - Hardware differences also contribute to the instability
@@ -386,8 +386,8 @@
   - Define a set of rules to scale the reward of each trajectory
 
 - Webrl: Training llm web agents via self-evolving online curriculum reinforcement learning [[ICLR 25](https://arxiv.org/abs/2411.02337)]
-  - web navigation tasks
-  - long-horizon interaction yet provide sparse and delayed rewards. Making policy improvement challenging and costly, and often result in training collapse
+  - Web navigation tasks
+  - Long-horizon interaction yet provides sparse and delayed rewards, making policy improvement challenging and costly, and often resulting in training collapse
 
 - Nemotron-Cascade: Scaling Cascaded Reinforcement Learning for General-Purpose Reasoning Models [[Arxiv'25/12](https://arxiv.org/abs/2512.13607)]
   - Cascade RL process begins with applying general-domain Reinforcement Learning from Human Feedback (RLHF) to the SFT models, followed by domain-wise Reinforcement Learning with Verifiable Rewards (RLVR).
@@ -395,20 +395,20 @@
 - GenEnv: Difficulty-Aligned Co-Evolution Between  LLM Agents and Environment Simulators [[Arxiv'25/12](https://arxiv.org/abs/2512.19682)]
   - Env LLM generates tasks, evaluation metrics, and potentially ground truth, the goal is to generate tasks that are challenging for the agent (avg acc = 0.5)
   - Agent LLM rollouts to generate trajectories, and then use RL (GRPO)to train the agent to improve the performance
-  - Env LLM use Reward-Weighted Regression (weighted SFT loss) to update its parameters
-  - Env LLM is like a task generator, it does not generate new env or simulate the env.
+  - Env LLM uses Reward-Weighted Regression (weighted SFT loss) to update its parameters
+  - Env LLM is like a task generator; it does not generate new environments or simulate the environment.
 
 - AgentGym-RL: Training LLM Agents for Long-Horizon Decision Making through Multi-Turn Reinforcement Learning [[Arxiv'25/09](https://arxiv.org/pdf/2509.08755)]
   - Provide env and training framework
   - Propose ScalingInter-RL: progressively add interaction rounds - their experiments show that beginning with a large number of interaction turns often leads the model into redundant reasoning and unproductive actions.
 
 - RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs? [[Arxiv'25/09](https://arxiv.org/abs/2509.21016)]
-  - Using synthetic coding promblems to verify how RL can unlock new algorithms in LLMs
+  - Using synthetic coding problems to verify how RL can unlock new algorithms in LLMs
 
 - TL-GRPO: Turn-Level RL for Reasoning-Guided Iterative Optimization [[Arxiv'26/01](https://arxiv.org/pdf/2601.16480)]
   - Designed for iterative optimization - play the same game multiple times and take the best reward (like multi-arm bandits)
   - First generate only one traj, then generate more trajs based on the generated one and use GRPO to calculate the advantage of each step.
-    - Turn a bandit problem into a multi-step problem by considering the depenendency across turns and apply GRPO across turns. 
+    - Turn a bandit problem into a multi-step problem by considering the dependency across turns and applying GRPO across turns. 
 
 
 ## Agentic modeling
