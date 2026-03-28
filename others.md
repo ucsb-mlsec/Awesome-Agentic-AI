@@ -1,4 +1,6 @@
-## Environment simulation 
+# Others
+
+## Environment simulation
 
 In general, simulating environments with LLMs or other reasoning models may require a large amount of high-quality data with broad state and action coverage. This may be similar as GAN where we train a generator to generate data but the generator itself requires a lot of data to train.
 
@@ -42,7 +44,7 @@ The latest works on memory management are moving towards building specific sub-a
 - Agentic Context Engineering: Evolving Contexts for Self-Improving Language Models [[Arxiv'25](https://arxiv.org/abs/2510.04618)]
   - About curating prompts adaptive to a specific kind of tasks
   - General process: Several adaptive steps (run some tasks with guidelines -> llm generate guidelines) use guidelines to run other similar tasks
-  - Previous methods tend to provide brief, generic prompts. After several adaptive step, context would be summarized.
+  - Previous methods tend to provide brief, generic prompts. After several adaptive steps, context would be summarized.
   - This method instead constructs the guidelines in a structured way called playbook with bullet points. And manage it using an agent, which selects what bullet entries to use, labels how many times a bullet entry is useful or misleading, and performs incremental edition.
 
 - Dynamic Cheatsheet: Test-Time Learning with Adaptive Memory [[Arxiv'25](https://arxiv.org/abs/2504.07952)]
@@ -68,7 +70,7 @@ The latest works on memory management are moving towards building specific sub-a
   - Whenever a memory stored into the kb, ask llm whether it's related to each existing memory, create relations
 
 - STMA: A Spatio-Temporal Memory Agent for Long-Horizon Embodied Task Planning [[Arxiv'25](https://arxiv.org/abs/2502.10177)]
-  - Targeted of embodied tasks
+  - Targeted at embodied tasks
   - Has a summarization for actions and observations, structured representation of finished actions, objectives, observations, provided in each query (temporal)
   - Has a graph-based knowledge graph for spatio modeling, can be updated to reflect the spatio changes, has a pre-induction of the relations, e.g., a is west of b, b is west of c -> a is west of c
   - When retrieve, find top n entities, for each entity, find top k neighbors
@@ -90,8 +92,8 @@ The latest works on memory management are moving towards building specific sub-a
   - Trivial rag, human designed finite state automaton to maintain states
 
 - RAPTOR: Recursive Abstractive Processing for Tree-Organized Retrieval [[ICLR'24](https://openreview.net/forum?id=GN921JHCRw)]
-  - Augment retrieval for long text document, other methods only retrieve continuous small chunks
-  - Divide document to small trunks by 100 bytes, cluster the chunks, layered summarization of each chunk, for a tree
+  - Augment retrieval for long text documents, other methods only retrieve continuous small chunks
+  - Divide document to small chunks by 100 bytes, cluster the chunks, layered summarization of each chunk, for a tree
   - Retrieval strategies: tree traversal (layer-by-layer) and collapsed tree (global comparison), they found collapsed tree is better
 
 - Enhancing Reasoning with Collaboration and Memory [[Arxiv'25](https://arxiv.org/abs/2503.05944)]

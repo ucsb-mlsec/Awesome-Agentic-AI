@@ -1,6 +1,0 @@
-- mHC: Manifold-Constrained Hyper-Connections [[Arxiv'25/12](https://arxiv.org/abs/2512.24880)]
-  - Hyper connections extends standard Residual Connections by widening the residual stream and using dynamic mixing matrices instead of simple addition.
-    - $y = W_{skip} \cdot x + W_{res} \cdot F(x)$ x here is the input, the shape is (n, d) where in residual stream is d. Hyper connections widen the residual stream.
-  - Issue: HC breaks the Identity Mapping property, causing training instability and high memory access overhead.
-  - Manifold-Constrained Hyper-Connections (mHC) projects the connection matrices onto Birkhoff polytope (the sum of each row and each column is 1).
-  - Also provides the optimization for training mHC, including kernel fusion and memory efficient training.

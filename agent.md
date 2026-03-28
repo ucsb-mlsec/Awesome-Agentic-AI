@@ -1,7 +1,7 @@
-# Agentic model and techniques
+# Agentic models and techniques
 
 ## Table of Contents
-- [Agentic model and techniques](#agentic-model-and-techniques)
+- [Agentic models and techniques](#agentic-models-and-techniques)
   - [QWEN models](#qwen-models)
   - [DeepSeek](#deepseek)
   - [GLM & Kimi](#glm--kimi)
@@ -133,7 +133,7 @@
         - GRPO with KL diff + PTX loss for preventing forgetting critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
-## NVIDIA - Nomotorn
+## NVIDIA - Nemotron
 
 - Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation [[Arxiv'26/03](https://arxiv.org/abs/2603.19220)]
   - Post training pipeline built on top of Nemotron-3 (30B MoE model with 3B activated parameters)
@@ -463,6 +463,12 @@
     - Each layer selectively aggregates earlier representations with learned, input-dependent weights
   - **Block AttnRes**: partition layers into $N$ blocks; apply attention only over block-level representations instead of all layers, reducing memory from $O(Ld)$ to $O(Nd)$
 
+- mHC: Manifold-Constrained Hyper-Connections [[Arxiv'25/12](https://arxiv.org/abs/2512.24880)]
+  - Hyper connections extends standard Residual Connections by widening the residual stream and using dynamic mixing matrices instead of simple addition.
+    - $y = W_{skip} \cdot x + W_{res} \cdot F(x)$ x here is the input, the shape is (n, d) where in residual stream is d. Hyper connections widen the residual stream.
+  - Issue: HC breaks the Identity Mapping property, causing training instability and high memory access overhead.
+  - Manifold-Constrained Hyper-Connections (mHC) projects the connection matrices onto Birkhoff polytope (the sum of each row and each column is 1).
+  - Also provides the optimization for training mHC, including kernel fusion and memory efficient training.
 
 - Kimi Linear [[ArxXiv'25.10](https://arxiv.org/abs/2510.26692)]
   - Propose Kimi Delta Attention

@@ -1,9 +1,9 @@
 # General LLM reasoning models and techniques
 
 Below, we summarize some recent works on general LLM reasoning (without involving agents). 
-Note that this direct has been extensively studied, with many techniques on improving RL-based post-training methods and tricks regarding the training process.
+Note that this direction has been extensively studied, with many techniques on improving RL-based post-training methods and tricks regarding the training process.
 Here, we mainly focus on the techniques that provide process reward signals, as well as specific training methods for code reasoning.
-On top of the basic training procedure, existing works have proposed many tricks; some of them are conflict with each other.
+On top of the basic training procedure, existing works have proposed many tricks; some of them conflict with each other.
 Here, we also try to summarize the key training takeaways for both SFT and RL-based reasoning training from our experiences.
 
 ## Table of Contents
@@ -104,7 +104,8 @@ extrapolated to large-compute regime
   - Common interventions thought to improve peak performance (e.g., loss aggregation, data curriculum, length penalty, advantage normalization) mainly adjust compute efficiency, while not changing the performance ceiling considerably.
 
 - Does Reinforcement Learning Really Incentivize Reasoning Capacity in LLMs Beyond the Base Model? [[Arxiv'25/04](https://arxiv.org/abs/2504.13837)]
-### Online RL 
+
+### Online RL
 
 Online RL methods are mainly used for post-training with verifiable outcome reward. Some recent works also explore using RL for [pre-training](https://arxiv.org/pdf/2506.08007) or mid-training (a new training stage between pre-training and post-training, mainly aim to improve agentic capabilities).
 
@@ -159,7 +160,7 @@ Online RL methods are mainly used for post-training with verifiable outcome rewa
 
 ### Offline RL
 
-Offline RL methods mainly refers to the methods that does not require rollout during training. DPO is the most representative methods that learn from pairwise data. Follow up works generalize DPO to cases where pairwise data is not available. 
+Offline RL methods mainly refers to the methods that do not require rollout during training. DPO is the most representative method that learns from pairwise data. Follow up works generalize DPO to cases where pairwise data is not available. 
 
 - Representative works can be found [here](https://docs.google.com/document/d/1w_0oVWrUQxq6rU2KmY4JrbbVYbq0odLTAf4ta7ZiIdo/edit?usp=sharing)
 
@@ -276,7 +277,7 @@ As an extension of the entropy and confidence based PRM, some works find that th
     - Encourage actions with high advantage but low logits
 
 - ICPO: Intrinsic Confidence-Driven Group Relative Preference Optimization for Efficient Reinforcement Learning [[Arxiv'25/12](https://arxiv.org/abs/2511.21005)]
-  - Improvements over confidence-based reward to resolve the entropy collaps issue
+  - Improvements over confidence-based reward to resolve the entropy collapse issue
   - Calculates a preference advantage score for each response by comparing the relative generation probabilities of multiple responses under the same input prompt; encourages responses with high reward but low preference (similar as the work above)
 
 - M-GRPO: Stabilizing Self-Supervised Reinforcement Learning for Large Language Models with Momentum-Anchored Policy Optimization [[Arxiv'25/12](https://arxiv.org/pdf/2512.13070)]
@@ -291,7 +292,7 @@ As an extension of the entropy and confidence based PRM, some works find that th
   - Show that sum form has a larger error bound of Q function than the min form ($\frac{\epsilon}{1-\lambda}$) vs $\epsilon$
 
 - RL Grokking Recipe: How Does RL Unlock and Transfer New Algorithms in LLMs? [[Arxiv'25/10](https://arxiv.org/pdf/2509.21016)]
-  - Propose a new dataset to evalaute LLMs on hard coding tasks that pretrained models always fail as well as OOD test sets
+  - Propose a new dataset to evaluate LLMs on hard coding tasks that pretrained models always fail as well as OOD test sets
   - The following techs helps with grokking
     - Staged warm-up with dense rewards (use per-test pass rate as dense reward)
     - Experience replay (Retain and reinsert the previously successful traces)

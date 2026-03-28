@@ -9,7 +9,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 ## Table of Contents
   - [General coding agents](#general-coding-agents)
-  - [Agentic Training](#agentic-training)
+  - [Agentic training](#agentic-training)
   - [Survey](#survey)
   - [End-to-end frameworks](#end-to-end-frameworks)
   - [Vulnerability detection](#vulnerability-detection)
@@ -22,11 +22,15 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - [🛠️ Techniques](#️-techniques-2)
     - [📋 Benchmarks](#-benchmarks-2)
   - [Others](#others)
-    - [🛠️ Techniques](#️-techniques-3)
-    - [📋 Benchmarks](#-benchmarks-3)
+  - [Exploitation](#exploitation)
+  - [Penetration testing](#penetration-testing)
+  - [CTF](#ctf)
+  - [Binary analysis/reverse engineering](#binary-analysisreverse-engineering)
+  - [General program analysis](#general-program-analysis)
   - [SWE tasks](#swe-tasks)
-    - [Issue resolving](#️issue-resolving)
+    - [Issue resolving](#issue-resolving)
     - [Test generation](#test-generation)
+    - [Sandbox techniques](#sandbox-techniques)
 
 ## General coding agents
 
@@ -38,7 +42,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'24](https://arxiv.org/abs/2407.16741)]
 
 
-## Agentic Training
+## Agentic training
 
 - Cyber-Zero: Training Cybersecurity Agents without Runtime [[Arxiv'25/08](https://www.arxiv.org/pdf/2508.00910)]
   - Use EnlGMA as the agent scaffold and target CTF benchmarks
@@ -68,7 +72,7 @@ Below, we list some widely used coding agents that are mostly commercial product
        - LLM-based patching location identification, prompt includes commit diff + crash log + history from poc gen (optional) + coverage(optional) + RAG
   - 42 b3yond 6ug: [[Final code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-crs)] [[Semifinal code](https://github.com/42-b3yond-6ug/42-b3yond-6ug-asc)]
   - Lacrosse: [[Final code](https://github.com/siftech/afc-crs-lacrosse)] [[Semifinal code](https://github.com/siftech/asc-crs-lacrosse)]
-  - OSS-CRS: Liberating AlxCCCyber Reasoning Systems forReal-World Open-SourceSecurity [[Arxiv 26/03](https://arxiv.org/abs/2603.08566v1)]
+  - OSS-CRS: Liberating AIxCC Cyber Reasoning Systems for Real-World Open-Source Security [[Arxiv 26/03](https://arxiv.org/abs/2603.08566v1)]
 
     
 
@@ -106,7 +110,7 @@ Below, we list some widely used coding agents that are mostly commercial product
           - Localization Precision (e.g., Accurate pinpointing of the vulnerable snippet, such as memcpy(dest, src, len))
           - Reasoning Quality (e.g., Explicitly identifying the absence of length validation)
   - Automated Static Vulnerability Detection via a Holistic Neuro-symbolic Approach  [[arxiv'25/04](https://arxiv.org/abs/2504.16057)]
-    - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semenatic feedbacks
+    - Use LLM to write CodeQL/Joern Queris, built a system to facilitate this, by 1) extract dsl doc, shrink it by only keeping basic features 2) instrument the query runtime and provide syntax and semantic feedbacks
     - LLM should be able to write these queries by itself in the near future.
   - RepoAudit: An Autonomous LLM-Agent for Repository-Level Code Auditing [[ICML'25/07](https://arxiv.org/abs/2501.18160)]
     - For each kind of vulnerability, 
@@ -156,7 +160,7 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Detect and generate PoC for taint-style vulns for binary-only firmware backends with a frontend.
     - Procedure:
       - Rule-based matching for finding sinks.
-      - Analyze the backend and build a inter-procudural cfg.
+      - Analyze the backend and build a inter-procedural cfg.
       - Use fuzzing with dynamic taint analysis to find sources.
         - Analyse the backend, config files and doc to find registered URIs and params
         - Construct queries using found URIs and params, mark params as tainted
@@ -313,7 +317,7 @@ Below, we list some widely used coding agents that are mostly commercial product
                 - Sample failed patches and instructing the LLM not to generate similar patches again
 
 - AutoSafeCoder: A Multi-Agent Framework for Securing LLM Code Generation through Static Analysis and Fuzz Testing [[Arxiv'24](https://arxiv.org/abs/2409.10737)]
-- Why LLMs Fail: A Failure Analysis and Partial Success Measurement for Automated Security Patch Generation [[Arxiv'26/03] (https://arxiv.org/html/2603.10072v1)]
+- Why LLMs Fail: A Failure Analysis and Partial Success Measurement for Automated Security Patch Generation [[Arxiv'26/03](https://arxiv.org/html/2603.10072v1)]
 
 ### 📋 Benchmarks
 
@@ -330,7 +334,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 
 
-## Penn test
+## Penetration testing
 
 ### 🛠️ Techniques 
   - PentestGPT: Evaluating and Harnessing Large Language Models for Automated Penetration Testing [[USENIX Security'24/08](https://www.usenix.org/conference/usenixsecurity24/presentation/deng)]
@@ -380,7 +384,7 @@ Below, we list some widely used coding agents that are mostly commercial product
   - FoC: Figure out the Cryptographic Functions in Stripped Binaries with LLMs [[ACM Transactions on Software Engineering and Methodology'25/04](https://dl.acm.org/doi/10.1145/3731449)]
   - Large Language Models for Code Analysis: Do LLMs Really Do Their Job? [[USENIX Security'24/08](https://arxiv.org/abs/2310.12357)]
 
-## General Program Analysis
+## General program analysis
 
 ### 🛠️ Techniques
   - Enhancing LLM-based Specification Generation via Program Slicing and Logical Deletion[[arxiv'25/09](https://arxiv.org/abs/2509.09917)]
@@ -394,43 +398,43 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 ## SWE tasks
 
-### Benchmarks
+### 📋 Benchmarks
 
 - TerminalBench [[link](https://www.tbench.ai/)]
   - Tier 1: Infrastructure & Core Systems: 
-    - Software Build & CompilationGoal: Build from source, fix compilation errors, and handle complex dependencies.
+    - Software Build & Compilation. Goal: Build from source, fix compilation errors, and handle complex dependencies.
       - Skills: make, gcc, cmake, cython, rustc, version compatibility debugging.
       - Typical Tasks: build-linux-kernel-qemu, build-cython-ext, compile-compcert, magsac-install.
-    - System Administration & DevOpsGoal: Configure services, manage environments, and debug system-level issues.
+    - System Administration & DevOps. Goal: Configure services, manage environments, and debug system-level issues.
       - Skills: nginx, ssh, git server, docker, qemu, conda/npm dependency management, cron.
       - Typical Tasks: configure-git-webserver, home-server-https, conda-env-conflict-resolution, broken-networking.
-    - Security, Reverse Engineering & ForensicsGoal: Exploit vulnerabilities, patch bugs, reverse engineer binaries/protocols, and recover deleted or corrupted data.
+    - Security, Reverse Engineering & Forensics. Goal: Exploit vulnerabilities, patch bugs, reverse engineer binaries/protocols, and recover deleted or corrupted data.
       - Skills: SQL Injection, RCE, password cracking, git history analysis, binary analysis, gdb, file system forensics.
       - Typical Tasks: sql-injection-attack, security-celery-redis-rce, git-leak-recovery, db-wal-recovery.
   - Tier 2: Data & Algorithm Applications
-    - Data Processing & ETLGoal: Clean, transform, and aggregate data from various sources and formats.
+    - Data Processing & ETL. Goal: Clean, transform, and aggregate data from various sources and formats.
       - Skills: pandas, duckdb, jq, awk/sed/grep, SQL, file format conversion (CSV, JSON, Parquet).
       - Typical Tasks: multi-source-data-merger, pandas-sql-query, log-summary-date-ranges, jq-data-processing.
-    - Machine Learning & MLOpsGoal: Implement, train, evaluate, debug, and deploy machine learning models.
+    - Machine Learning & MLOps. Goal: Implement, train, evaluate, debug, and deploy machine learning models.
       - Skills: pytorch, huggingface transformers/peft, scikit-learn, LoRA, model parallelism, MLOps tools (mlflow, mteb).
       - Typical Tasks: hf-train-lora-adapter, torch-pipeline-parallelism, classifier-debug, sam-cell-seg.
-    - Algorithms & Logic PuzzlesGoal: Solve self-contained puzzles that require algorithmic or logical reasoning.
+    - Algorithms & Logic Puzzles. Goal: Solve self-contained puzzles that require algorithmic or logical reasoning.
       - Skills: Search algorithms (BFS), constraint satisfaction, mathematical modeling, image recognition (for Sudoku, chess).
       - Typical Tasks: huarong-dao-solver, assign-seats, solve-sudoku, code-from-image.
   - Tier 3: Specialized Domains & Advanced Development
-    - Software Development, Porting & Bug FixingGoal: Develop new features, port code between languages/frameworks, and fix bugs in real-world open-source libraries.
+    - Software Development, Porting & Bug Fixing. Goal: Develop new features, port code between languages/frameworks, and fix bugs in real-world open-source libraries.
       - Skills: Multi-language programming (Python, C++, Rust), web frameworks (Flask), API design, code refactoring (MATLAB->Python, C->Rust).
       - Typical Tasks: swe-bench-* (series), port-compressor (C to Safe Rust), cobol-modernization, solana-data (API dev).
-    - Scientific & Domain-Specific ComputingGoal: Solve problems in specific scientific fields like biology, chemistry, physics, or statistics.
+    - Scientific & Domain-Specific Computing. Goal: Solve problems in specific scientific fields like biology, chemistry, physics, or statistics.
       - Skills: R, Stan (statistics), rdkit (chemistry), mujoco (physics), bioinformatics algorithms.
       - Typical Tasks: dna-assembly, rstan-to-pystan, fmri-encoding-r, rare-mineral-allocation.
-    - Interactive Environments & GamesGoal: Complete tasks by interacting in multiple steps with a running process, API, or game.
+    - Interactive Environments & Games. Goal: Complete tasks by interacting in multiple steps with a running process, API, or game.
       - Skills: Process I/O redirection, socket programming, curl (REST API), game strategy.
       - Typical Tasks: blind-maze-explorer-5x5, interactive-maze-game, find-restaurant, play-zork.
-    - Distributed & Parallel ComputingGoal: Leverage multi-core or multi-node capabilities to accelerate computation.
+    - Distributed & Parallel Computing. Goal: Leverage multi-core or multi-node capabilities to accelerate computation.
       - Skills: OpenMP, MPI, multiprocessing, Spark, Hadoop.
       - Typical Tasks: parallel-particle-simulator, torch-tensor-parallelism, predicate-pushdown-bench.
-    - Formal Verification & GraphicsGoal: Prove theorems using formal methods, or perform 3D rendering and image processing.
+    - Formal Verification & Graphics. Goal: Prove theorems using formal methods, or perform 3D rendering and image processing.
       - Skills: Coq, Lean, SAT/SMT solvers, pyrender, osmesa, path tracing algorithms.
       - Typical Tasks: lean4-proof, weighted-max-sat-solver, path-tracing, unprivileged-headless-pyrender.
 - SWE-Gym: Training Software Engineering Agents and Verifiers with SWE-Gym
