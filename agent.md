@@ -5,6 +5,7 @@
   - [QWEN models](#qwen-models)
   - [DeepSeek](#deepseek)
   - [GLM & Kimi](#glm--kimi)
+  - [NVIDIA](#nvidia)
   - [Agentic RL](#agentic-rl)
     - [Agent training framework](#agent-training-framework)
     - [Overall recipes](#overall-recipes)
@@ -132,6 +133,33 @@
         - GRPO with KL diff + PTX loss for preventing forgetting critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
+## NVIDIA - Nomotorn
+
+- Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation [[Arxiv'26/03](https://arxiv.org/abs/2603.19220)]
+  - Post training pipeline built on top of Nemotron-3 (30B MoE model with 3B activated parameters)
+  - SFT: 
+    - Math, Code, Science, Agent (conversational tool use, SWE and terminal agents)
+    - Use DeepSeek (Math) and GPT-OSS (Code) as the teacher model;
+  - Cascade RL
+    - Determine the order: Mitigating Inter-Domain Interference (IF and RLHF are conflict); Scaling via Multi-Domain Integration (integrate domains are not conflict with the overall performance); Stabilization through On-policy Distillation
+    - RL sampling and objective:
+      - strict on-policy learning, with a REINFORCE objective (No trusted region):
+      - $\mathcal{J}_{\text{GRPO}}(\theta) = \mathbb{E}_{(q,a)\sim\mathcal{D},\{o_i\}_{i=1}^G\sim\pi_\theta(\cdot|q)}\left[\frac{1}{\sum_{i=1}^G|o_i|}\sum_{i=1}^G\sum_{t=1}^{|o_i|}\hat{A}_{i,t}\right]$, where $\hat{A}_{i,t}=\frac{r_i-\text{mean}(\{r_i\}_{i=1}^G)}{\text{std}(\{r_i\}_{i=1}^G)}$ for all $t$
+    - Instruction-following RL: Filter out all correct/wrong samples; constrain the output length
+    - Multi-domain RL & on-policy distillation: Large batch size & Distill from the strongest intermediate teacher models
+      - $\mathcal{L}_{\text{MOPD}} = -\mathbb{E}_{x\sim\mathcal{D}, y\sim\pi^{\text{inf}}(\cdot|x)} \left[\frac{1}{|\mathcal{V}(y)|} \sum_{t\in\mathcal{V}(y)} w_t \, \text{sg}[a_t^{\text{MOPD}}] \log \pi^{\text{train}}(y_t|s_t)\right]$
+      - $w_t$: truncated importance weight correcting for inference-training policy mismatch; $\text{sg}[\cdot]$: stop-gradient; $a_t^{\text{MOPD}}$: token-level advantage from domain-specific teacher models
+    - RLHF
+    - Long-context RL: Use LLM as a judge for reward
+    - Code and SWE RL: Long output token, binary reward, agentic RL as a much larger batch size and context length (use SWE-Gym + OpenHands); Do filtering 
+
+- NVIDIA Nemotron 3: Efficient and Open Intelligence [[Arxiv'25/12](https://arxiv.org/abs/2512.20856)]
+  - Family of Nano, Super, and Ultra models using hybrid Mamba-Transformer MoE architecture with up to 1M context length
+  - Model: Hybrid Mamba-Transformer MoE: interleave MoE with Mamba-2 layers, which donot need linearly increasing KV Cache; LatentMoE (add a down proj in the input and up proj in the output)
+  - Multi-token prediction: predict multiple future tokens simultaneously during training, providing richer training signals and encouraging the model to plan ahead; ~2.4% average benchmark improvement; enables built-in speculative decoding
+  - NVFP4 training: 4-bit floating-point training (pre-training with FP4 rather than BF16)
+
+
 ## Agentic RL
 
 ### Agent training framework
@@ -156,7 +184,13 @@
   - Importance sampling for data reuse: Save logits at generation time to correct for policy drift ($\mathbb{E}_{a \sim \pi_{\text{old}}}[f(a)] = \mathbb{E}_{a \sim \pi_{\text{old}}}[\frac{\pi_{\text{new}}(a|s)}{\pi_{\text{old}}(a|s)} \cdot f(a)]$)
   - Note: Inference and training may have different precision, which can cause problems
 
-### Overall recipes 
+### Overall recipes
+
+- OpenClaw-RL: Train Any Agent Simply by Talking [[Arxiv'26/03](https://arxiv.org/abs/2603.10165)]
+  - Unified RL framework built on SLIME: policy serving, rollout collection, PRM judging, and policy training are fully async
+  - Leverage all evn. changes for training (next state signals): User replies, tool outputs, terminal responses, GUI state changes, error message
+    - Evaluation signals are fed to PRM
+    -  Directive signal: Hindsight-Guided On-Policy Distillation (OPD) extracts textual hints from the next state, constructs an enhanced teacher context, and distills token-level directional supervision back into the student, 
 
 - Agentic Critical Training [[Arxiv'26/03](https://arxiv.org/abs/2603.08706)]
   - Collect expert data as reference and train the model to select better actions between reference and the model's own actions (enable the model to do critique)
@@ -348,6 +382,14 @@
 
 
 ### Stability and others
+
+- Harness Design for Long-Running Application Development [[Anthropic](https://www.anthropic.com/engineering/harness-design-long-running-apps)]
+  - Problems: context anxiety (model wraps up prematurely near perceived context limits); self-evaluation bias (agent praises its own mediocre work)
+  - Solutions:
+    - Frontend design: generator-evaluator loop (GAN-inspired); four gradable criteria (design quality, originality, craft, functionality); evaluator uses Playwright MCP to interact with live pages before scoring
+    - Full-stack coding: three-agent architecture (planner → generator → evaluator) with sprint-based decomposition and file-based inter-agent communication
+  - Takeaway: separating creation from evaluation is more tractable than self-evaluation; convert subjective judgments into concrete gradable criteria
+
 - The Optimal Token Baseline: Variance Reduction for Long-Horizon LLM-RL [[Arxiv'26/03](https://arxiv.org/abs/2602.07078)]
   - Standard REINFORCE-style leads to high variance for long-horizon tasks as noise accumulates and the reward is sparse
     - Existing baselines do not consider sequence heterogeneity and differences in sequence energy 
@@ -411,8 +453,29 @@
     - Turn a bandit problem into a multi-step problem by considering the dependency across turns and applying GRPO across turns. 
 
 
-## Agentic modeling
+## New model architectures
+
+- Attention Residuals [[Arxiv'26/03](https://arxiv.org/abs/2603.15031)]
+  - Problem: standard residual connections ($\mathbf{h}_l = \mathbf{h}_{l-1} + F(\mathbf{h}_{l-1})$) accumulate all layer outputs with fixed unit weights, causing uncontrolled hidden-state growth and progressive dilution of each layer's contribution
+  - **AttnRes**: replace fixed accumulation with softmax attention over all preceding layer outputs
+    - $\mathbf{h}_l = \sum_{i=0}^{l-1} \alpha_{i \to l} \cdot \mathbf{v}_i$, where $\alpha_{i \to l} = \frac{\exp(\mathbf{w}_l^\top \text{RMSNorm}(\mathbf{k}_i))}{\sum_{j=0}^{l-1} \exp(\mathbf{w}_l^\top \text{RMSNorm}(\mathbf{k}_j))}$
+    - $\mathbf{w}_l \in \mathbb{R}^d$: learned pseudo-query per layer; $\mathbf{k}_i$: keys from prior layer outputs; $\mathbf{v}_i$: prior layer representations
+    - Each layer selectively aggregates earlier representations with learned, input-dependent weights
+  - **Block AttnRes**: partition layers into $N$ blocks; apply attention only over block-level representations instead of all layers, reducing memory from $O(Ld)$ to $O(Nd)$
+
+
 - Kimi Linear [[ArxXiv'25.10](https://arxiv.org/abs/2510.26692)]
   - Propose Kimi Delta Attention
   - Kimi Linear can be a drop-in replacement for full attention architectures with superior performance and efficiency, including tasks with longer input and output lengths.
+
+- Step-3 is Large yet Affordable: Model-System Co-Design for Cost-Effective Decoding [[Arxiv'25/07](https://arxiv.org/abs/2507.19427)]
+  - System and model co-design
+  - Key findings:
+    - Neither total nor activated parameter count is a good indicator for decoding cost — architecture design matters more
+    - Attention design dominates decoding cost, especially at longer contexts (attention cost grows with context while FFN cost stays constant)
+    - Hardware-attention alignment is critical: MFA achieves arithmetic intensity of 128, well-matched to diverse hardware; DeepSeek-V3's MLA (intensity 512) bottlenecks on lower-tier accelerators
+    - Over-sparse MoE models suffer efficiency losses despite fewer activated parameters — sparsity needs hardware-aware design (Hardware aware sparsity threshold)
+  - **Multi-Matrix Factorization Attention (MFA)** [[Arxiv'24/12](https://arxiv.org/abs/2412.19255)]: low-rank factorization in QK circuit; share projection matrices across heads so only low-rank compressed KV needs caching. 
+  - **Attention-FFN Disaggregation (AFD)**: decouple attention and FFN layers into specialized subsystems; attention is memory-bound (KV cache access) while FFN is compute-bound (matrix multiply)
+    - Similar to NV models
 
