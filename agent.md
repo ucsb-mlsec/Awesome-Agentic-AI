@@ -314,6 +314,12 @@
 
 ### Sampling strategies
 
+- RetroAgent: From Solving to Evolving via Retrospective Dual Intrinsic Feedback [[Arxiv'26/03](https://arxiv.org/abs/2603.08561)]
+  - Encourage self-reflection
+  - Introduces a PRM to encourage self-evolving, where the reward is designed as the improvement of the current reward over the reward of previous trajectories
+  - Introduces a memory which can be used as prior knowledge for future generation
+  - Train a reflection policy to generate reflection
+
 - Meta-Reinforcement Learning with Self-Reflection for Agentic Search (MR-Search) [[Arxiv'26/03](https://arxiv.org/abs/2603.11327)]
   - Instead of generating each traj independently, generate later trajs based on the reflection of existing ones 
   - Train the policy with these reflection trajs using RLOO
