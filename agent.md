@@ -5,7 +5,7 @@
   - [QWEN models](#qwen-models)
   - [DeepSeek](#deepseek)
   - [GLM & Kimi](#glm--kimi)
-  - [NVIDIA](#nvidia)
+  - [NVIDIA](#nvidia-nemotron)
   - [Agentic RL](#agentic-rl)
     - [Agent training framework](#agent-training-framework)
     - [Overall recipes](#overall-recipes)
@@ -133,7 +133,7 @@
         - GRPO with KL diff + PTX loss for preventing forgetting critical data
         - RL infra: efficient engine switching; system startup; agentic rollout
 
-## NVIDIA - Nemotron
+## NVIDIA-Nemotron
 
 - Nemotron-Cascade 2: Post-Training LLMs with Cascade RL and Multi-Domain On-Policy Distillation [[Arxiv'26/03](https://arxiv.org/abs/2603.19220)]
   - Post training pipeline built on top of Nemotron-3 (30B MoE model with 3B activated parameters)
