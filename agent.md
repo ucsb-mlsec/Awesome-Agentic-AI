@@ -17,6 +17,11 @@
 
 ## QWEN models
 
+- Qwen3.6-Plus: Towards Real World Agents [[26/04](https://qwen.ai/blog?id=qwen3.6)]
+  - Next-generation hybrid architecture with always-on chain-of-thought reasoning (no thinking mode toggle), 1M context window (up from 262K in 3.5), and up to 65K output tokens
+  - Improved agentic reliability in multi-step workflows with native function calling; reduced overthinking on simple tasks
+  - ~2-3x inference speed over Claude Opus 4.6 (community-reported) via efficiency-focused architecture with lower inference energy consumption
+
 - Qwen3.5 Towards Native Multimodal Agents [[26/02](https://qwen.ai/blog?id=qwen3.5)]
   - Qwen3.5-397B-A17B, a vision-language model with 1M context window
   - Scaling of virtual RL tasks and environments compared to Qwen3 series
@@ -388,6 +393,10 @@
 
 
 ### Stability and others
+
+- Meta-Harness: End-to-End Optimization of Model Harnesses [[Arxiv'26/03](https://arxiv.org/abs/2603.28052)]
+  - Harness: Code  determines what to store, retrieve, and show to the model
+  - Propose an agentic harness management system that propose new harnesses for new tasks based on existing harnesses stored in the file system  
 
 - Harness Design for Long-Running Application Development [[Anthropic](https://www.anthropic.com/engineering/harness-design-long-running-apps)]
   - Problems: context anxiety (model wraps up prematurely near perceived context limits); self-evaluation bias (agent praises its own mediocre work)

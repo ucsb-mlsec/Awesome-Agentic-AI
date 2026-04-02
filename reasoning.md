@@ -110,6 +110,33 @@ extrapolated to large-compute regime
 Online RL methods are mainly used for post-training with verifiable outcome reward. Some recent works also explore using RL for [pre-training](https://arxiv.org/pdf/2506.08007) or mid-training (a new training stage between pre-training and post-training, mainly aim to improve agentic capabilities).
 
 
+- FIPO: Eliciting Deep Reasoning with Future-KL Influenced Policy Optimization [[Arxiv'26/03](https://arxiv.org/abs/2603.19835)]
+  - Introduces discounted future-KL divergence into policy updates to provide dense, token-level credit assignment beyond uniform advantage in GRPO
+  - Re-weights tokens based on their influence on subsequent trajectory behavior measured by future-KL
+    - Future-KL at token $t$: $\mathrm{FutureKL}_t = \sum_{k=t}^{T} M_k \cdot \gamma^{k-t} \cdot \Delta\log p_k$, where $\Delta\log p_k = \log\pi_\theta(o_k|q,o_{<k}) - \log\pi_{\theta_{\text{old}}}(o_k|q,o_{<k})$, $M_k$ filters extreme importance ratios, $\gamma = 2^{-1/\tau}$ is the decay rate
+    - Token weight: $f_t = \text{clip}(\exp(\mathrm{FutureKL}_t), 1-\epsilon_{f_{\text{low}}}, 1+\epsilon_{f_{\text{high}}})$
+  - Dense advantage: $\tilde{A}_t = \hat{A}_t \cdot f_t$, where $\hat{A}_t$ is the group relative advantage
+  - FIPO loss: $J_{\text{FIPO}}(\theta) = \mathbb{E}\left[\frac{1}{\sum_i|o_i|}\sum_{i=1}^G\sum_{t=1}^{|o_i|}\min\left(r_{i,t}f_{i,t}\hat{A}_{i,t}, \text{clip}(r_{i,t},1-\epsilon,1+\epsilon)f_{i,t}\hat{A}_{i,t}\right)\right]$
+
+- SAPO: Soft Adaptive Policy Optimization [[Arxiv'25/11](https://arxiv.org/abs/2511.20347)]
+  - Hard clipping in GRPO/GSPO discards all gradient signal from off-policy tokens, wasting useful learning signal; SAPO replaces it with a smooth, temperature-controlled gate that gradually attenuates rather than zeroing out off-policy updates
+    - Soft gate: $f_{i,t}(x) = \sigma(\tau_{i,t}(x-1)) \cdot \frac{4}{\tau_{i,t}}$, where $\tau_{i,t} = \tau_{\text{pos}}$ if $\hat{A}_{i,t} > 0$, else $\tau_{\text{neg}}$
+    - Gradient weight: $w_{i,t}(\theta) = 4p_{i,t}(1-p_{i,t})$ with $p_{i,t} = \sigma(\tau_{i,t}(r_{i,t}(\theta)-1))$, peaks at $r_{i,t}=1$ and decays smoothly as importance ratio deviates from on-policy
+    - SAPO objective: $\mathcal{J}(\theta) = \mathbb{E}\left[\frac{1}{G}\sum_{i=1}^G \frac{1}{|y_i|}\sum_{t=1}^{|y_i|} f_{i,t}(r_{i,t}(\theta)) \hat{A}_{i,t}\right]$
+
+- GSPO: Group Sequence Policy Optimization [[Arxiv'25/07](https://arxiv.org/abs/2507.18071)]
+  - Token-level importance sampling cannot reflect the distribution shift; problematic for long sequences
+  - Propose GSPO: 
+    - Sequence-level importance ratio with length normalization: $s_i(\theta) = \left(\frac{\pi_\theta(y_i|x)}{\pi_{\theta_{\text{old}}}(y_i|x)}\right)^{1/|y_i|}= \exp\left(\frac{1}{|y_i|}\sum_{t=1}^{|y_i|}\log\frac{\pi_\theta(y_{i,t}|x,y_{i,<t})}{\pi_{\theta_{\text{old}}}(y_{i,t}|x,y_{i,<t})}\right)$
+    - GSPO objective: $\mathcal{J}_{\text{GSPO}}(\theta) = \mathbb{E}\left[\frac{1}{G}\sum_{i=1}^G\min(s_i(\theta)\hat{A}_i, \text{clip}(s_i(\theta), 1-\varepsilon, 1+\varepsilon)\hat{A}_i)\right]$
+    - Key difference: GSPO gradient applies uniform weighting $s_i(\theta) \cdot \frac{1}{|y_i|}\sum_t \nabla_\theta \log\pi_\theta(y_{i,t}|x,y_{i,<t})$, vs GRPO weighting each token by its own importance ratio, which accumulates high-variance noise over long sequences
+
+- VAPO: Efficient and Reliable Reinforcement Learning for Advanced Reasoning Tasks [[Arxiv'25/04](https://arxiv.org/abs/2504.05118)]
+  - Value-based PPO that addresses value model bias, heterogeneous sequence lengths, and sparse rewards in long-CoT reasoning
+  - Reduce bias over long sequence and manage heterogeneous sequence lengths
+    - Length-Adaptive GAE: $\lambda_{\text{policy}} = 1 - \frac{1}{\alpha l}$, where $\alpha$ is a hyperparameter and $l$ is output length, ensuring the sum of GAE coefficients is proportional to sequence length
+  - Address sparse reward: clip high, positive example loss (SFT on correct answers), group sampling
+
 - QUESTA: EXPANDING REASONING CAPACITY IN LLMS VIA QUESTION AUGMENTATION [[Arxiv'25/09](https://arxiv.org/pdf/2507.13266)]
   - RL with easy prompts/questions hurts pass @k and reasoning ability; RL with hard prompts/questions leads to slow learning
   - Introduce partial solutions during training to reduce problem difficulty 
