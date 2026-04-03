@@ -126,8 +126,6 @@ Below, we list some widely used coding agents that are mostly commercial product
     - CodeQL-based taint analysis given by source/sinks: find a valid path in the data flow graph and then report 
     - LLM-based optimization codeql-based taint analysis: Use LLM to retrieve more source/sinks (Use static analysis and heuristics to retrieve candidates and let LLM check); Extract (1) all external APIs and (2) internal APIs that are public and may be invoked by a downstream library; After running CodeQL with the source/sinks, they get a path that triggers alerts. They filter false-positive paths using LLM
     - No tool calls; Target on Java
-- **LLM-facilitated fuzzer**
-  - Papers that use LLM to generate seeds or grammars
 - **Others**
   - Extracting Recurring Vulnerabilities from Black-Box LLM-Generated Software [[Arxiv 26/03](https://arxiv.org/abs/2602.04894)]
 
@@ -156,6 +154,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 - **PoC generation**
   
+  - Locus: Agentic Predicate Synthesis for Directed Fuzzing [[arxiv'25/08](https://arxiv.org/pdf/2508.21302)]
   - FirmAgent: Leveraging Fuzzing to Assist LLM Agents with IoT Firmware Vulnerability Discovery [[arxiv'26/02](https://netsec.ccert.edu.cn/files/papers/ndss26-firmagent.pdf)]
     - Detect and generate PoC for taint-style vulns for binary-only firmware backends with a frontend.
     - Procedure:
