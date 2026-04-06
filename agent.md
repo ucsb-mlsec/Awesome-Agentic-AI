@@ -405,6 +405,14 @@
     - Full-stack coding: three-agent architecture (planner → generator → evaluator) with sprint-based decomposition and file-based inter-agent communication
   - Takeaway: separating creation from evaluation is more tractable than self-evaluation; convert subjective judgments into concrete gradable criteria
 
+- Effective harnesses for long-running agents [[Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)]
+  - For long-running agents, merely rely on compaction leads to problems
+    - model running out of context in the middle of its implementation, leaving the next session to start with a feature half-implemented and undocumented
+    - After some features had already been built, a later agent instance would see that progress had been made, and declare the job done
+  - Solutions:
+    -  The very first agent session asks the model to write a json of feature requirements expanding on the user’s initial prompt (each feature with description, steps, and status), and a claude-progress.txt file that keeps a log of what agents have done.
+    -  Every subsequent session is prompted to firts read the progress.txt and git history, then work on one feature, commits the change (enabling easy reverts), then leaves updates in progress.txt. 
+
 - The Optimal Token Baseline: Variance Reduction for Long-Horizon LLM-RL [[Arxiv'26/03](https://arxiv.org/abs/2602.07078)]
   - Standard REINFORCE-style leads to high variance for long-horizon tasks as noise accumulates and the reward is sparse
     - Existing baselines do not consider sequence heterogeneity and differences in sequence energy 
