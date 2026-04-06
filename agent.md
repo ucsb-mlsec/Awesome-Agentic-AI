@@ -402,7 +402,7 @@
   - Problems: context anxiety (model wraps up prematurely near perceived context limits); self-evaluation bias (agent praises its own mediocre work)
   - Solutions:
     - Frontend design: generator-evaluator loop (GAN-inspired); four gradable criteria (design quality, originality, craft, functionality); evaluator uses Playwright MCP to interact with live pages before scoring
-    - Full-stack coding: three-agent architecture (planner → generator → evaluator) with sprint-based decomposition and file-based inter-agent communication
+    - Full-stack coding: three-agent architecture (planner → generator → evaluator) with sprint-based decomposition and file-based inter-agent communication. Before each sprint, the generator and evaluator negotiated a sprint contract: agreeing on what "done" looked like for that chunk of work before any code was written. 
   - Takeaway: separating creation from evaluation is more tractable than self-evaluation; convert subjective judgments into concrete gradable criteria
 
 - Effective harnesses for long-running agents [[Anthropic](https://www.anthropic.com/engineering/effective-harnesses-for-long-running-agents)]
