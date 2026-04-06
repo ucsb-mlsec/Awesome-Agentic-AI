@@ -395,8 +395,25 @@
 ### Stability and others
 
 - Meta-Harness: End-to-End Optimization of Model Harnesses [[Arxiv'26/03](https://arxiv.org/abs/2603.28052)]
-  - Harness: Code  determines what to store, retrieve, and show to the model
-  - Propose an agentic harness management system that propose new harnesses for new tasks based on existing harnesses stored in the file system  
+  - Harness: Code  determines what to store, retrieve, and show to the model, actually workflow (each harness is a single-file Python program
+that modifies task-specific prompting, retrieval, memory, and orchestration logic)
+  - Propose an agentic harness management system that propose new harnesses for new tasks based on existing harnesses stored in the file system
+    - loop: run a benchmark, get the score and trace, let the coding agent retieve info (harness src, trace, score) and optimize the harness
+  - Evaluation
+    - On math reasoning, online text classification, and terminal-bench 2.0
+    - Evaluated generalization for math reasoning and online text classification, didn't evaluate generalization for terminal-bench
+  - Generated harness
+    - Terminal-bench:
+      - Before the agent starts, run a script that collects env info (e.g., packages, files under /app) and inject to the prompt.
+    - online text classification:
+      - harness 1:
+        - step 1: for each new sample, find 5 existing closest samples, model predict a initial class.
+        - step 2: retieve 5 closest samples within the predicted class, and 5 closest samples from other classes.
+        - step 3: model predict the final class.
+      - harness 2:
+        - step 1: for each new sample, construct a prompt with all class names, find one closest sample for each class, and some ambiguous samples.
+    - Math:
+      - some rules describing how many samples to retrieve for each kind of question.
 
 - Harness Design for Long-Running Application Development [[Anthropic](https://www.anthropic.com/engineering/harness-design-long-running-apps)]
   - Problems: context anxiety (model wraps up prematurely near perceived context limits); self-evaluation bias (agent praises its own mediocre work)
