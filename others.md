@@ -131,3 +131,10 @@ Agent serving should not treat each LLM invocation as an independent request. Th
   - Introduces a managed state layer to decouple logical state from physical placement, enabling reuse, migration, and retries
   - Uses a two-level control architecture with global policy computation and local event-driven enforcement
   - Main insight: agent serving is a runtime systems problem, not just an inference scheduling problem
+
+- KVFlow: Efficient Prefix Caching for Accelerating LLM-Based Multi-Agent Workflows [[Arxiv'25/07](https://arxiv.org/abs/2507.07400)]
+  - Focuses on a key weakness of existing prefix-caching systems under agent workflows: standard LRU-style eviction is unaware of workflow structure, so it often evicts KV entries shortly before they are needed again
+  - Introduces an Agent Step Graph abstraction to model execution dependencies across agents and estimate how soon each agent will be activated next
+  - Uses this workflow signal to guide fine-grained KV eviction at the cache-node level, preserving entries that are more likely to be reused and handling shared prefixes in tree-structured caches more effectively
+  - Adds fully overlapped KV prefetching, proactively loading tensors from CPU to GPU for agents likely to run in the next step, reducing cache-miss stalls during execution
+  - Main insight: for agent workloads, KV-cache management should be driven by future workflow structure rather than past access recency 
