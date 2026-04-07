@@ -37,6 +37,17 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 Below, we list some widely used coding agents that are mostly commercial products. These agents are mostly used for code development. They mainly use search, retrieval, file edit, and bash tools. They can also be connected to other software applications through MCP.
 
 - ClaudeCode
+  - Memory
+    - userContext (claudeMd)
+    - Long-term (auto memory)
+      - Structure: a folder containing
+        - MEMORY.md (index, loaded at the start of each session, each entry is a file name and a short description, max 200 lines)
+        - 
+    - Short-term (session memory)
+      - Summary.md
+    - Handling compaction
+  - Sub-agents and Agent Communication
+  - Skill organization
 - Cursor
 - Github Copilot
 - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'24](https://arxiv.org/abs/2407.16741)]
