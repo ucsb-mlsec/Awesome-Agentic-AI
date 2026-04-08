@@ -376,7 +376,7 @@ Below, we list some widely used coding agents that are mostly commercial product
 
 ### 🛠️ Techniques 
 
-  - KryptoPilot: An Open-World Knowledge-Augmented LLM Agent for Automated Cryptographic Exploitation [[arxiv'26/01](https://arxiv.org/abs/2502.10931)]
+  - KryptoPilot: An Open-World Knowledge-Augmented LLM Agent for Automated Cryptographic Exploitation [[arxiv'26/01](https://arxiv.org/pdf/2601.09129)]
     - Workflow: human designed workflow (Recon → Analysis → Modeling → Exploit → Verify), prompt engineering，inject sketchy knowledge (e.g., some repos are useful etc)
     - Tools: sagemath backend
     - Memory: deep research (web search, github search, arxiv search) and file-based memory (storing the retrieved files, eg., papers), no cross-task sharing
