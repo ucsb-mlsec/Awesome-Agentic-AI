@@ -103,8 +103,13 @@ The latest works on memory management are moving towards building specific sub-a
   - Layered memory, hand-designed levels
 
 
-## Session-aware Scheduling
+## Scheduling
 
+MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv'25/12](https://arxiv.org/pdf/2512.16822)]
+- Store raw K without ROPE as cache, when cache hit, load K and calculate ROPE on the fly, enabling position-independent caching.
+
+
+### Session-aware Scheduling
 Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
 
 - Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv'25/11](https://arxiv.org/abs/2511.02230)]
