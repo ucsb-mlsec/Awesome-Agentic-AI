@@ -39,10 +39,29 @@ Below, we list some widely used coding agents that are mostly commercial product
 - ClaudeCode
   - Memory
     - userContext (claudeMd)
+      - User specifications
+      - When to load: 1) session start, 2) after compaction, 3) when user includes a file by @, load claude.md through the path from user root to the dir containing the file
+      - Load to where: load within a user message
     - Long-term (auto memory)
       - Structure: a folder containing
-        - MEMORY.md (index, loaded at the start of each session, each entry is a file name and a short description, max 200 lines)
-        - 
+        - MEMORY.md (index, each entry is a file name and a short description, load max 200 lines)
+        - Four kinds of memory files, .md, each may have multiple files, each file has name, description and type.
+          - User memory (the user's role, goals, responsibilities, and knowledge)
+          - Project memory (design philosophy, motivation, constraints)
+          - Feedback memory (user preference)
+          - Reference memory (pointers to where information can be found in external systems)
+          - Explicitly ask the agent not to save facts that can be derived from the current project's state.
+        - Daily logs (only KAIROS mode, like openclaw)
+      - When to save:
+        - MEMORY.md and three kinds of memory:
+          - agent-decided based on sys prompt (e.g., save feedback mem when the user corrects the agent's approach)
+          - after one turn of the root agent, if the root agent didn't write mem, a hook will launch an agent to extract memories asyncly. The subagent can see all messages, but is prompt to only analyze the messages after the last extraction.
+        - Dailoy logs:
+          - Agent-decide (record anything worth remembering by appending to today's daily log file)
+      - When to load:
+        - MEMORY.md: when the session starts, or after compaction, load within a user message, with claudemd
+        - Daily logs: auto dream
+        - Others: agent load by itself
     - Short-term (session memory)
       - Summary.md
     - Handling compaction
