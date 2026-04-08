@@ -105,8 +105,10 @@ The latest works on memory management are moving towards building specific sub-a
 
 ## Scheduling
 
-MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv'25/12](https://arxiv.org/pdf/2512.16822)]
-- Store raw K without ROPE as cache, when cache hit, load K and calculate ROPE on the fly, enabling position-independent caching.
+- MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv'25/12](https://arxiv.org/pdf/2512.16822)]
+  - Store raw K without ROPE as cache, when cache hit, load K and calculate ROPE on the fly, enabling position-independent caching.
+
+- FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving
 
 
 ### Session-aware Scheduling
