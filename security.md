@@ -45,27 +45,35 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Long-term (auto memory)
       - Structure: a folder containing
         - MEMORY.md (index, each entry is a file name and a short description, load max 200 lines)
-        - Four kinds of memory files, .md, each may have multiple files, each file has name, description and type.
+        - Topic memories: Four kinds of memory files, .md, each may have multiple files, each file has name, description and type.
           - User memory (the user's role, goals, responsibilities, and knowledge)
           - Project memory (design philosophy, motivation, constraints)
           - Feedback memory (user preference)
           - Reference memory (pointers to where information can be found in external systems)
           - Explicitly ask the agent not to save facts that can be derived from the current project's state.
-        - Daily logs (only KAIROS mode, like openclaw)
+        - Daily logs (only KAIROS mode like openclaw, the agent writes topic memories in daily logs instead of in seperate files)
       - When to save:
-        - MEMORY.md and three kinds of memory:
+        - MEMORY.md and four kinds of memory:
           - agent-decided based on sys prompt (e.g., save feedback mem when the user corrects the agent's approach)
-          - after one turn of the root agent, if the root agent didn't write mem, a hook will launch an agent to extract memories asyncly. The subagent can see all messages, but is prompt to only analyze the messages after the last extraction.
-        - Dailoy logs:
+          - after one turn of the root agent, if the root agent didn't write mem, a hook will fork an async agent to extract memories. The subagent can see all messages, but is prompt to only analyze the messages after the last extraction.
+        - Daily logs:
           - Agent-decide (record anything worth remembering by appending to today's daily log file)
       - When to load:
         - MEMORY.md: when the session starts, or after compaction, load within a user message, with claudemd
-        - Daily logs: auto dream
-        - Others: agent load by itself
-    - Short-term (session memory)
-      - Summary.md
+        - Topic memories: when each turn starts, query sonnet 4.5/4.6 to decide what topic memories may be useful (max 5) and load in context (as fake tool call and toll res).
+        - Daily logs: used in auto dream mode, where after one turn of the root agent, if 24 hours has past before the previous auto dream, fork an async subagent to update topic memories.
+    - session memory (used during compaction and away summary)
+      - structure: a single Summary.md for each session, including task specifications, files and funcs, workflow, errors and corrections, learnings, key res tec.
+      - when to save:
+        - After each turn, if tokens in session increases > 5000 tokens, a forked agent updates Summary.md.
+      - when to load:
+        - compaction: use (Summary.md + messages after last Summary.md modification) for compaction
+        - away summary: after the terminal lose focus for 5 min, generate a recap of 1-3 sentences using Summary.md and the latest 30 messages.
     - Handling compaction
+      - First try summary.MD-based method, keeping recent mesages (10000-40000 tokens)
+      - If no summary.md, do compaction on whole history, nested (e.g., Compaction C1 compacts messages 1-100, becomes 101, Compaction C2 compacts messages 101(C1)+ 102-200)
   - Sub-agents and Agent Communication
+    - 
   - Skill organization
 - Cursor
 - Github Copilot
