@@ -137,4 +137,20 @@ Agent serving should not treat each LLM invocation as an independent request. Th
   - Introduces an Agent Step Graph abstraction to model execution dependencies across agents and estimate how soon each agent will be activated next
   - Uses this workflow signal to guide fine-grained KV eviction at the cache-node level, preserving entries that are more likely to be reused and handling shared prefixes in tree-structured caches more effectively
   - Adds fully overlapped KV prefetching, proactively loading tensors from CPU to GPU for agents likely to run in the next step, reducing cache-miss stalls during execution
-  - Main insight: for agent workloads, KV-cache management should be driven by future workflow structure rather than past access recency 
+  - Main insight: for agent workloads, KV-cache management should be driven by future workflow structure rather than past access recency
+
+- CONCUR: Proactive Agent-Level Admission Control for Efficient Agentic Batch Inference [[Arxiv'26/01](https://arxiv.org/abs/2601.22705)]
+  - Identifies a specific pathology in agentic batch inference called middle-phase thrashing: as long-lived agents accumulate context, KV-cache efficiency can collapse well before GPU memory is fully exhausted, leading to repeated eviction and recomputation
+  - Argues that the right control knob is not per-request cache eviction, but agent-level admission control: regulate how many agents are concurrently active so that aggregate KV pressure stays below the point where throughput collapses
+  - Adapts a congestion-control style loop, inspired by AIMD, to use runtime cache signals and dynamically modulate the number of admitted agents, while remaining a lightweight middleware layer compatible with existing agent frameworks and serving engines
+  - Reports up to 4.09× throughput improvement on Qwen3-32B and 1.90× on DeepSeek-V3 under real agent workloads
+  - Main insight: for long-horizon agent batches, the bottleneck is often not raw memory capacity but cache-pressure-induced concurrency collapse, so admission control can be more important than smarter eviction alone
+
+- DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference [[Arxiv'26/02](https://arxiv.org/abs/2602.21548)]
+  - Starts from the observation that multi-turn agentic inference is often I/O-bound rather than compute-bound: cache hit rates are very high, so the dominant cost becomes loading large KV states from storage rather than recomputing them
+  - Identifies a structural imbalance in disaggregated serving: the storage NICs on prefill engines saturate, while NIC bandwidth on decode engines remains underused
+  - Proposes dual-path KV loading: besides the standard storage→prefill path, it adds a storage→decode→prefill path, where decode engines load KV from storage and forward it to prefill engines via RDMA over the compute network
+  - Adds a global scheduler that distributes traffic across the two paths and balances load across prefill and decode engines, effectively turning storage bandwidth into a pooled, schedulable resource
+  - Reports up to 1.87× higher offline end-to-end throughput and about 1.96× average online serving throughput improvement without violating SLOs
+  - Main insight: when agent workloads already have high KV reuse, the central systems problem shifts from compute scheduling to KV movement and storage-bandwidth orchestration
+
