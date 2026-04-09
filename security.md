@@ -72,9 +72,43 @@ Below, we list some widely used coding agents that are mostly commercial product
     - Handling compaction
       - First try summary.MD-based method, keeping recent mesages (10000-40000 tokens)
       - If no summary.md, do compaction on whole history, nested (e.g., Compaction C1 compacts messages 1-100, becomes 101, Compaction C2 compacts messages 101(C1)+ 102-200)
-  - Sub-agents and Agent Communication
-    - 
-  - Skill organization
+  - Sub-agents
+    - Types
+      - Built-in:
+        - general-purpose
+        - Explore 
+        - Plan 
+        - verification 
+        - statusline-setup (config ui)
+        - claude-code-guide (answer user questions about claudecode and other anthropic products)
+      - User-created agents
+      - Forked agents (history same as parent, with a new user message)
+    - Call method
+      - Agent tool
+        - can run in background, if background, is a coroutine
+        - can decide whether inherit parent history(fork)
+        - killed after agent tool returns
+        - can be resumed by root agent by a sendmessage tool, specifying the sub-agent's id 
+      - TeamCreateTool
+        - create a team with a team leader
+        - agent tool later can add agents to existing team
+    - Agent communication
+      - sync agent tool: tool res
+      - async agent tool: after a subagent finish, will put res in an inner commandQueue, parent agent loop fetches the res after current turn and wraps it into a user message.
+      - teammate:
+        - the leader communicates with users, and each agent can send message to peers through writing into a mailbox file
+        - each agent is a coroutine, scans the mailbox every 1 sec, if new message, either starts a new turn if the agent is idle (not in agent loop), or append a user message in the context after the current tool call returns.
+  - Skills
+    - some bundle skills, built-in
+    - plugin skills, in plugin root, also SKILL.md,
+    - skills/<skill-name>/SKILL.md, in current dir and dirs from user's home to current dir
+    - loaded at start, load each skill's name and description, model call a specific tool to get the full content
+  - Sandbox
+    - executes shell command in a sandbox runtime which is not included in the leaked source, https://code.claude.com/docs/en/sandboxing
+    - restricts 
+      - filesystem, allow read and write of the current folder at the beginning
+      - network (domains), no domain allow at the beginning
+    - If the agent wants to access a file/domain that is not currently allowed, pop up a message for the user to approve.
 - Cursor
 - Github Copilot
 - OpenHands: An Open Platform for AI Software Developers as Generalist Agents [[ICLR'24](https://arxiv.org/abs/2407.16741)]
