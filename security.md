@@ -86,6 +86,7 @@ Below, we list some widely used coding agents that are mostly commercial product
       - Forked agents (history same as parent, with a new user message)
     - Call method
       - Agent tool
+        - spawns a agent instance, with a distrinct agentId
         - can run in background, if background, is a coroutine
         - can decide whether inherit parent history(fork)
         - killed after agent tool returns
