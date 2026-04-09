@@ -110,6 +110,11 @@ The latest works on memory management are moving towards building specific sub-a
 
 - FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving
 
+- TokenDance: Scaling Multi-Agent LLM Serving via Collective KV Cache Sharing [[Arxiv'26/04](https://arxiv.org/pdf/2604.03143v1)]
+  - Targets synchronized multi-agent workloads with an All-Gather communication pattern, where each agent’s next-round prompt contains the same shared output blocks but at different absolute positions, causing massive duplicated KV caches across agents. 
+  - Performs collective KV reuse at the round level instead of per request, so the reuse cost of a shared block is paid once for the full agent round rather than once per agent. 
+  - Introduces Diff-Aware Storage: keep one master KV cache and store sibling agent caches as block-sparse diffs, so memory grows with inter-agent differences instead of one full cache per agent. 
+  - Main gains on GenerativeAgents and AgentSociety: up to 2.3× lower end-to-end latency vs vLLM prefix caching, up to 1.9× prefill speedup vs per-request PIC, up to 94% KV cache reduction, and up to 2.7× more concurrent agents under the same SLO.
 
 ### Session-aware Scheduling
 Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
