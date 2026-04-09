@@ -88,6 +88,7 @@ Below, we list some widely used coding agents that are mostly commercial product
         - can run in background, if background, is a coroutine
         - can decide whether inherit parent history(fork)
         - killed after agent tool returns
+        - subagents cannot invoke subagents
         - can be resumed by root agent by a sendmessage tool, specifying the sub-agent's id 
       - TeamCreateTool
         - create a team with a team leader
