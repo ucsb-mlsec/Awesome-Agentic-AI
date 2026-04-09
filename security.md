@@ -69,6 +69,7 @@ Below, we list some widely used coding agents that are mostly commercial product
       - when to load:
         - compaction: use (Summary.md + messages after last Summary.md modification) for compaction
         - away summary: after the terminal lose focus for 5 min, generate a recap of 1-3 sentences using Summary.md and the latest 30 messages.
+    - History of agents (transcripts): agent unaware of it
     - Handling compaction
       - First try summary.MD-based method, keeping recent mesages (10000-40000 tokens)
       - If no summary.md, do compaction on whole history, nested (e.g., Compaction C1 compacts messages 1-100, becomes 101, Compaction C2 compacts messages 101(C1)+ 102-200)
