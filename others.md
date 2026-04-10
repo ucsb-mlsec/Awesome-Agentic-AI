@@ -1,4 +1,4 @@
-# Others
+# Environment and Inference for Agents
 
 ## Environment simulation
 
@@ -20,6 +20,76 @@ In general, simulating environments with LLMs or other reasoning models may requ
   - Unified a broad collection of 13 existing agent training datasets using a standardized protocol
 - CLI-Gym: Scalable CLI Task Generation via Agentic Environment Inversion [Arxiv'26/02]
   - Scalable generation of CLI-based tasks via environment inversion for agent training
+
+## Inference
+
+### LLM and Agent Serving
+
+Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
+
+- CacheSlide: Unlocking Cross Position-Aware KV Cache Reuse for Accelerating LLM Serving [[FAST’26](https://www.usenix.org/system/files/fast26-liu-yang.pdf)]
+  - Identifies a Relative-Position-Dependent Caching (RPDC) pattern in agent prompts: reusable segments maintain consistent relative ordering despite absolute position shifts, but RoPE makes their KV caches position-dependent and non-reusable
+  - Enhances positional-encoding similarity for fixed segments and computes attention for only a minimal subset of tokens, enabling cross-position KV cache reuse
+  - 3.1-4.3x latency reduction and 3.5-5.8x throughput improvement over state-of-the-art baselines
+
+- TokenDance: Scaling Multi-Agent LLM Serving via Collective KV Cache Sharing [[Arxiv’26/04](https://arxiv.org/pdf/2604.03143v1)]
+  - Targets synchronized multi-agent workloads with an All-Gather communication pattern, where each agent’s next-round prompt contains the same shared output blocks but at different absolute positions, causing massive duplicated KV caches across agents. 
+  - Performs collective KV reuse at the round level instead of per request, so the reuse cost of a shared block is paid once for the full agent round rather than once per agent. 
+  - Introduces Diff-Aware Storage: keep one master KV cache and store sibling agent caches as block-sparse diffs, so memory grows with inter-agent differences instead of one full cache per agent. 
+  - Main gains on GenerativeAgents and AgentSociety: up to 2.3× lower end-to-end latency vs vLLM prefix caching, up to 1.9× prefill speedup vs per-request PIC, up to 94% KV cache reduction, and up to 2.7× more concurrent agents under the same SLO.
+
+- Helium: Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective [[Arxiv’26/03](https://arxiv.org/abs/2603.16104)]
+  - Recasts agent serving as a dataflow and query optimization problem rather than a sequence of unrelated model calls
+  - Models an agent workflow as a query plan, with LLM invocations treated as first-class operators
+  - Exploits reuse across overlapping prompts, intermediate outputs, KV states, and speculative branches through proactive caching and cache-aware scheduling
+  - Main insight: the optimization target should move from call-level efficiency to workflow-level reuse
+
+- ThunderAgent: A Simple, Fast and Program-Aware Agentic Inference System [[Arxiv’26/02](https://arxiv.org/abs/2602.13692)]
+  - Argues that existing stacks are fundamentally too request-centric: LLM calls and tool executions are scheduled separately, without a unified view of the agent workflow
+  - Proposes LLM Programs as the scheduling unit, exposing heterogeneous resources such as KV cache, runtime state, disk memory, and tool-related assets to a single runtime abstraction
+  - Builds a program-aware scheduler and a tool resource manager to improve KV hit rate, reduce memory imbalance, and asynchronously prepare tool environments
+  - Main insight: the system should schedule agent programs, not disconnected inference calls
+
+- DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference [[Arxiv’26/02](https://arxiv.org/abs/2602.21548)]
+  - Starts from the observation that multi-turn agentic inference is often I/O-bound rather than compute-bound: cache hit rates are very high, so the dominant cost becomes loading large KV states from storage rather than recomputing them
+  - Identifies a structural imbalance in disaggregated serving: the storage NICs on prefill engines saturate, while NIC bandwidth on decode engines remains underused
+  - Proposes dual-path KV loading: besides the standard storage→prefill path, it adds a storage→decode→prefill path, where decode engines load KV from storage and forward it to prefill engines via RDMA over the compute network
+  - Adds a global scheduler that distributes traffic across the two paths and balances load across prefill and decode engines, effectively turning storage bandwidth into a pooled, schedulable resource
+  - Reports up to 1.87× higher offline end-to-end throughput and about 1.96× average online serving throughput improvement without violating SLOs
+  - Main insight: when agent workloads already have high KV reuse, the central systems problem shifts from compute scheduling to KV movement and storage-bandwidth orchestration
+
+- Nalar: An agent serving framework [[Arxiv’26/01](https://arxiv.org/abs/2601.05109)]
+  - Frames agent serving as a general workflow runtime for executions with dynamic control flow, heterogeneous components, long-lived state, and highly variable latency
+  - Separates workflow specification from execution while preserving Python-style usability through generated stubs that convert agent and tool invocations into dependency-aware futures
+  - Introduces a managed state layer to decouple logical state from physical placement, enabling reuse, migration, and retries
+  - Uses a two-level control architecture with global policy computation and local event-driven enforcement
+  - Main insight: agent serving is a runtime systems problem, not just an inference scheduling problem
+
+- CONCUR: Proactive Agent-Level Admission Control for Efficient Agentic Batch Inference [[Arxiv’26/01](https://arxiv.org/abs/2601.22705)]
+  - Identifies a specific pathology in agentic batch inference called middle-phase thrashing: as long-lived agents accumulate context, KV-cache efficiency can collapse well before GPU memory is fully exhausted, leading to repeated eviction and recomputation
+  - Argues that the right control knob is not per-request cache eviction, but agent-level admission control: regulate how many agents are concurrently active so that aggregate KV pressure stays below the point where throughput collapses
+  - Adapts a congestion-control style loop, inspired by AIMD, to use runtime cache signals and dynamically modulate the number of admitted agents, while remaining a lightweight middleware layer compatible with existing agent frameworks and serving engines
+  - Reports up to 4.09× throughput improvement on Qwen3-32B and 1.90× on DeepSeek-V3 under real agent workloads
+  - Main insight: for long-horizon agent batches, the bottleneck is often not raw memory capacity but cache-pressure-induced concurrency collapse, so admission control can be more important than smarter eviction alone
+
+- MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv’25/12](https://arxiv.org/pdf/2512.16822)]
+  - Store raw K without ROPE as cache, when cache hit, load K and calculate ROPE on the fly, enabling position-independent caching.
+
+- Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv’25/11](https://arxiv.org/abs/2511.02230)]
+  - Identifies a central inefficiency in multi-turn agent serving: tool calls interrupt execution, but conventional engines often evict KV cache immediately after each turn
+  - Introduces a KV cache time-to-live (TTL) mechanism: when a turn is likely to resume after a tool call, the system keeps its KV cache in GPU memory for a bounded time instead of evicting it eagerly
+  - Combines tool-aware KV retention with program-level FCFS scheduling, allowing the same agent session to resume with lower reload cost and less queueing delay
+  - Main insight: in agent workloads, preserving cross-turn continuity can matter more than optimizing each turn in isolation
+
+- KVFlow: Efficient Prefix Caching for Accelerating LLM-Based Multi-Agent Workflows [[Arxiv’25/07](https://arxiv.org/abs/2507.07400)]
+  - Focuses on a key weakness of existing prefix-caching systems under agent workflows: standard LRU-style eviction is unaware of workflow structure, so it often evicts KV entries shortly before they are needed again
+  - Introduces an Agent Step Graph abstraction to model execution dependencies across agents and estimate how soon each agent will be activated next
+  - Uses this workflow signal to guide fine-grained KV eviction at the cache-node level, preserving entries that are more likely to be reused and handling shared prefixes in tree-structured caches more effectively
+  - Adds fully overlapped KV prefetching, proactively loading tensors from CPU to GPU for agents likely to run in the next step, reducing cache-miss stalls during execution
+  - Main insight: for agent workloads, KV-cache management should be driven by future workflow structure rather than past access recency
+
+- FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving
+
 
 ## Memory management
 
@@ -101,68 +171,4 @@ The latest works on memory management are moving towards building specific sub-a
 - Intrinsic Memory Agents: Heterogeneous Multi-Agent LLM Systems through Structured Contextual Memory [[Arxiv'25](https://arxiv.org/abs/2508.08997)]
 - MIRIX: Multi-Agent Memory System for LLM-Based Agents [[Arxiv'25](https://arxiv.org/abs/2507.07957)]
   - Layered memory, hand-designed levels
-
-
-## Scheduling
-
-- MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv'25/12](https://arxiv.org/pdf/2512.16822)]
-  - Store raw K without ROPE as cache, when cache hit, load K and calculate ROPE on the fly, enabling position-independent caching.
-
-- FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving
-
-- TokenDance: Scaling Multi-Agent LLM Serving via Collective KV Cache Sharing [[Arxiv'26/04](https://arxiv.org/pdf/2604.03143v1)]
-  - Targets synchronized multi-agent workloads with an All-Gather communication pattern, where each agent’s next-round prompt contains the same shared output blocks but at different absolute positions, causing massive duplicated KV caches across agents. 
-  - Performs collective KV reuse at the round level instead of per request, so the reuse cost of a shared block is paid once for the full agent round rather than once per agent. 
-  - Introduces Diff-Aware Storage: keep one master KV cache and store sibling agent caches as block-sparse diffs, so memory grows with inter-agent differences instead of one full cache per agent. 
-  - Main gains on GenerativeAgents and AgentSociety: up to 2.3× lower end-to-end latency vs vLLM prefix caching, up to 1.9× prefill speedup vs per-request PIC, up to 94% KV cache reduction, and up to 2.7× more concurrent agents under the same SLO.
-
-### Session-aware Scheduling
-Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
-
-- Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv'25/11](https://arxiv.org/abs/2511.02230)]
-  - Identifies a central inefficiency in multi-turn agent serving: tool calls interrupt execution, but conventional engines often evict KV cache immediately after each turn
-  - Introduces a KV cache time-to-live (TTL) mechanism: when a turn is likely to resume after a tool call, the system keeps its KV cache in GPU memory for a bounded time instead of evicting it eagerly
-  - Combines tool-aware KV retention with program-level FCFS scheduling, allowing the same agent session to resume with lower reload cost and less queueing delay
-  - Main insight: in agent workloads, preserving cross-turn continuity can matter more than optimizing each turn in isolation
-
-- ThunderAgent: A Simple, Fast and Program-Aware Agentic Inference System [[Arxiv'26/02](https://arxiv.org/abs/2602.13692)]
-  - Argues that existing stacks are fundamentally too request-centric: LLM calls and tool executions are scheduled separately, without a unified view of the agent workflow
-  - Proposes LLM Programs as the scheduling unit, exposing heterogeneous resources such as KV cache, runtime state, disk memory, and tool-related assets to a single runtime abstraction
-  - Builds a program-aware scheduler and a tool resource manager to improve KV hit rate, reduce memory imbalance, and asynchronously prepare tool environments
-  - Main insight: the system should schedule agent programs, not disconnected inference calls
-
-- Helium: Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective [[Arxiv'26/03](https://arxiv.org/abs/2603.16104)]
-  - Recasts agent serving as a dataflow and query optimization problem rather than a sequence of unrelated model calls
-  - Models an agent workflow as a query plan, with LLM invocations treated as first-class operators
-  - Exploits reuse across overlapping prompts, intermediate outputs, KV states, and speculative branches through proactive caching and cache-aware scheduling
-  - Main insight: the optimization target should move from call-level efficiency to workflow-level reuse
-
-- Nalar: An agent serving framework [[Arxiv'26/01](https://arxiv.org/abs/2601.05109)]
-  - Frames agent serving as a general workflow runtime for executions with dynamic control flow, heterogeneous components, long-lived state, and highly variable latency
-  - Separates workflow specification from execution while preserving Python-style usability through generated stubs that convert agent and tool invocations into dependency-aware futures
-  - Introduces a managed state layer to decouple logical state from physical placement, enabling reuse, migration, and retries
-  - Uses a two-level control architecture with global policy computation and local event-driven enforcement
-  - Main insight: agent serving is a runtime systems problem, not just an inference scheduling problem
-
-- KVFlow: Efficient Prefix Caching for Accelerating LLM-Based Multi-Agent Workflows [[Arxiv'25/07](https://arxiv.org/abs/2507.07400)]
-  - Focuses on a key weakness of existing prefix-caching systems under agent workflows: standard LRU-style eviction is unaware of workflow structure, so it often evicts KV entries shortly before they are needed again
-  - Introduces an Agent Step Graph abstraction to model execution dependencies across agents and estimate how soon each agent will be activated next
-  - Uses this workflow signal to guide fine-grained KV eviction at the cache-node level, preserving entries that are more likely to be reused and handling shared prefixes in tree-structured caches more effectively
-  - Adds fully overlapped KV prefetching, proactively loading tensors from CPU to GPU for agents likely to run in the next step, reducing cache-miss stalls during execution
-  - Main insight: for agent workloads, KV-cache management should be driven by future workflow structure rather than past access recency
-
-- CONCUR: Proactive Agent-Level Admission Control for Efficient Agentic Batch Inference [[Arxiv'26/01](https://arxiv.org/abs/2601.22705)]
-  - Identifies a specific pathology in agentic batch inference called middle-phase thrashing: as long-lived agents accumulate context, KV-cache efficiency can collapse well before GPU memory is fully exhausted, leading to repeated eviction and recomputation
-  - Argues that the right control knob is not per-request cache eviction, but agent-level admission control: regulate how many agents are concurrently active so that aggregate KV pressure stays below the point where throughput collapses
-  - Adapts a congestion-control style loop, inspired by AIMD, to use runtime cache signals and dynamically modulate the number of admitted agents, while remaining a lightweight middleware layer compatible with existing agent frameworks and serving engines
-  - Reports up to 4.09× throughput improvement on Qwen3-32B and 1.90× on DeepSeek-V3 under real agent workloads
-  - Main insight: for long-horizon agent batches, the bottleneck is often not raw memory capacity but cache-pressure-induced concurrency collapse, so admission control can be more important than smarter eviction alone
-
-- DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference [[Arxiv'26/02](https://arxiv.org/abs/2602.21548)]
-  - Starts from the observation that multi-turn agentic inference is often I/O-bound rather than compute-bound: cache hit rates are very high, so the dominant cost becomes loading large KV states from storage rather than recomputing them
-  - Identifies a structural imbalance in disaggregated serving: the storage NICs on prefill engines saturate, while NIC bandwidth on decode engines remains underused
-  - Proposes dual-path KV loading: besides the standard storage→prefill path, it adds a storage→decode→prefill path, where decode engines load KV from storage and forward it to prefill engines via RDMA over the compute network
-  - Adds a global scheduler that distributes traffic across the two paths and balances load across prefill and decode engines, effectively turning storage bandwidth into a pooled, schedulable resource
-  - Reports up to 1.87× higher offline end-to-end throughput and about 1.96× average online serving throughput improvement without violating SLOs
-  - Main insight: when agent workloads already have high KV reuse, the central systems problem shifts from compute scheduling to KV movement and storage-bandwidth orchestration
 
