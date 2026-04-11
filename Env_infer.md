@@ -23,7 +23,7 @@ In general, simulating environments with LLMs or other reasoning models may requ
 
 ## Inference
 
-### LLM and Agent Serving
+### LLM and Agent Scheduling
 
 Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
 
