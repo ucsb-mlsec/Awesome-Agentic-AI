@@ -27,6 +27,8 @@ In general, simulating environments with LLMs or other reasoning models may requ
 
 Agent serving should not treat each LLM invocation as an independent request. The right abstraction is the agent session: a long-lived execution that spans multiple LLM calls, tool invocations, pauses, resumptions, and evolving intermediate state. The core issue is no longer just per-call TTFT or throughput, but whether the system can preserve execution continuity and optimize end-to-end completion for the whole session.
 
+#### Cross-request KV Cache
+
 - CacheSlide: Unlocking Cross Position-Aware KV Cache Reuse for Accelerating LLM Serving [[FAST’26](https://www.usenix.org/system/files/fast26-liu-yang.pdf)]
   - Background:
     - PDC (Position-Dependent Caching): KV caches are tied to absolute token positions and can only be reused at the exact same position (e.g., standard prefix caching)
@@ -48,8 +50,38 @@ Agent serving should not treat each LLM invocation as an independent request. Th
   - Proposed method — TokenDance with four components:
     1. **Round-Aware Prompt Interface**: insert reserved separator tokens between logical blocks so the runtime can hash and match shared segments by content rather than absolute position, surviving the offset shifts that break prefix caching
     2. **Collective KV Cache Reuse**: group the N requests of one round and run a single shared RoPE rotation + important-position selection pass over each shared block, instead of N independent PIC passes — amortizing the analysis cost across the whole agent cohort
-    3. **Diff-Aware Storage (Master–Mirror layout)**: keep one dense Master KV cache for the cohort and store every other agent as a block-sparse Mirror of differences against Master
-    4. **Fused Diff Restore**: during the layerwise GPU transfer, apply Mirror corrections on top of Master inside SM memory using ping-pong buffers, so the dense per-agent cache is never materialized before attention
+    3. **Diff-Aware Storage (Master–Mirror layout)**: keep one dense Master KV cache and store every other agent as a block-sparse Mirror of differences against Master
+    4. **Fused Diff Restore**: during the layerwise GPU transfer, apply Mirror corrections on top of Master
+
+- MEPIC: Memory Efficient Position Independent Caching for LLM Serving [[Arxiv’25/12](https://arxiv.org/pdf/2512.16822)]
+  - Key problem & insight: Enable cross-request KV reuse by stripping RoPE from stored K and apply rotation on-the-fly at attention time
+  - Proposed method — MEPIC with four components:
+    1. **Segmentation and Canonicalization**: partitions each request into immutable chunk segments and request-specific prompt segments
+    2. **Chunk-Aware KV Residency Management**: tracks HBM residency via a Chunk Matcher and does reference-count-based LRU eviction so shared chunk blocks survive across requests
+    3. **Selective KV Recomputation (block-level)**: recomputes only the first KV block of each chunk per request; the remaining blocks are reused, then committed deterministically into paged KV slots
+    4. **Fused RoPE Attention**: stores K in position-encoding-free form and applies rotary offsets on-the-fly inside the attention kernel, so one physical copy serves any absolute position
+
+#### Tool-call aware cache management
+
+Tool calls pause agent execution for unpredictable durations, and existing serving systems do not consider this 
+
+- ThunderAgent: A Simple, Fast and Program-Aware Agentic Inference System [[Arxiv’26/02](https://arxiv.org/abs/2602.13692)]
+  - Key problem: Current stacks have no unified view of an agent's execution. The LLM engine manages KV. The orchestrator manages tools
+  - ThunderAgent treats the entire agent trajectory as a first-class Agentic Program so a single scheduler can jointly reason about KV state, tool assets, and placement
+  - Proposed method — ThunderAgent with three components:
+    1. **Agentic Program abstraction**: unified tuple capturing program ID, context tokens, tool environments, backend placement, execution phase, and scheduling status, giving the runtime whole-workflow visibility across heterogeneous resources
+    2. **Program-aware scheduler**: a Global Program-Aware Waiting Queue with a time-decay function $f(t)$, plus Periodic Thrashing Detection and Shortest-First Eviction to preserve KV hit rate and balance memory across nodes
+    3. **Tool resource manager**: Asynchronous environment preparation overlaps tool env setup with inference, and Hook-based garbage collection reclaims tool assets tied to program lifecycle events
+
+- Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv’25/11](https://arxiv.org/abs/2511.02230)]
+  - Key problem & insight: agent turns pause on tool calls of unpredictable duration; naive pinning wastes GPU memory while naive eviction wastes compute — retention should be bounded by a per-request TTL derived from empirical tool-latency distributions weighed against reload cost
+  - Proposed method — A new method for TTL computing to optimize the eviction/retention policy:
+    1. **Tool Call Handler**: parses tool invocations and records per-tool execution latency to build empirical CDFs of pause durations
+    2. **Utility Model** (Cost + Benefit Estimation): quantifies KV reload cost (recompute vs CPU offload) against queueing-delay benefit of keeping cache resident
+    3. **TTL Value Calculator**: picks per-request TTL from the tool-latency CDF that maximizes the utility model; cache auto-evicts on expiry for robustness to tail tool latencies
+    4. **Priority Scheduler**: TTL-aware multi-key ranking with program-level FCFS, keeping turns of the same agent program together to preserve cache locality
+
+#### Agent workflow-based scheduling
 
 - Helium: Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective [[Arxiv'26/03](https://arxiv.org/abs/2603.16104)]
   - Key problem & insight: If the agent workflow is compiled ahead of time into a query plan, the system can proactively pre-compute and pin shared KV state and schedule calls to maximize reuse
@@ -61,33 +93,6 @@ Agent serving should not treat each LLM invocation as an independent request. Th
     5. **Proactive Cache Management**: two-level cache — during scheduling, static prefixes are precomputed and their KV is pinned in GPU memory; a global prompt cache maps operator inputs to outputs across workflow invocations
     6. **Query Processor**: dispatches the cache-aware schedule to workers, which execute best-effort while preserving cache-friendly ordering
 
-- ThunderAgent: A Simple, Fast and Program-Aware Agentic Inference System [[Arxiv’26/02](https://arxiv.org/abs/2602.13692)]
-  - Key problem & insight: ThunderAgent treats the entire agent trajectory as a first-class Agentic Program so a single scheduler can jointly reason about KV state, tool assets, and placement
-  - Proposed method — ThunderAgent with three components:
-    1. **Agentic Program abstraction**: unified tuple capturing program ID, context tokens, tool environments, backend placement, execution phase, and scheduling status, giving the runtime whole-workflow visibility across heterogeneous resources
-    2. **Program-aware scheduler**: a Global Program-Aware Waiting Queue with a time-decay function $f(t)$, plus Periodic Thrashing Detection and Shortest-First Eviction to preserve KV hit rate and balance memory across nodes
-    3. **Tool resource manager**: Asynchronous environment preparation overlaps tool env setup with inference, and Hook-based garbage collection reclaims tool assets tied to program lifecycle events
-
-<!-- - FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving [[Arxiv'26/02](https://arxiv.org/abs/2602.16603)]
-  - Background:
-    - Chunked prefill (Sarathi/vLLM): small chunks hurt throughput, large chunks worsen HoL blocking
-    - Layer-level preemption (DistServe-style): couples execution granularity to scheduling frequency, adding control overhead even when no preemption is needed
-  - Key problem & insight: long prefills monopolize GPUs and violate TTFT SLOs; decoupling preemption granularity from scheduling frequency allows fine-grained interruption while keeping scheduling cheap
-  - Proposed method — FlowPrefill with two components:
-    1. **Operator-Level Preemption**: interrupt a running prefill at operator (kernel) boundaries inside a layer rather than at chunk/layer boundaries, enabling near-instant yield without shrinking the batched kernel and losing throughput
-    2. **Event-Driven Scheduling**: scheduler wakes only on request arrival/completion events, using a **Slack-aware EDF (S-EDF)** policy plus an **SLO-Aware Batching** algorithm to admit/reorder requests by remaining TTFT slack instead of polling every layer -->
-
-- DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference [[Arxiv’26/02](https://arxiv.org/abs/2602.21548)]
-  - Background:
-    - Mooncake (distributed DRAM KV pool): unusable under memory pressure (e.g., RL rollout) and cost-ineffective at large working sets
-    - CachedAttention / hierarchical KV stores: reduce retrieval volume but leave storage I/O imbalance between prefill and decode engines untouched
-    - HCache / KVPR / TailorKV: GPU-assisted I/O, partial recompute, hybrid quantization — still bound to a single storage→prefill data path
-  - Key problem & insight: in disaggregated agentic serving, storage NICs on Prefill Engines saturate while storage NICs on Decode Engines sit idle, making KV loading I/O- rather than compute-bound. KV-Cache loading does not have to be prefill-centric — the idle storage bandwidth on DEs plus the RDMA compute network can form a second loading path
-  - Proposed method — DualPath with three components:
-    1. **Dual-Path Loading Architecture**: adds a storage-to-decode path alongside the conventional storage-to-prefill path; KV-Cache lands in DE memory first, then streams to PEs over the compute-network RDMA fabric, aggregating both NIC pools
-    2. **Traffic Manager (CNIC-centric)**: runs on the compute NIC to orchestrate H2D/D2H copies and cross-engine KV transfers; uses **Traffic Isolation** via virtual lanes (VLs) and **CNIC-Assisted KV-Cache Copy** (RDMA Write) so the auxiliary path does not interfere with normal decode traffic; supports Full Block and Layer Block KV layouts in PE/DE buffers
-    3. **Request Scheduler**: global controller doing **Inter-Engine Scheduling** (splits load between PE- and DE-side loading phases), **Intra-Engine Scheduling** (compute-quota-based batch selection), and **KV-Cache Read Task Scheduling** to balance traffic across the two paths under SLOs
-
 - Nalar: An Agent Serving Framework [[Arxiv’26/01](https://arxiv.org/abs/2601.05109)]
   - Key problem & insight:  If workflow specification is separated from execution and state is decoupled from placement, a runtime can dynamically schedule, migrate, and retry without developer-visible orchestration
   - Proposed method — Nalar with three components:
@@ -95,24 +100,6 @@ Agent serving should not treat each LLM invocation as an independent request. Th
     2. **Managed state layer**: `managedList` / `managedDict` abstractions that decouple logical state from physical placement. Enables safe reuse, migration across workers, and consistent retry semantics under failures
     3. **Two-level control architecture**: a **Global Controller** computing system-wide policy over a logically central workflow view, paired with **Component-Level Controllers** for local event-driven enforcement, backed by a **Node Store** acting as metadata repository and telemetry/decision broker
 
-- CONCUR: Proactive Agent-Level Admission Control for Efficient Agentic Batch Inference [[Arxiv’26/01](https://arxiv.org/abs/2601.22705)]
-  - Key problem & insight: long-horizon ReAct-style agents accumulate context and trigger *middle-phase thrashing*, where KV-cache efficiency collapses well before GPU memory is exhausted. Controlling how many agents are concurrently admitted, rather than evicting individual requests, is the right knob because thrashing is an aggregate property of the active agent set
-  - Proposed method — CONCUR with three components:
-    1. **Agent-Level Controller**: lightweight middleware sitting between the agent execution layer and the LLM serving engine; exposes *admit*, *pause*, *resume* primitives that gate whole agents (preserving their state) instead of evicting per-request KV blocks
-    2. **Cache-Aware Admission Control Algorithm**: AIMD-style feedback loop driven by runtime KV-cache utilization $U_t$ and hit-rate $H_t$; linearly explores concurrency when underutilized, multiplicatively reduces on thrashing signals, and stabilizes near saturation
-    3. **Serving-Engine-Agnostic Integration**: implemented as a control layer over existing engines (e.g., SGLang) without modifying kernels or scheduler internals, keeping compatibility with request-level batching and hierarchical caches
-
-- Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv’25/11](https://arxiv.org/abs/2511.02230)]
-  - Background:
-    - vLLM/SGLang/Dynamo: evict KV cache immediately at turn end, forcing recomputation when tool calls return
-    - Autellix/InferCept: priority schedulers unaware of tool-call pause durations, mis-pinning cache under variable tool latency
-  - Key problem & insight: agent turns pause on tool calls of unpredictable duration; naive pinning wastes GPU memory while naive eviction wastes compute — retention should be bounded by a per-request TTL derived from empirical tool-latency distributions weighed against reload cost
-  - Proposed method — Continuum with five components:
-    1. **Tool Call Handler**: parses tool invocations and records per-tool execution latency to build empirical CDFs of pause durations
-    2. **Utility Model** (Cost + Benefit Estimation): quantifies KV reload cost (recompute vs CPU offload) against queueing-delay benefit of keeping cache resident
-    3. **TTL Value Calculator**: picks per-request TTL from the tool-latency CDF that maximizes the utility model; cache auto-evicts on expiry for robustness to tail tool latencies
-    4. **Priority Scheduler**: TTL-aware multi-key ranking with program-level FCFS, keeping turns of the same agent program together to preserve cache locality
-    5. **Offline Profiler**: measures prefill cost and CPU-GPU bandwidth to parameterize the cost model
 
 - KVFlow: Efficient Prefix Caching for Accelerating LLM-Based Multi-Agent Workflows [[Arxiv’25/07](https://arxiv.org/abs/2507.07400)]
   - Background:
@@ -125,6 +112,35 @@ Agent serving should not treat each LLM invocation as an independent request. Th
     3. **Workflow-Aware Eviction Policy**: fine-grained eviction at the KV cache-tree node level; eviction priority = steps-to-execution, and a shared parent inherits the `min` priority of its children so shared prefixes are retained while only distant-agent branches are dropped
     4. **Overlapped KV Prefetching**: background threads proactively load KV tensors of next-step agents from CPU to GPU; a status-aware scheduler tracks node states (in-GPU, CPU backup, loading, offloading) and reorders ready requests to fully hide transfer latency
   - Results: vs SGLang hierarchical radix cache, up to 1.83x speedup on single workflows with large prompts and up to 2.19x on concurrent workflows
+
+#### Resource-pressure problems
+
+- DualPath: Breaking the Storage Bandwidth Bottleneck in Agentic LLM Inference [[Arxiv’26/02](https://arxiv.org/abs/2602.21548)]
+  <!-- - Background:
+    - Mooncake (distributed DRAM KV pool): unusable under memory pressure (e.g., RL rollout) and cost-ineffective at large working sets
+    - CachedAttention / hierarchical KV stores: reduce retrieval volume but leave storage I/O imbalance between prefill and decode engines untouched
+    - HCache / KVPR / TailorKV: GPU-assisted I/O, partial recompute, hybrid quantization — still bound to a single storage→prefill data path -->
+  - Key problem & insight: storage I/O bandwidth imbalance in disaggregated serving. KV-Cache loading does not have to be prefill-centric — the idle storage bandwidth on DEs plus the RDMA compute network can form a second loading path
+  - Proposed method — DualPath with three components:
+    1. **Dual-Path Loading Architecture**: adds a storage-to-decode path alongside the conventional storage-to-prefill path; KV-Cache lands in DE memory first, then streams to PEs over the compute-network RDMA fabric, aggregating both NIC pools
+    2. **Traffic Manager (CNIC-centric)**: runs on the compute NIC to orchestrate H2D/D2H copies and cross-engine KV transfers; uses **Traffic Isolation** via virtual lanes (VLs) and **CNIC-Assisted KV-Cache Copy** (RDMA Write) so the auxiliary path does not interfere with normal decode traffic; supports Full Block and Layer Block KV layouts in PE/DE buffers
+    3. **Request Scheduler**: global controller doing **Inter-Engine Scheduling** (splits load between PE- and DE-side loading phases), **Intra-Engine Scheduling** (compute-quota-based batch selection), and **KV-Cache Read Task Scheduling** to balance traffic across the two paths under SLOs
+
+- CONCUR: Proactive Agent-Level Admission Control for Efficient Agentic Batch Inference [[Arxiv’26/01](https://arxiv.org/abs/2601.22705)]
+  - Key problem & insight: GPU memory pressure from too many concurrent agents. Controlling how many agents are concurrently admitted, rather than evicting individual requests, is the right knob because thrashing is an aggregate property of the active agent set
+  - Proposed method — CONCUR with three components:
+    1. **Agent-Level Controller**: lightweight middleware sitting between the agent execution layer and the LLM serving engine; exposes *admit*, *pause*, *resume* primitives that gate whole agents (preserving their state) instead of evicting per-request KV blocks
+    2. **Cache-Aware Admission Control Algorithm**: AIMD-style feedback loop driven by runtime KV-cache utilization $U_t$ and hit-rate $H_t$; linearly explores concurrency when underutilized, multiplicatively reduces on thrashing signals, and stabilizes near saturation
+    3. **Serving-Engine-Agnostic Integration**: implemented as a control layer over existing engines (e.g., SGLang) without modifying kernels or scheduler internals, keeping compatibility with request-level batching and hierarchical caches
+
+<!-- - FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving [[Arxiv'26/02](https://arxiv.org/abs/2602.16603)]
+  - Background:
+    - Chunked prefill (Sarathi/vLLM): small chunks hurt throughput, large chunks worsen HoL blocking
+    - Layer-level preemption (DistServe-style): couples execution granularity to scheduling frequency, adding control overhead even when no preemption is needed
+  - Key problem & insight: long prefills monopolize GPUs and violate TTFT SLOs; decoupling preemption granularity from scheduling frequency allows fine-grained interruption while keeping scheduling cheap
+  - Proposed method — FlowPrefill with two components:
+    1. **Operator-Level Preemption**: interrupt a running prefill at operator (kernel) boundaries inside a layer rather than at chunk/layer boundaries, enabling near-instant yield without shrinking the batched kernel and losing throughput
+    2. **Event-Driven Scheduling**: scheduler wakes only on request arrival/completion events, using a **Slack-aware EDF (S-EDF)** policy plus an **SLO-Aware Batching** algorithm to admit/reorder requests by remaining TTFT slack instead of polling every layer -->
 
 
 
