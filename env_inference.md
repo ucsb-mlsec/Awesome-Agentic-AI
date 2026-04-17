@@ -66,22 +66,27 @@ Agent serving should not treat each LLM invocation as an independent request. Th
 Tool calls pause agent execution for unpredictable durations, and existing serving systems do not consider this 
 
 - ThunderAgent: A Simple, Fast and Program-Aware Agentic Inference System [[Arxiv’26/02](https://arxiv.org/abs/2602.13692)]
-  - Key problem: Current stacks have no unified view of an agent's execution. The LLM engine manages KV. The orchestrator manages tools
-  - ThunderAgent treats the entire agent trajectory as a first-class Agentic Program so a single scheduler can jointly reason about KV state, tool assets, and placement
+  - Key problem: Current inference stacks (inference engine + tool execution env) have no unified view of an agent's execution
+  - ThunderAgent proposes Agentic Program and do KV cache and tool execution scheduling in a unified way
   - Proposed method — ThunderAgent with three components:
-    1. **Agentic Program abstraction**: unified tuple capturing program ID, context tokens, tool environments, backend placement, execution phase, and scheduling status, giving the runtime whole-workflow visibility across heterogeneous resources
-    2. **Program-aware scheduler**: a Global Program-Aware Waiting Queue with a time-decay function $f(t)$, plus Periodic Thrashing Detection and Shortest-First Eviction to preserve KV hit rate and balance memory across nodes
-    3. **Tool resource manager**: Asynchronous environment preparation overlaps tool env setup with inference, and Hook-based garbage collection reclaims tool assets tied to program lifecycle events
+    1. **Agentic Program abstraction**: unified tuple capturing program ID, context tokens, tool environments, backend placement, execution phase, and scheduling status
+    2. **Program-aware scheduler**: a Global Program-Aware Waiting Queue to schedule program restore and pause for minimizing CV thrashing - Shortest-First Eviction stops the program with the shortest context length (preserve KV hit rate and balance memory across nodes)
+    3. **Tool resource manager**: Asynchronous environment preparation to prepare env before memory is allocated
 
 - Continuum: Efficient and Robust Multi-Turn LLM Agent Scheduling with KV Cache Time-to-Live [[Arxiv’25/11](https://arxiv.org/abs/2511.02230)]
-  - Key problem & insight: agent turns pause on tool calls of unpredictable duration; naive pinning wastes GPU memory while naive eviction wastes compute — retention should be bounded by a per-request TTL derived from empirical tool-latency distributions weighed against reload cost
-  - Proposed method — A new method for TTL computing to optimize the eviction/retention policy:
-    1. **Tool Call Handler**: parses tool invocations and records per-tool execution latency to build empirical CDFs of pause durations
-    2. **Utility Model** (Cost + Benefit Estimation): quantifies KV reload cost (recompute vs CPU offload) against queueing-delay benefit of keeping cache resident
-    3. **TTL Value Calculator**: picks per-request TTL from the tool-latency CDF that maximizes the utility model; cache auto-evicts on expiry for robustness to tail tool latencies
-    4. **Priority Scheduler**: TTL-aware multi-key ranking with program-level FCFS, keeping turns of the same agent program together to preserve cache locality
+  - Key problem & insight: when an agent pauses for a tool call, the engine faces a lose–lose choice — *pin* the KV cache in GPU and the memory is wasted while the tool runs, or *evict* it and the returning turn pays full prefill/reload plus waits in the queue behind whoever grabbed the GPU slot (per-turn queueing delay). 
+  - Proposed method — TTL-bounded pinning driven by a cost–benefit model:
+    1. **Tool-latency profiling**: a Tool Call Handler computes tool call time and builds a per-tool CDF 
+    2. **Per-request TTL from a utility model**: for each pause, Continuum picks a pin duration `τ*` that maximizes expected net benefit: *Cost(τ, r)*, *Benefit(r)*, *Hit probability*
+    3. **Auto-eviction on TTL expiry for robustness**: once `τ*` elapses without the tool returning, the pin is released and the KV blocks are reclaimed by the normal engine eviction path. 
+    4. **TTL-aware priority scheduler**: waiting requests are ranked by a three-key tuple — (i) preempted before non-preempted, (ii) still-within-TTL (pinned) before unpinned, (iii) program-level FCFS as tiebreaker — so a returning tool-call turn jumps ahead of a fresh program's first request, preserving multi-turn continuity without starving new programs
 
 #### Agent workflow-based scheduling
+
+- Orla: A Library for Serving LLM-Based Multi-Agent Systems [https://arxiv.org/pdf/2603.13605]
+  - Propose a framework for scheduling different jobs in a workflow for different models and manage the KV cache at the workflow level
+  - Propose three policies for KV cache: Continue using, free, evict
+
 
 - Helium: Efficient LLM Serving for Agentic Workflows: A Data Systems Perspective [[Arxiv'26/03](https://arxiv.org/abs/2603.16104)]
   - Key problem & insight: If the agent workflow is compiled ahead of time into a query plan, the system can proactively pre-compute and pin shared KV state and schedule calls to maximize reuse
@@ -132,6 +137,13 @@ Tool calls pause agent execution for unpredictable durations, and existing servi
     1. **Agent-Level Controller**: lightweight middleware sitting between the agent execution layer and the LLM serving engine; exposes *admit*, *pause*, *resume* primitives that gate whole agents (preserving their state) instead of evicting per-request KV blocks
     2. **Cache-Aware Admission Control Algorithm**: AIMD-style feedback loop driven by runtime KV-cache utilization $U_t$ and hit-rate $H_t$; linearly explores concurrency when underutilized, multiplicatively reduces on thrashing signals, and stabilizes near saturation
     3. **Serving-Engine-Agnostic Integration**: implemented as a control layer over existing engines (e.g., SGLang) without modifying kernels or scheduler internals, keeping compatibility with request-level batching and hierarchical caches
+
+### Other classic papers
+
+- Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving
+  - Propose PD disaggreation; prefill is computing-bound and decoding is memory-bound, so give more GPUs to decoding to increase the memory bound
+  - Propose two constrained optmization and solve them using search and rejection method
+    - Search for the GPU with the most resources and check if it satisfies the requirements 
 
 <!-- - FlowPrefill: Decoupling Preemption from Prefill Scheduling Granularity to Mitigate Head-of-Line Blocking in LLM Serving [[Arxiv'26/02](https://arxiv.org/abs/2602.16603)]
   - Background:
