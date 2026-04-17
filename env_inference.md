@@ -99,8 +99,8 @@ Tool calls pause agent execution for unpredictable durations, and existing servi
     6. **Query Processor**: dispatches the cache-aware schedule to workers, which execute best-effort while preserving cache-friendly ordering
 
 - Nalar: An Agent Serving Framework [[Arxiv’26/01](https://arxiv.org/abs/2601.05109)]
-  - Key problem & insight:  If workflow specification is separated from execution and state is decoupled from placement, a runtime can dynamically schedule, migrate, and retry without developer-visible orchestration
-  - Proposed method — Nalar with three components:
+  - Key insight:  If workflow specification is separated from execution and state is decoupled from placement, a runtime can dynamically schedule, migrate, and retry without developer-visible orchestration
+  - Proposed method — Nalar with three components (No inference layer KV cache scheduling):
     1. **Auto-generated stubs**: compile-time rewrite of agent/tool calls into dependency-aware futures. Stubs capture context and data dependencies, letting the runtime build a dynamic DAG and exploit parallelism without changing Python code
     2. **Managed state layer**: `managedList` / `managedDict` abstractions that decouple logical state from physical placement. Enables safe reuse, migration across workers, and consistent retry semantics under failures
     3. **Two-level control architecture**: a **Global Controller** computing system-wide policy over a logically central workflow view, paired with **Component-Level Controllers** for local event-driven enforcement, backed by a **Node Store** acting as metadata repository and telemetry/decision broker
