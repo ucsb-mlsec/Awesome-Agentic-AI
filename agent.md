@@ -331,12 +331,12 @@ $\nabla_{\theta^S}L^{\text{token}} = \mathbb{E}_{v\sim p}\big[\nabla\log p_v\cdo
 advantage is $(\log p_v - \log q_v)$
 
 - KDRL: Post-Training Reasoning LLMs via Unified Knowledge Distillation and Reinforcement Learning [arxiv’2506](https://arxiv.org/abs/2506.02208)
-    - post-training target: $\mathcal{L}^{\text{KDRL}} = \mathcal{L}^{\text{GRPO}} + \beta_{\text{KD}}\cdot\text{KL}\big(\pi_S\,\|\,\pi_T\big)$
+    - post-training target: $\mathcal{L}^{\text{KDRL}} = \mathcal{L}^{\text{GRPO}} + \beta_{\text{KD}}\cdot\text{KL}\big(\pi_S\,\parallel\,\pi_T\big)$
     - $\nabla J^{\text{KDRL}}_{i,t} = \big[A_{i,t}^{\text{GRPO}} - \beta_{\text{KD}}(\log\pi_S - \log\pi_T)\big]\cdot\nabla\log\pi_S$
 - Reinforcement-aware Knowledge Distillation for LLM Reasoning [arxiv’2602](https://arxiv.org/abs/2602.22495)
     - In KDRL, the gradient part mixes the GRPO signal and OPD signal, the sign totally depends on the $\beta_{\text{KD}}$
     - GRPO gradient: $\min\big(\text{ratio}_{\text{GRPO}} \cdot \text{Adv},\;\text{clip}(\text{ratio}_{\text{GRPO}},\,1\pm\epsilon)\cdot\text{Adv}\big) \cdot \nabla\log\pi$
-        - $\text{ratio}_{\text{GRPO}} = \frac{\pi_{S}}{\pi_{S_{old}}}$
+        - $\text{ratio}_{\text{GRPO}} = \frac{\pi_{S}}{\pi_{S_\text{old}}}$
     - OPD: $(\log\pi_S - \log\pi_T)\cdot\nabla\log\pi = \log\text{ratio}_{\text{OPD}} \cdot \nabla\log\pi$
     - TRDD: $\min\big(r^{\text{TRRD}}\cdot\text{Adv},\;\text{clip}(r^{\text{TRRD}}, 1\pm\epsilon)\cdot\text{Adv}\big)\cdot\nabla\log\pi$
         - $r^{\text{TRRD}} = (\text{ratio}_{\text{GRPO}})^{\alpha} \cdot (\text{ratio}_{\text{OPD}})^{1-\alpha}$
