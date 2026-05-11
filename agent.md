@@ -11,6 +11,7 @@
     - [Overall recipes](#overall-recipes)
     - [Process rewards](#process-rewards)
     - [Objective functions](#objective-functions-mainly-about-weighting-different-rollouts)
+    - [RL & OPD](#rl--opd)
     - [Sampling strategies](#sampling-strategies)
     - [Stability and others](#stability-and-others)
   - [Agentic modeling](#agentic-modeling)
@@ -272,7 +273,12 @@
   - Create three meta rewards: planning, exploration, and reflection (traj has the pattern of <reflection> + corrective actions)
 
 - Reinforcing Multi-Turn Reasoning in LLM Agents via Turn-Level Reward Design [[Arxiv'25/05](https://arxiv.org/abs/2505.11821)]
-  - Design multi-turn GRPO and PPO, the intermediate rewards are obtained using verifiable rewards / LLM-as-Judge
+    - design multi-turn GRPO and PPO
+    - the intermediate rewards are obtained using verifiable rewards / LLM-as-Judge
+    - verifiable rewards: very specific to searching tasks
+        - whether the answer appears in the search results in every turn
+        - format reward
+    - LLM-as-Judge: rubric-based scoring, format correctness, reasoning quality, and search effectiveness
 
 - Group-in-Group Policy Optimization for LLM Agent Training [[Arxiv'25/05](https://arxiv.org/abs/2505.10978)]
   - GRPO with outcome reward  
@@ -316,6 +322,25 @@
   - Training-inference mismatch (e.g., vLLM vs FSDP) amplifies gradient noise, and both escalate together as training progresses. Since LR directly controls update magnitude, shrinking LR suppresses the mismatch by reducing the update size.
   - Response length serves as an early-warning signal for impending instability (longer responses → more gradient noise). Propose a dynamic LR scheduler that decays LR when response length grows, proactively preventing divergence.
 
+### RL & OPD
+
+OPD is actually doing policy gradient.
+
+$\nabla_{\theta^S}L^{\text{token}} = \mathbb{E}_{v\sim p}\big[\nabla\log p_v\cdot(\log p_v - \log q_v)\big]$
+
+advantage is $(\log p_v - \log q_v)$
+
+- KDRL: Post-Training Reasoning LLMs via Unified Knowledge Distillation and Reinforcement Learning [arxiv’2506](https://arxiv.org/abs/2506.02208)
+    - post-training target: $\mathcal{L}^{\text{KDRL}} = \mathcal{L}^{\text{GRPO}} + \beta_{\text{KD}}\cdot\text{KL}\big(\pi_S\,\|\,\pi_T\big)$
+    - $\nabla J^{\text{KDRL}}_{i,t} = \big[A_{i,t}^{\text{GRPO}} - \beta_{\text{KD}}(\log\pi_S - \log\pi_T)\big]\cdot\nabla\log\pi_S$
+- Reinforcement-aware Knowledge Distillation for LLM Reasoning [arxiv’2602](https://arxiv.org/abs/2602.22495)
+    - In KDRL, the gradient part mixes the GRPO signal and OPD signal, the sign totally depends on the $\beta_{\text{KD}}$
+    - GRPO gradient: $\min\big(\text{ratio}_{\text{GRPO}} \cdot \text{Adv},\;\text{clip}(\text{ratio}_{\text{GRPO}},\,1\pm\epsilon)\cdot\text{Adv}\big) \cdot \nabla\log\pi$
+        - $\text{ratio}_{\text{GRPO}} = \frac{\pi_{S}}{\pi_{S_{old}}}$
+    - OPD: $(\log\pi_S - \log\pi_T)\cdot\nabla\log\pi = \log\text{ratio}_{\text{OPD}} \cdot \nabla\log\pi$
+    - TRDD: $\min\big(r^{\text{TRRD}}\cdot\text{Adv},\;\text{clip}(r^{\text{TRRD}}, 1\pm\epsilon)\cdot\text{Adv}\big)\cdot\nabla\log\pi$
+        - $r^{\text{TRRD}} = (\text{ratio}_{\text{GRPO}})^{\alpha} \cdot (\text{ratio}_{\text{OPD}})^{1-\alpha}$
+    - the advantage sign is still decided by GRPO, OPD only changes the magnitude of the advantage
 
 ### Sampling strategies
 
