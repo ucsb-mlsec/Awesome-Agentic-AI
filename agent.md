@@ -58,6 +58,19 @@
     - On-policy Distillation: Student model generates on-policy sequences, query teacher models to get the targets, and is then fine-tuned by aligning its logits with those of a teacher model to minimize the KL divergence
   
 ## DeepSeek 
+  - DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence [[2026/4](https://huggingface.co/deepseek-ai/DeepSeek-V4-Pro/blob/main/DeepSeek_V4.pdf)]
+    - Model: Two open-weight (MIT) variants -- V4-Pro (1.6T total / 49B active) and V4-Flash (284B / 13B active); both 1M context, with instruct & base versions
+    - Hybrid attention alternating CSA and HCA across layers
+      - Compressed Sparse Attention (CSA): 4x KV compression via softmax-gated pooling with learned positional bias; FP4 lightning indexer selects top-k compressed blocks per query; sliding-window branch keeps recent uncompressed tokens
+      - Heavily Compressed Attention (HCA): 128x compression, dense MQA over compressed blocks (sparse selection dropped)
+      - Storage: most KV in FP8, RoPE dims in BF16, indexer in FP4 -> ~2% KV cache size vs standard GQA
+      - Efficiency: V4-Pro uses 27% FLOPs & 10% KV cache of V3.2 at 1M context; V4-Flash uses 10% FLOPs & 7% KV cache
+    - Post-training for agents:
+      - Interleaved thinking: preserve reasoning traces across tool-result rounds and user-message boundaries
+      - XML-based tool-call schema (|DSML| tokens) to reduce escaping/parsing errors vs JSON-in-string
+      - DSEc (DeepSeek Elastic Compute): Rust sandbox for RL rollouts spanning function calls/containers/microVMs/VMs with preemption-safe replay
+    - Reasoning modes: Non-think, Think High, Think Max (requires >=384K context)
+
   - DeepSeek-V3.2: Pushing the Frontier of Open Large Language Models [[2025/12](https://arxiv.org/pdf/2512.02556)]
     - DeepSeek Sparse Attention: lightning indexer and fine-grained token selection
       - lightning indexer to compute the weights for preceding tokens and only the selected tokens will be used for computing attentions.
@@ -73,6 +86,11 @@
     - Higher thinking efficiency and smarter tool calling **[only support in non-thinking mode]**
 
 ## GLM & Kimi
+- GLM-5.1 [[26/04](https://github.com/zai-org/GLM-5)]
+  - Same architecture as GLM-5 (744B total / 40B active); incremental upgrade focused on long-horizon agentic engineering
+  - SOTA on SWE-Bench Pro; substantially outperforms GLM-5 on NL2Repo and Terminal-Bench 2.0
+  - Built to sustain optimization over hundreds of rounds and thousands of tool calls (vs earlier models that plateau quickly)
+
 - GLM-5 [[26/02](https://arxiv.org/pdf/2602.15763)]
   - Performs a little bit worse than Kimi-2.5 on coding tasks
   - Scalability for model and pre-training: Increased from 355B (32B activated) to 744B (40B activated) with pre-training data upgraded from 23T to 28.5T
@@ -110,6 +128,12 @@
         - Instruction following 
         - Function calling: step-wise (part of general RL) and multi-turn RL (distill from specialized models)
         - Pathology RL (Final step)
+
+- Kimi K2.6 [[26/04](https://www.kimi.com/blog/kimi-k2-6.html)]
+  - Native multimodal agentic MoE: 1T total / 32B active, 61 layers, 384 experts (8 selected + 1 shared), MLA attention, MoonViT vision encoder (400M), 256K context; Modified MIT license
+  - Built on the Kimi 2.5 recipe; main upgrade is agentic stability over long sessions; preserve-thinking mode, native INT4, experimental video input
+  - Agent Swarm scales to 300 sub-agents / 4,000 coordinated steps (BrowseComp 86.3% vs 74.9% on K2.5)
+  - Coding: SWE-Bench Pro 58.6% (+7.9pp), Terminal-Bench 2.0 66.7% (+15.9pp), SWE-Bench Verified 80.2%; Toolathlon 50.0% (+22.2pp)
 
 - Kimi 2.5: Visual Agentic intelligence [[26/2]](https://arxiv.org/pdf/2602.02276)
   - Similar performance as QWEN-3.5
@@ -164,6 +188,15 @@
   - Model: Hybrid Mamba-Transformer MoE: interleave MoE with Mamba-2 layers, which donot need linearly increasing KV Cache; LatentMoE (add a down proj in the input and up proj in the output)
   - Multi-token prediction: predict multiple future tokens simultaneously during training, providing richer training signals and encouraging the model to plan ahead; ~2.4% average benchmark improvement; enables built-in speculative decoding
   - NVFP4 training: 4-bit floating-point training (pre-training with FP4 rather than BF16)
+  - New family launches (same report/recipe): Nemotron 3 Super (26/03, 120B mid-range) and Nemotron 3 Ultra (26/06, MoE 550B-A55, top US open-weights intelligence) trained with NVFP4 + LatentMoE + MTP layers; Nemotron 3 Nano Omni (26/04) adds unified vision/audio/image/text [[NVIDIA](https://research.nvidia.com/labs/nemotron/Nemotron-3/)]
+
+- Nemotron 3 Super: Open, Efficient MoE Hybrid Mamba-Transformer Model for Agentic Reasoning [[Arxiv'26/04](https://arxiv.org/abs/2604.12374)]
+  - Background: dense and standard MoE transformers pay quadratic attention + linearly growing KV cache at long context; the challenge is to push accuracy-per-FLOP and accuracy-per-parameter while keeping inference cheap enough for 1M-context agentic workloads
+  - Model: 120.6B total / 12.7B active, 88 layers, hybrid Mamba-2 + MoE with sparse self-attention "global anchors" for full-token interaction
+  - **LatentMoE**: project tokens into a 1024-d latent space for routing and expert compute, cutting memory bandwidth and all-to-all traffic so total/active experts can grow (512 experts, top-22 routing, model dim 4096)
+  - **MTP layers**: shared-weight multi-token-prediction heads give native speculative decoding — 3.45 avg acceptance length on SPEED-Bench (draft length 7), beating DeepSeek-R1
+  - **NVFP4 pre-training**: train directly in 4-bit FP (E2M1, 16-element micro-blocks) over 25T tokens (80% diversity, 20% quality phase)
+  - Results: comparable benchmark accuracy (MMLU 86.0, HumanEval 79.4, RULER@1M 71.0) at 2.2× inference throughput vs. GPT-OSS-120B and 7.5× vs. Qwen3.5-122B
 
 
 ## Agentic RL
