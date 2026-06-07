@@ -170,6 +170,7 @@
   - SFT: 
     - Math, Code, Science, Agent (conversational tool use, SWE and terminal agents)
     - Use DeepSeek (Math) and GPT-OSS (Code) as the teacher model;
+    - mixing agentic and agentless data yields better performance (swe)
   - Cascade RL
     - Determine the order: Mitigating Inter-Domain Interference (IF and RLHF are conflict); Scaling via Multi-Domain Integration (integrate domains are not conflict with the overall performance); Stabilization through On-policy Distillation
     - RL sampling and objective:
@@ -179,15 +180,17 @@
     - Multi-domain RL & on-policy distillation: Large batch size & Distill from the strongest intermediate teacher models
       - $\mathcal{L}_{\text{MOPD}} = -\mathbb{E}_{x\sim\mathcal{D}, y\sim\pi^{\text{inf}}(\cdot|x)} \left[\frac{1}{|\mathcal{V}(y)|} \sum_{t\in\mathcal{V}(y)} w_t \, \text{sg}[a_t^{\text{MOPD}}] \log \pi^{\text{train}}(y_t|s_t)\right]$
       - $w_t$: truncated importance weight correcting for inference-training policy mismatch; $\text{sg}[\cdot]$: stop-gradient; $a_t^{\text{MOPD}}$: token-level advantage from domain-specific teacher models
+      - teachers for mopd are selected directly from the Cascade RL pipeline by choosing the strongest validation checkpoint for each benchmark category
     - RLHF
     - Long-context RL: Use LLM as a judge for reward
     - Code and SWE RL: Long output token, binary reward, agentic RL as a much larger batch size and context length (use SWE-Gym + OpenHands); Do filtering 
 
 - NVIDIA Nemotron 3: Efficient and Open Intelligence [[Arxiv'25/12](https://arxiv.org/abs/2512.20856)]
   - Family of Nano, Super, and Ultra models using hybrid Mamba-Transformer MoE architecture with up to 1M context length
-  - Model: Hybrid Mamba-Transformer MoE: interleave MoE with Mamba-2 layers, which donot need linearly increasing KV Cache; LatentMoE (add a down proj in the input and up proj in the output)
+  - Model: Hybrid Mamba-Transformer MoE: interleave MoE with Mamba-2 layers, which do not need linearly increasing KV Cache; LatentMoE (add a down proj in the input and up proj in the output)
   - Multi-token prediction: predict multiple future tokens simultaneously during training, providing richer training signals and encouraging the model to plan ahead; ~2.4% average benchmark improvement; enables built-in speculative decoding
   - NVFP4 training: 4-bit floating-point training (pre-training with FP4 rather than BF16)
+  - Long context (nano): original attention has no Rope, cpt 512k input, sft 256k, rl 32k, also mentioned moe is better than dense when scaling to longer contexts (didn't explain why)
   - New family launches (same report/recipe): Nemotron 3 Super (26/03, 120B mid-range) and Nemotron 3 Ultra (26/06, MoE 550B-A55, top US open-weights intelligence) trained with NVFP4 + LatentMoE + MTP layers; Nemotron 3 Nano Omni (26/04) adds unified vision/audio/image/text [[NVIDIA](https://research.nvidia.com/labs/nemotron/Nemotron-3/)]
 
 - Nemotron 3 Super: Open, Efficient MoE Hybrid Mamba-Transformer Model for Agentic Reasoning [[Arxiv'26/04](https://arxiv.org/abs/2604.12374)]
@@ -196,7 +199,13 @@
   - **LatentMoE**: project tokens into a 1024-d latent space for routing and expert compute, cutting memory bandwidth and all-to-all traffic so total/active experts can grow (512 experts, top-22 routing, model dim 4096)
   - **MTP layers**: shared-weight multi-token-prediction heads give native speculative decoding — 3.45 avg acceptance length on SPEED-Bench (draft length 7), beating DeepSeek-R1
   - **NVFP4 pre-training**: train directly in 4-bit FP (E2M1, 16-element micro-blocks) over 25T tokens (80% diversity, 20% quality phase)
+  - used **PivotRL**
   - Results: comparable benchmark accuracy (MMLU 86.0, HumanEval 79.4, RULER@1M 71.0) at 2.2× inference throughput vs. GPT-OSS-120B and 7.5× vs. Qwen3.5-122B
+ 
+- PivotRL: High Accuracy Agentic Post-Training at Low Compute Cost [[Arxiv'26/03](https://arxiv.org/abs/2603.21383)]
+  - collect expert trajs with rejection sampling (SWE-bench, τ²-Bench， Terminalbench, browsecomp)
+  - Find pivots: for each step, given all context before, and let the initial policy predict next step, use a binary verifier to score (based on expert action), only keep steps that the initial policy can get it correct in some cases but not all cases
+  - RL on these pivot steps with the verifier
 
 
 ## Agentic RL
