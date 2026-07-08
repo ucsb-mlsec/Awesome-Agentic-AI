@@ -348,3 +348,9 @@ As an extension of the entropy and confidence based PRM, some works find that th
 - Act Only When It Pays: Efficient Reinforcement Learning for LLM Reasoning via Selective Rollouts [[NeurIPS'25](https://arxiv.org/pdf/2506.02177)]
   - Filter out uninformative prompts during training based on the previous rollouts
 
+- Verbalizable Representations Form a Global Workspace in Language Models [Anthropic blog 26/07](https://transformer-circuits.pub/2026/workspace/index.html)
+  - Propose a Jacobian lens.
+    - Given the activation at a certain layer, they first estimate the average Jacobian from this layer to the final layer. Then they multiply the current activation by this average Jacobian, apply the final output head, and get a score for every token.
+    - They interpret the high-scoring tokens as the latent tokens the model is potentially trying to say.
+    - For each high-scoring token, there is a corresponding direction at that layer. The space formed by these token directions is called J-space.
+    - They do this over 25 evenly spaced layers
