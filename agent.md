@@ -207,6 +207,9 @@
   - Find pivots: for each step, given all context before, and let the initial policy predict next step, use a binary verifier to score (based on expert action), only keep steps that the initial policy can get it correct in some cases but not all cases
   - RL on these pivot steps with the verifier
 
+## Microsoft-MAI
+- MAI-Thinking-1: Building a Hill-Climbing Machine[](https://microsoft.ai/pdf/mai-thinking-1.pdf)
+
 
 ## Agentic RL
 
