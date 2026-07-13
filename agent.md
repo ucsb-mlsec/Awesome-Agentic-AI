@@ -389,6 +389,8 @@ advantage is $(\log p_v - \log q_v)$
 
 ### Sampling strategies
 
+- Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning [[Arxiv'26/07, GLM 5.2's SAO algorithm](https://arxiv.org/abs/2607.07508)]
+
 - RetroAgent: From Solving to Evolving via Retrospective Dual Intrinsic Feedback [[Arxiv'26/03](https://arxiv.org/abs/2603.08561)]
   - Encourage self-reflection
   - Introduces a PRM to encourage self-evolving, where the reward is designed as the improvement of the current reward over the reward of previous trajectories
