@@ -15,6 +15,7 @@
     - [Sampling strategies](#sampling-strategies)
     - [Stability and others](#stability-and-others)
   - [Agentic modeling](#agentic-modeling)
+  - [Benchmarks](#benchmarks)
 
 ## QWEN models
 
@@ -596,4 +597,11 @@ that modifies task-specific prompting, retrieval, memory, and orchestration logi
   - **Multi-Matrix Factorization Attention (MFA)** [[Arxiv'24/12](https://arxiv.org/abs/2412.19255)]: low-rank factorization in QK circuit; share projection matrices across heads so only low-rank compressed KV needs caching. 
   - **Attention-FFN Disaggregation (AFD)**: decouple attention and FFN layers into specialized subsystems; attention is memory-bound (KV cache access) while FFN is compute-bound (matrix multiply)
     - Similar to NV models
+
+## Benchmarks
+
+- PerspectiveGap: A Benchmark for Multi-Agent Orchestration Prompting [[Arxiv'26/06](https://arxiv.org/abs/2606.08878)]
+  - Tests whether an LLM orchestrator can determine what each sub-agent needs to know: 110 scenarios across 10 communication topologies
+  - Two distractor-mixed task formats: role-fragment assignment (which information fragment goes to which sub-agent) and free-form orchestration prompt writing
+  - Code: [WhymustIhaveaname/PerspectiveGap](https://github.com/WhymustIhaveaname/PerspectiveGap)
 

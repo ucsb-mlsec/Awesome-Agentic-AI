@@ -285,6 +285,10 @@ This line of methods explore using generation entropy or confidence as the proce
   - Follow up works propose variants on reward format, but still confidence/entropy related
   - Mainly help with early stage training and will encounter entropy collapse
 
+- DRIFT: Detecting Representational Inconsistencies for Factual Truthfulness [[Arxiv'26/01](https://arxiv.org/abs/2601.14210)]
+  - Hypothesis: intermediate layers encode confidence/truthfulness signals that are lost by the final output layer
+  - Trains a lightweight probe (<0.1% compute overhead) reading these signals from mid-layer hidden states, running fully in parallel with generation instead of requiring extra sampling passes or post-hoc verification
+
 ### Misc
 
 #### Combat entropy collapse
