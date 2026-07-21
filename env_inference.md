@@ -138,6 +138,17 @@ Tool calls pause agent execution for unpredictable durations, and existing servi
     2. **Cache-Aware Admission Control Algorithm**: AIMD-style feedback loop driven by runtime KV-cache utilization $U_t$ and hit-rate $H_t$; linearly explores concurrency when underutilized, multiplicatively reduces on thrashing signals, and stabilizes near saturation
     3. **Serving-Engine-Agnostic Integration**: implemented as a control layer over existing engines (e.g., SGLang) without modifying kernels or scheduler internals, keeping compatibility with request-level batching and hierarchical caches
 
+### Speculative Decoding
+
+- DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation [[Arxiv'26/07](https://arxiv.org/abs/2607.05147)]
+  - Background: Parallel drafters generate long token blocks in one forward pass, but independent per-position predictions cause multi-modal collisions and rapid suffix-acceptance decay. Besides, verifying every drafted token also wastes target-model batch capacity on high-rejection-risk suffixes.
+  - Key problem & insight: Long drafts improve speed only when their tokens remain coherent and are worth verifying. DSpark combines semi-autoregressive drafting with confidence- and load-aware verification to preserve suffix quality while allocating target-model compute to tokens with the highest expected return.
+  - Proposed method — DSpark with three components:
+    1. **Semi-Autoregressive Generation**: A heavy parallel backbone generates the full draft block in one pass, while a lightweight sequential head introduces dependencies among sampled tokens through prefix-conditioned transition biases. The head can use either a low-rank first-order Markov model or an RNN with full intra-block prefix state.
+    2. **Confidence Head with Sequential Temperature Scaling (STS)**: Predicts each token's conditional probability of passing target verification given an accepted prefix. Cumulative products estimate prefix-survival probabilities, and position-wise STS calibrates them to support accurate expected-acceptance estimates.
+    3. **Hardware-Aware Prefix Scheduler**: Profiles the engine throughput curve $\operatorname{SPS}(B)$ and selects per-request verification lengths to maximize $\Theta = \tau \cdot \operatorname{SPS}(B)$. It prioritizes prefix extensions by survival probability, verifies longer prefixes under light load, and prunes low-confidence suffixes under heavy load while preserving lossless decoding.
+  - Results: On Qwen3-4B/8B/14B, DSpark improves macro-average accepted length by 26.7%–30.9% over Eagle3 and 16.3%–18.4% over DFlash. In production DeepSeek-V4 serving at matched throughput, it increases per-user generation speed by 60%–85% for V4-Flash and 57%–78% for V4-Pro.
+
 ### Other classic papers
 
 - Mooncake: A KVCache-centric Disaggregated Architecture for LLM Serving
