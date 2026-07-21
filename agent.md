@@ -601,9 +601,9 @@ that modifies task-specific prompting, retrieval, memory, and orchestration logi
 - From Word to World [[Arxiv'26/03](http://arxiv.org/abs/2512.18832)]
   - Reframe LLMs as text-based next-state predictors via SFT.
   - Key findings:
-   -  LLMs can serve as effective implicit text-based world models.
-   -  Mixing world-model-generated trajectories with real trajectories can improve task performance.
-   -  World-model warmup before Agent-SFT and RL improves learning stability and final performance
+    - LLMs can serve as effective implicit text-based world models.
+    - Mixing world-model-generated trajectories with real trajectories can improve task performance.
+    - World-model warmup before Agent-SFT and RL improves learning stability and final performance
 
 - Qwen-AgentWorld [[Arxiv' 26/06](http://arxiv.org/abs/2606.24597)]
   - Propose a unified language world model over 7 agentic environments: MCP, Search, Terminal, SWE, Android, Web, and OS.
