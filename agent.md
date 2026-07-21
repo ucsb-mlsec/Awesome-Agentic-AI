@@ -597,3 +597,24 @@ that modifies task-specific prompting, retrieval, memory, and orchestration logi
   - **Attention-FFN Disaggregation (AFD)**: decouple attention and FFN layers into specialized subsystems; attention is memory-bound (KV cache access) while FFN is compute-bound (matrix multiply)
     - Similar to NV models
 
+## Text World Models
+- From Word to World [[Arxiv'26/03](http://arxiv.org/abs/2512.18832)]
+  - Reframe LLMs as text-based next-state predictors via SFT.
+  - Key findings:
+   -  LLMs can serve as effective implicit text-based world models.
+   -  Mixing world-model-generated trajectories with real trajectories can improve task performance.
+   -  World-model warmup before Agent-SFT and RL improves learning stability and final performance
+
+- Qwen-AgentWorld [[Arxiv' 26/06](http://arxiv.org/abs/2606.24597)]
+  - Propose a unified language world model over 7 agentic environments: MCP, Search, Terminal, SWE, Android, Web, and OS.
+  - Training recipe: CPT → SFT → RL
+    - CPT injects environment dynamics and broad world knowledge from large-scale interaction trajectories and professional corpora.
+    - SFT activates explicit next-state prediction reasoning through formatted environment trajectories, i.e., (s_t,a_t) -> s_t+1.
+    - RL sharpens simulation fidelity using five-dimensional rubric rewards plus rule-based verifiers.
+  - Training Tricks:
+    - Use prompt diversification and best-of-3 rejection sampling to curate robust SFT reasoning traces.
+    - Sample one prediction turn per trajectory during RL to avoid shared-prefix reward collapse.   
+  - Key findings:
+    - LWM-RL induces a transferable predict-before-act reasoning without explicit SFT supervision of the behavior.
+    - World-model learning transfers across environments.
+    - LWM-RL can serve as mid-training to improve performance on agent tasks.
