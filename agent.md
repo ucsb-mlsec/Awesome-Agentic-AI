@@ -367,6 +367,18 @@
   - Training-inference mismatch (e.g., vLLM vs FSDP) amplifies gradient noise, and both escalate together as training progresses. Since LR directly controls update magnitude, shrinking LR suppresses the mismatch by reducing the update size.
   - Response length serves as an early-warning signal for impending instability (longer responses → more gradient noise). Propose a dynamic LR scheduler that decays LR when response length grows, proactively preventing divergence.
 
+- Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning [[Arxiv'26/07](https://arxiv.org/abs/2607.07508)]
+  - Background:
+    - Synchronous RL waits for the longest rollout in each batch; asynchronous actor-learner systems remove this barrier but introduce policy lag and off-policy updates
+    - GRPO requires multiple rollouts per prompt and a group-relative baseline, forcing completed trajectories to wait for their group and making it unsuitable when an environment returns only one trajectory
+  - Key problem & insight: stable asynchronous agent RL needs to train immediately from individual trajectories without group synchronization. A critic can supply single-rollout advantages if off-policy tokens are tightly filtered and the value model tracks the changing policy quickly
+  - Proposed method — SAO with four components:
+    1. **Direct Double-Sided Importance Sampling (DIS)**: compute token ratios directly against rollout-time log probabilities and mask tokens outside $[1-\epsilon_l, 1+\epsilon_h]$, preventing highly stale samples from contributing gradients
+    2. **Single-Rollout Sampling**: use one rollout per prompt and send it to training immediately upon completion, reducing latency-driven staleness and supporting online environments with one feedback trajectory
+    3. **Faster Value Update and Frozen-Attention**: update the critic twice per actor step and freeze its attention layers while training MoE projections, helping value estimates track policy changes without unstable full-model updates
+    4. **Skip-Observation Token-level GAE**: propagate advantages directly between consecutive model actions while skipping externally generated observation tokens, avoiding noisy value transitions across tool or environment feedback
+  - Results: trains stably for about 1,000 steps; on Qwen3-30B-A3B, SAO reaches 97.3/74.8/88.3/74.0 on AIME2025/BeyondAIME/HMMT/IMOAnswerBench versus 84.2/54.8/76.0/55.8 for GRPO, and improves SWE-bench Verified from 27.0 with GRPO+DIS to 29.8
+
 ### RL & OPD
 
 OPD is actually doing policy gradient.
@@ -388,8 +400,6 @@ advantage is $(\log p_v - \log q_v)$
     - the advantage sign is still decided by GRPO, OPD only changes the magnitude of the advantage
 
 ### Sampling strategies
-
-- Single-Rollout Asynchronous Optimization for Agentic Reinforcement Learning [[Arxiv'26/07, GLM 5.2's SAO algorithm](https://arxiv.org/abs/2607.07508)]
 
 - RetroAgent: From Solving to Evolving via Retrospective Dual Intrinsic Feedback [[Arxiv'26/03](https://arxiv.org/abs/2603.08561)]
   - Encourage self-reflection

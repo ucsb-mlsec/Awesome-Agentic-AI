@@ -138,6 +138,19 @@ Tool calls pause agent execution for unpredictable durations, and existing servi
     2. **Cache-Aware Admission Control Algorithm**: AIMD-style feedback loop driven by runtime KV-cache utilization $U_t$ and hit-rate $H_t$; linearly explores concurrency when underutilized, multiplicatively reduces on thrashing signals, and stabilizes near saturation
     3. **Serving-Engine-Agnostic Integration**: implemented as a control layer over existing engines (e.g., SGLang) without modifying kernels or scheduler internals, keeping compatibility with request-level batching and hierarchical caches
 
+### Sparse Attention
+
+- IndexCache: Accelerating Sparse Attention via Cross-Layer Index Reuse [[Arxiv'26/03](https://arxiv.org/abs/2603.12201)]
+  - Background:
+    - DeepSeek Sparse Attention (DSA) reduces core attention from $O(L^2)$ to $O(Lk)$, but its lightning indexer still scores all preceding tokens at every layer, costing $O(NL^2)$ across the model
+    - Prior cross-layer reuse methods obtain top-k indices from full-attention anchor layers; DSA removes that full-attention oracle
+  - Key problem & insight: DSA's adjacent indexers select 70-100% overlapping tokens, so most per-layer selection work is redundant. A small set of indexer layers can serve neighboring layers if the retained layers are chosen or trained for sharing
+  - Proposed method — IndexCache with three components:
+    1. **Full/Shared Layer Partition**: Full (F) layers compute and cache fresh top-k indices; Shared (S) layers skip their indexer and reuse the nearest preceding F layer's indices, requiring only a conditional branch and no additional GPU memory
+    2. **Greedy Layer Selection**: the training-free variant starts with all F layers and repeatedly converts the layer whose removal causes the smallest LM-loss increase on a calibration set, preserving critical indexers without updating weights
+    3. **Multi-Layer Distillation**: the training-aware variant trains each retained indexer against the attention distributions of every layer it serves; its loss is gradient-equivalent to distillation against their averaged distribution, producing a consensus top-k selection
+  - Results: retaining 1/4 of indexers on a 30B DSA model reduces 200K-token prefill latency from 19.5s to 10.7s (1.82x) and raises per-request decode throughput from 58 to 86 tok/s (1.48x), with negligible quality degradation; GLM-5 also achieves at least 1.3x speedup beyond 100K context
+
 ### Speculative Decoding
 
 - DSpark: Confidence-Scheduled Speculative Decoding with Semi-Autoregressive Generation [[Arxiv'26/07](https://arxiv.org/abs/2607.05147)]
@@ -247,4 +260,3 @@ The latest works on memory management are moving towards building specific sub-a
 - Intrinsic Memory Agents: Heterogeneous Multi-Agent LLM Systems through Structured Contextual Memory [[Arxiv'25](https://arxiv.org/abs/2508.08997)]
 - MIRIX: Multi-Agent Memory System for LLM-Based Agents [[Arxiv'25](https://arxiv.org/abs/2507.07957)]
   - Layered memory, hand-designed levels
-
