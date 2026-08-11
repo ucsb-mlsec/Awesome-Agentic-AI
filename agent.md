@@ -166,8 +166,26 @@
           - general tasks: vision, reasoning, faithfulness, search capabilities, knowledge work
           - general agents: deepsearch, long-horizon assistant tasks, paragraph-level writing
           - coding agents: swe, coding, kernel, web dev
-        - 
-
+        - algorithm:
+          - same as kimi k2.5
+            - grpo with token-level clipping (mask tokens when the current-to-rollout policy probability ratio is too large or too small)
+        - Partial Rollout:
+          - in each rollout step, parallelly run N groups, each generate K trajs, maintaining active workload of N*K trajs. Where a optimization step needs only $\lambda$*N groups.
+          - As soons as getting $\lambda$*N trajs, pause rollout. partial trajs resume in next rollout step.
+        - reasoning effort rl:
+          - use the sft-ed checkpoint to estimate budget for each problem, T(y), set budget $tau$*T(y) for different reasoning effort models
+          - first train a max-budget model with a relatively large budget(larger $tau$), then manually adjust $tau$ to train high and low effort models
+        - Env:
+          - Unified White-Box RL Environment: decompose an agent harness as modules, tools, system prompts, context management strategies, skills, memories, subagents, etc, when training, use this to compose different agents to increase diversity
+          - Knowledge-Graph-Guided Task Synthesis:
+            - built a knowledge graph to increase task synthesis diversity
+              - The graph represents concepts from broad domains to fine-grained concepts, with edges from coarser concept to the finer one
+              - building the graph: by agents,
+                - initialized with predefined set of coarse-grained seed nodes (e.g., physics, coding)
+                - each node is assigned with an agent, the agent does web search to find new concepts below the current one and add nodes, it decides when to stop
+                - the newly added nodes are also assigned with an agent and loop
+              - using the graph to generate tasks:
+                - sample concepts from the knowledge graph, an agent would then do web search using the concept and ancestor's context, and use web search results to generate tasks.
 
 - Kimi K2.6 [[26/04](https://www.kimi.com/blog/kimi-k2-6.html)]
   - Native multimodal agentic MoE: 1T total / 32B active, 61 layers, 384 experts (8 selected + 1 shared), MLA attention, MoonViT vision encoder (400M), 256K context; Modified MIT license
