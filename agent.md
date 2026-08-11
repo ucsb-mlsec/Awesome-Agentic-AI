@@ -186,6 +186,9 @@
               - the newly added nodes are also assigned with an agent and loop
             - using the graph to generate tasks:
               - sample concepts from the knowledge graph, an agent would then do web search using the concept and ancestor's context, and use web search results to generate tasks.
+    - MOPD:
+      - mopd with all 9 teachers 
+      - each time first sample a reasoning effort, then sample a domain, then use that specific teacher for mopd
 
 - Kimi K2.6 [[26/04](https://www.kimi.com/blog/kimi-k2-6.html)]
   - Native multimodal agentic MoE: 1T total / 32B active, 61 layers, 384 experts (8 selected + 1 shared), MLA attention, MoonViT vision encoder (400M), 256K context; Modified MIT license
