@@ -146,7 +146,7 @@
           - genuinely long and coherent documents are very rare -> upsample
           - synthesize long-context data by concatenating documents and sub-tasks
         -  8k -> 64k -> 256k -> 1m
-  -  Post-train
+  - Post-train
     - Pipeline: sft -> rl (specialized domain experts at varying reasoning effor) -> mopd
     - SFT
       - data: expanded dataset from kimi-k2.5 by adding complex agentic tasks, trajs obtained using domain-specialized models from previous Kimi, their own agents.
