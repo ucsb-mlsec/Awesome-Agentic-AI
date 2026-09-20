@@ -8,6 +8,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 
 ## Table of Contents
+  - [Cyber models](#cyber-models)
   - [General coding agents](#general-coding-agents)
   - [Agentic training](#agentic-training)
   - [Survey](#survey)
@@ -31,6 +32,12 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
     - [Issue resolving](#issue-resolving)
     - [Test generation](#test-generation)
     - [Sandbox techniques](#sandbox-techniques)
+
+## Cyber Models
+- [Creation (TianGong)](https://github.com/AntAISecurityLab/Creation)
+- [Xekrung blog](https://alibaba-velldepth.github.io/writeups/model-track.html) [Xekrung arxiv](https://arxiv.org/abs/2605.00072)
+- [Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models](https://arxiv.org/abs/2609.08418)
+
 
 ## General coding agents
 
