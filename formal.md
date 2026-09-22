@@ -1,11 +1,5 @@
 # Formal Verification and AI
 
-[Back to home](README.md)
-
-This page surveys AI-assisted formal verification and learning from formal feedback, with **Code as the primary focus**. Code retains broad coverage; Math and Hardware keep representative papers that explain distinct technical directions. The main period is 2022–2026, with selected 2021 precursors; sources were reviewed through **September 21, 2026**, with the smart-contract update checked on **September 22, 2026**.
-
-Papers are organized as **Benchmark / Training / Agent**. Training includes learned invariant inference and proof-search guidance; Agent includes inference-time search and tool orchestration, even when an older paper does not use that term. Formal proof, specification evaluation, symbolic bug finding, and bounded checking are distinguished in the entries. Results refer to each paper's own benchmark, version, and compute budget; they are not a unified leaderboard.
-
 ## Table of Contents
 
 - [Development trajectory](#development-trajectory)
