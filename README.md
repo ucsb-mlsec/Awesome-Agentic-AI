@@ -20,6 +20,10 @@ This part covers three key infrastructure topics for agentic AI. **Environment s
 
 Finally, we provide an incomplete summary of recent works on general LLM reasoning (without involving agents). This direction has been extensively studied, with many techniques on improving RL-based post-training methods and tricks regarding the training process. Here, we mainly focus on the techniques that provide process reward signals, as well as specific training methods for code reasoning. 
 
+## [Formal verification and AI](formal.md)
+
+This page traces the development of AI-assisted formal verification across code, mathematics, and hardware, organized by benchmarks, training, and agents. Code receives broad coverage; mathematics and hardware focus on representative work. Paper entries explain the background, key insight, method, and results.
+
 ## How to contribute
 
 For questions or collaboration, please contact the maintainers via GitHub Issues.
