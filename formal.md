@@ -67,37 +67,27 @@
 
 - **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
 
-  **Tasks**: Impl gen + proof gen; proof-only; specification audit; reference-implementation violation discovery. **Level**: Repo level (multi-module completion); audit certificates may target one specification or a specification family.
+  **Tasks**: Impl gen + proof gen; proof-only; specification audit. **Level**: Repo level (real world software repos translated to lean4). Agentic
 
 
   - **Code-and-proof**
-    - **LLM input**: Repository scaffold, fixed APIs, definitions, and specifications
+    - **LLM input**: Repository with some empty functions/APIs, and specifications
     - **LLM output**: API implementations and proofs across modules
-    - **Verification**: Rebuild with fixed interfaces and restricted axioms; require every specification for a full repository solve.
+    - **Verification**: Require every specification for a full repository solve.
 
   - **Proof-only**
     - **LLM input**: The same repository plus reference implementations
     - **LLM output**: Proofs for those implementations
-    - **Verification**: Check every specification against the fixed code under the same restrictions.
+    - **Verification**:Require every specification for a full repository solve.
 
-  **Formal audit tasks**
+  Agent can also submit a proof that a specification is wrong
 
-  - **Impl: reference-code violation**
-    - **LLM input**: Fixed specifications and reference implementation
-    - **LLM output**: Proof that the reference implementation fails at least one specification
-    - **Verification**: Lean checks the negative certificate.
+  - **Impl: reference-code violation** Proof that the reference implementation fails at least one specification
 
-  - **Spec: unsatisfiable requirement**
-    - **LLM input**: Fixed definitions, API interface, and one specification
-    - **LLM output**: Proof that no implementation satisfies it
-    - **Verification**: Lean checks unsatisfiability.
+  - **Spec: unsatisfiable requirement** Proof that no implementation satisfies it
 
-  - **Spec: conflicting requirements**
-    - **LLM input**: Fixed definitions, API interface, and specification family
-    - **LLM output**: Proof of joint inconsistency plus individual satisfiability
-    - **Verification**: Lean checks both claims.
+  - **Spec: conflicting requirements** Proof of joint inconsistency plus individual satisfiability
 
-  No successful certificate means an inconclusive audit, not established safety or consistency. [Audit definitions](https://arxiv.org/html/2608.13522#S3.S5).
 
 - **VeriExploit** — Impl counterexample-to-reproduction; **VeriExploit: Automatic Bug Reproduction in Smart Contracts via LLMs and Formal Methods** [[ASE'25](https://pure.manchester.ac.uk/ws/portalfiles/portal/1632624289/ASE2025.pdf)] — a method evaluation suite for executable smart-contract bug reproduction.
 
@@ -114,7 +104,7 @@
   **Tasks**: Impl translation (Python to Lean); spec gen; proof gen; test translation. **Level**: Function / standalone-program level.
 
   - **LLM input**: A Python source file containing a reference implementation, a docstring describing its intended behavior, and tests.
-  - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and theorem statements, and proof attempts for those theorems.
+  - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and proof attempts for those specs.
   - **Verification**: Typecheck the Lean artifact and measure proof completion, distinguishing proved theorems from `sorry` placeholders. Assess whether generated theorems cover the reference specification using an LLM coverage judge audited against human ratings. Lean checks proofs about the generated Lean implementation; this does not establish universal semantic equivalence between the original Python and the Lean translation.
 
 - VerusBench — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
