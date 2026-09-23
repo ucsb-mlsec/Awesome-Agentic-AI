@@ -67,7 +67,7 @@
 
 - **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
 
-  **Tasks**: Impl gen + proof gen; proof-only. **Level**: Repo level (multi-module completion).
+  **Tasks**: Impl gen + proof gen; proof-only; specification audit; reference-implementation violation discovery. **Level**: Repo level (multi-module completion); audit certificates may target one specification or a specification family.
 
 
   - **Code-and-proof**
@@ -80,14 +80,7 @@
     - **LLM output**: Proofs for those implementations
     - **Verification**: Check every specification against the fixed code under the same restrictions.
 
-  Formal audit tasks are listed in [Vero formal audit](#benchmark-vero-audit).
-
-<a id="benchmark-vero-audit"></a>
-
-- **Vero formal audit** — Spec / Impl; an audit mode of the [Vero repository benchmark](#benchmark-vero), not an additional dataset [[arXiv'26](https://arxiv.org/abs/2608.13522)].
-
-  **Tasks**: Specification audit (unsatisfiability / inconsistency); counterexample gen for the reference implementation (Lean proof certificates). **Level**: Repo level; certificates may target one specification or a specification family.
-
+  **Formal audit tasks**
 
   - **Impl: reference-code violation**
     - **LLM input**: Fixed specifications and reference implementation
@@ -106,7 +99,6 @@
 
   No successful certificate means an inconclusive audit, not established safety or consistency. [Audit definitions](https://arxiv.org/html/2608.13522#S3.S5).
 
-
 - **VeriExploit** — Impl counterexample-to-reproduction; **VeriExploit: Automatic Bug Reproduction in Smart Contracts via LLMs and Formal Methods** [[ASE'25](https://pure.manchester.ac.uk/ws/portalfiles/portal/1632624289/ASE2025.pdf)] — a method evaluation suite for executable smart-contract bug reproduction.
 
   **Tasks**: Exploit reproduction from a supplied counterexample. **Level**: Contract level.
@@ -116,6 +108,14 @@
   - **LLM output**: A reproduction contract—an external attacker/exploit contract that implements the behavior needed to reproduce the reported violation.
   - **Verification**: analyze the vulnerable and generated contracts together using SolCMC. A successful check produces a concrete interaction trace that triggers the same violation.
 
+
+- VeriBench — *VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4* [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
+
+  **Tasks**: Impl translation (Python to Lean); spec gen; proof gen; test translation. **Level**: Function / standalone-program level.
+
+  - **LLM input**: A Python source file containing a reference implementation, a docstring describing its intended behavior, and tests.
+  - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and theorem statements, and proof attempts for those theorems.
+  - **Verification**: Typecheck the Lean artifact and measure proof completion, distinguishing proved theorems from `sorry` placeholders. Assess whether generated theorems cover the reference specification using an LLM coverage judge audited against human ratings. Lean checks proofs about the generated Lean implementation; this does not establish universal semantic equivalence between the original Python and the Lean translation.
 
 - VerusBench — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
 
@@ -258,10 +258,13 @@
 
 ### Training
 
+Only papers that train or fine-tune LLM parameters are included in this section.
+
 
 #### LLM-based invariant inference
 
 - **SmartInv: Multimodal Learning for Smart Contract Invariant Inference** [[IEEE S&P'24](https://www.cs.columbia.edu/~junfeng/papers/smartinv/)]
+  - **LLM training**: Supervised fine-tuning of LLaMA-family models on annotated smart contracts and Tier-of-Thought examples for invariant generation. [Training code](https://github.com/columbia/SmartInv).
   - Background: Pattern-based smart-contract analyzers miss business-logic bugs when the intended transaction behavior is not explicit in the code.
   - Key problem & insight: Infer properties from both code and natural-language transaction context, then check where the implementation violates them.
   - Proposed method — SmartInv with two components:
@@ -272,6 +275,7 @@
 #### Verifier-supervised synthesis and self-improvement
 
 - **Automated Proof Generation for Rust Code via Self-Evolution** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)]
+  - **LLM training**: Iterative LLM fine-tuning on verifier-accepted proofs and debugging examples containing failed proofs plus verifier feedback.
   - Background: Open models have little exposure to Verus proofs, and human-written Rust proof corpora are too small for ordinary large-scale fine-tuning.
   - Key problem & insight: A verifier labels both successful proofs and failed attempts, supporting generation training and debugging training together.
   - Proposed method — SAFE with two components:
@@ -280,6 +284,7 @@
   - Results: Achieves 52.52% proof-generation accuracy on the authors' expert-built benchmark versus 14.39% for GPT-4o; this comparison concerns that benchmark and configuration.
 
 - **Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming** [[ICSE'25](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)] [[arXiv'24](https://arxiv.org/abs/2405.01787)]
+  - **LLM training**: Fine-tune code language models, including StarCoder and Phi-2, on F* definitions and proofs.
   - Background: F* mixes programs and proofs and delegates many obligations to SMT, but still requires experts to construct typed definitions and select useful premises.
   - Key problem & insight: Treat each top-level definition as a type-directed synthesis problem with a reproducible F* checker.
   - Proposed method — F* synthesis with two components:
@@ -288,6 +293,7 @@
   - Results: The extended corpus contains approximately 940k lines and 54k definitions; on its cross-project evaluation, fine-tuned StarCoder reaches 58.13% verify@10 versus 41.63% for GPT-3.5.
 
 - **Re:Form -- Reducing Human Annotations in Scalable Formal Software Verification with RL in LLMs: A Preliminary Study on Dafny** [[arXiv'25](https://arxiv.org/abs/2507.16331)]
+  - **LLM training**: Supervised fine-tuning followed by regularized reinforcement learning using Dafny verification feedback.
   - Background: RL for verified programming is limited by scarce annotated demonstrations and the difficulty of producing initially valid formal-language programs.
   - Key problem & insight: Automatically construct Dafny training tasks, bootstrap syntax and proof competence with SFT, then refine using verifier feedback.
   - Proposed method — Re:Form with two stages:
@@ -296,6 +302,7 @@
   - Results: On the paper's 300-task out-of-distribution DafnyComp subset, the 14B RL model reaches 14.0% Pass@1 versus 8.3% for its SFT counterpart and 2.7% for the Claude data-generator baseline; the study also demonstrates initial verifiable-code competence with a 0.5B model.
 
 - **SpecRL: Reinforcement Learning with Test-Based Completeness Rewards for Formal Specification Synthesis** [[arXiv'26](https://arxiv.org/abs/2604.05820)]
+  - **LLM training**: Train the specification-generating LLM with reinforcement learning rewards combining verification success and rejection of negative input-output tests.
   - Background: A verifier can accept `ensures true`; rewarding verification success alone encourages weak specifications that say little about the implementation.
   - Key problem & insight: Add negative input-output examples that distinguish useful specifications from vacuous ones.
   - Proposed method — SpecRL with two components:
@@ -304,6 +311,7 @@
   - Results: On out-of-distribution DafnyComp-Spec, the 7B model improves verification success by 49.96% and empirical completeness by 26.46% relative to SFT. Spectests improve measured completeness; they do not establish logical completeness.
 
 - **Formal Disco: Scalable Open-Ended Generation of Formally Verified Programs** [[arXiv'26](https://arxiv.org/abs/2607.04631)]
+  - **LLM training**: Iteratively fine-tune Qwen2.5-Coder-32B-Instruct with LoRA on successful generation and repair trajectories selected for program diversity. [Training code](https://github.com/metareflection/formal-disco#distillation-and-self-improvement).
   - Background: Self-training is constrained by a small seed corpus and can keep regenerating similar easy programs.
   - Key problem & insight: Separate the creation, repair, and extension of verified programs, then train for both success and diversity.
   - Proposed method — Formal Disco with three worker roles:
@@ -313,6 +321,7 @@
   - Results: Produces datasets for Dafny, Verus, and Frama-C; the final Qwen generation's largest verified examples exceed the largest Claude seed examples by 22–62% in lines of code across those languages, alongside downstream verification evaluations.
 
 - **Propose, Solve, Verify: Self-Play Through Formal Verification** [[ICML'26](https://icml.cc/virtual/2026/poster/63571)]
+  - **LLM training**: Update the solver LLM through expert iteration on formally verified solutions generated during self-play. [Paper](https://arxiv.org/abs/2512.18160).
   - Background: Expert iteration on a fixed problem set eventually runs out of new solvable examples, while test-only self-play can reinforce incorrect solutions.
   - Key problem & insight: Couple a difficulty-aware problem proposer to a solver, using formal verification as the acceptance signal.
   - Proposed method — Propose, Solve, Verify (PSV) with two learned roles:
@@ -472,7 +481,10 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
 
 ### Training
 
+Only papers that train or fine-tune LLM parameters are included in this section.
+
 - **DeepSeek-Prover-V1.5: Harnessing Proof Assistant Feedback for Reinforcement Learning and Monte-Carlo Tree Search** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b3b55c366d641c07180c40e4f978f311-Abstract-Conference.html)]
+  - **LLM training**: Supervised fine-tuning followed by reinforcement learning from Lean proof-assistant feedback; RMaxTS is an additional inference-time search component.
   - Background: Supervised proof completion underuses Lean's feedback, and sparse complete-proof rewards make search inefficient.
   - Key problem & insight: Use the prover both as a training reward source and as an observable state space for exploration.
   - Proposed method — DeepSeek-Prover-V1.5 with two components:
@@ -481,6 +493,7 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
   - Results: The 7B RL model with RMaxTS reaches 63.5% on miniF2F-test at the paper's largest mixed-prompt budget of 32 x 6,400 samples; the SFT counterpart reaches 60.2% at that budget.
 
 - STP: Self-play LLM Theorem Provers with Iterative Conjecturing and Proving [[ICML'25](https://proceedings.mlr.press/v267/dong25h.html)]
+  - **LLM training**: Iteratively fine-tune the conjecturer and prover on selected conjectures and formally verified proofs.
   - Background: Expert iteration on fixed statements plateaus when the prover cannot solve enough remaining problems to obtain new training data.
   - Key problem & insight: Learn to propose problems near the current prover's frontier of difficulty.
   - Proposed method — Self-play Theorem Prover (STP) with two roles:
@@ -489,6 +502,7 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
   - Results: On LeanWorkbook, proves 28.5% of statements versus 13.1% for prior expert iteration; reaches 65.0% miniF2F-test and 23.9% ProofNet-test at pass@3200. Its self-play uses verified data generation and fine-tuning, not merely inference-time debate.
 
 - DeepSeek-Prover-V2: Advancing Formal Mathematical Reasoning via Reinforcement Learning for Subgoal Decomposition [[arXiv'25](https://arxiv.org/abs/2504.21801)]
+  - **LLM training**: Cold-start supervised training on synthesized reasoning and proofs, followed by reinforcement learning for Lean proof generation.
   - Background: Whole-proof RL receives little useful signal on problems whose complete proofs are initially beyond the model.
   - Key problem & insight: Recursively solve simpler subgoals and assemble them into training examples that connect informal plans to formal proofs.
   - Proposed method — DeepSeek-Prover-V2 with two stages:
@@ -497,6 +511,7 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
   - Results: The 671B model reaches 88.9% on miniF2F-test and solves 47/658 PutnamBench problems in the reported setup; it also introduces the 325-problem ProverBench.
 
 - **Olympiad-level formal mathematical reasoning with reinforcement learning** [[Nature'25](https://doi.org/10.1038/s41586-025-09833-y)]
+  - **LLM training**: Train the language-model-based prover through supervised learning and AlphaZero-style reinforcement learning, including test-time adaptation; separately fine-tune Gemini for statement autoformalization.
   - Background: Human proof corpora are limited, and standard inference-time search cannot adapt model parameters to an exceptionally hard new problem.
   - Key problem & insight: Train through large-scale interaction with Lean and continue learning on related problem variants at inference time.
   - Proposed method — AlphaProof with three components:
@@ -506,6 +521,7 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
   - Results: Solves three of five non-geometry IMO 2024 problems; combined with AlphaGeometry 2, the system achieves silver-medal-equivalent performance using multi-day computation. This was not an ordinary timed, fully automatic natural-language competition entry.
 
 - Gold-medalist Performance in Solving Olympiad Geometry with AlphaGeometry2 [[JMLR'25](https://www.jmlr.org/papers/v26/25-1654.html)] [[arXiv'25](https://arxiv.org/abs/2502.03544)]
+  - **LLM training**: Train Gemini-based language models on synthetic geometry proofs, including fine-tuning a pretrained math-specialized Gemini model. [Training setup and Appendix B](https://arxiv.org/html/2502.03544#S6).
   - Background: General-purpose theorem proving is difficult, but Euclidean geometry admits strong domain-specific symbolic deduction and large-scale synthetic data.
   - Key problem & insight: Let a neural model suggest auxiliary constructions while a specialized symbolic engine derives and checks geometric consequences.
   - Proposed method — AlphaGeometry2 with three components:
