@@ -300,19 +300,12 @@
     - “what invariant belongs there?”
     - “which invariants are most likely to reveal a bug?”
 
-- **Automated Proof Generation for Rust Code via Self-Evolution** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)]
-  - **Task / task construction**: Generate Verus proof annotations for a fixed Rust implementation and specification. GPT-4o adapts MBPP/CodeNet programs to Verus-compatible Rust, then proposes pre/postconditions; compilable code and quality-filtered specifications seed proof generation. Successful Verus proofs and failed-proof/error/successful-repair triples become training examples.
-  - **LLM input**: Rust/Verus implementation and pre/postconditions; the debugging mode also supplies a failed proof and Verus diagnostics.
-  - **LLM output**: Proof annotations, including loop invariants and assertions, or repaired annotations; the specification-generation stage outputs pre/postconditions.
-  - **Verification / feedback**: Verus checks the completed function against its specification and filters proof examples. Tests and a specification-quality measure filter the earlier specification data.
-  - **Agentic?** No for the trained model's direct generation/debugging tasks; the paper runs an automated multi-round data and fine-tuning pipeline.
-  - **Weight update / algorithm**: Yes. Iterative SFT of open code models on selected specification, proof, and repair examples; no policy-gradient RL or new optimizer. The contribution is the self-evolving data/filtering loop and explicit verifier-error repair training.
-  - Background: Open models have little exposure to Verus proofs, and human-written Rust proof corpora are too small for ordinary large-scale fine-tuning.
-  - Key problem & insight: A verifier labels both successful proofs and failed attempts, supporting generation training and debugging training together.
-  - Proposed method — SAFE with two components:
-    1. **Self-evolving synthesis**: Generate proofs, retain verifier-accepted examples, fine-tune, and repeat to expand the training corpus.
-    2. **Self-debugging**: Train on incorrect proofs plus verifier feedback so the model learns to repair its own failures.
-  - Results: Achieves 52.52% proof-generation accuracy on the authors' expert-built benchmark versus 14.39% for GPT-4o; this comparison concerns that benchmark and configuration.
+- **[Automated Proof Generation for Rust Code via Self-Evolution](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)** [ICLR'25]
+  - SFT of DeepSeekCoder-33B-Instruct and Llama3.1-8B-Instruct for function-level Verus/Rust proof generation.
+  - To build tasks, GPT-4o adapts small MBPP/CodeNet programs to Verus-compatible Rust and generates `requires`/`ensures`. A generated specification is kept if it accepts at least 80% of the original input-output test pairs and rejects at least 60% of pairs made by changing the expected output. This test-based filter does not guarantee that the specification captures the intended behavior.
+  - **Proof-generation SFT**: input = fixed Rust implementation + `requires`/`ensures`; target = the full function with proof annotations such as loop invariants and assertions. Keep a target only if Verus verifies the function against its specification.
+  - **Repair SFT**: input = an earlier failed proof attempt + its Verus error; target = a later, Verus-verified version of the full function.
+  - **Self-evolution**: GPT-4o supplies initial verified proofs; the fine-tuned model generates new proof candidates for the existing function/specification pairs, Verus selects successful proofs, and the model is fine-tuned again. The earlier specification-generation stage also uses iterative SFT.
 
 - **Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming** [[ICSE'25](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)] [[arXiv'24](https://arxiv.org/abs/2405.01787)]
   - **Task / task construction**: Remove the body of a top-level F* definition from real F* projects and ask for a replacement satisfying its existing type, which can encode a program specification or a proposition. FStarDataSet extracts these definitions, dependencies, and build settings from eight open-source projects.
