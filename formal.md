@@ -40,31 +40,6 @@
   - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space. Some heuristics to prevent the model from generating trivial properties.
 
   
-- Verus-SpecBench / Verus-SpecGym — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
-
-  **Tasks**: Spec gen. **Level**: Function level.
-
-  - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
-  - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
-  - **Verification**: Execute specifications through Verus `exec_spec` and compare their acceptance of input/output cases with official tests and adversarial Codeforces hacks. This tests both omitted requirements and overrestrictive specifications; it is not a universal intent-equivalence proof.
-
-- DafnyCOMP — *Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification* [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
-
-  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
-
-  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
-  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
-  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
-
-- OSVBench — *OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification* [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
-
-  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
-
-  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
-  - **LLM output**: An executable state-machine specification for the syscall.
-  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
-
-
 - **DafnyBench** / VerusBench — annotation completion in Dafny / Rust-Verus; standalone-program scope.
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
@@ -73,14 +48,6 @@
   - **LLM input**: An implementation and its target contracts with selected proof annotations removed; repair attempts may also receive verifier diagnostics.
   - **LLM output**: Missing invariants, assertions, ghost code, and supporting proof annotations.
   - **Verification**: Run Dafny or Verus and require the target obligations to pass while preserving the executable code and target contracts. The two benchmarks share a task type; their programs and solver behavior are not interchangeable.
-
-- miniCodeProps — *miniCodeProps: a Minimal Benchmark for Proving Code Properties* [[arXiv'24](https://arxiv.org/abs/2406.11915)] — small, self-contained Lean programs and properties.
-
-  **Tasks**: Proof gen. **Level**: Function/theorem level.
-
-  - **LLM input**: A fixed program, its definitions, and a formal statement about its behavior.
-  - **LLM output**: Lean tactics or a complete proof of the supplied property, with code and property unchanged.
-  - **Verification**: Check the completed theorem in Lean; induction or auxiliary lemmas may be necessary even for short programs.
 
 - RVBench / **VeriSoftBench** / Selene — proof completion with repository and systems context, grouped across Verus / Lean / Isabelle.
 
@@ -98,23 +65,6 @@
 
   These tasks complete supplied obligations, not entire repositories. VeriSoftBench's context variants are different inputs to the same proof task. [Context definitions](https://arxiv.org/html/2602.18307#S2).
 
-- FVAPPS — *Proving the Coding Interview: A Benchmark for Formally Verified Code Generation* [[LLM4Code@ICSE'25](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)] — coding-problem scope; 4,715 samples, including 1,083 curated samples.
-
-  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
-
-  - **LLM input**: A Lean 4 coding task with implementation/proof holes and supplied correctness requirements.
-  - **LLM output**: The missing implementation and proofs that it meets those requirements.
-  - **Verification**: Check the completed artifacts in Lean without unfinished proofs or added untrusted assumptions. The guarantee concerns the supplied statements; dataset size does not imply that every specification is equally faithful to the original problem.
-
-- Vericoding benchmark / AlgoVeri — fixed-specification synthesis across Dafny, Verus, and Lean.
-
-  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
-
-  Papers: *A benchmark for vericoding: formally verified program synthesis* [[arXiv'25](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)]; *AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms* [[arXiv'26](https://arxiv.org/abs/2602.09464)]. The former aggregates multiple task sources, including FVAPPS and VERINA; the latter aligns classical algorithms across languages.
-  - **LLM input**: A formal functional specification with the implementation removed, optionally accompanied by a natural-language description.
-  - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
-  - **Verification**: Run the relevant checker against the fixed specification. AlgoVeri supports comparisons on aligned algorithm tasks; aggregate results from the broader vericoding collection involve different source distributions.
-
 <a id="benchmark-vero"></a>
 
 - **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
@@ -128,36 +78,6 @@
   | Proof-only | The same repository plus reference implementations | Proofs for those implementations | Check every specification against the fixed code under the same restrictions. |
 
   Formal audit tasks are listed in [Vero formal audit](#benchmark-vero-audit).
-
-- CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
-
-  **Tasks**: Spec gen; impl gen; proof gen (spec equivalence and implementation correctness). **Level**: Function level.
-
-
-  The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
-
-  | Stage | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | Specification generation | Natural-language task and Lean scaffold/signatures | Formal specification | Check compilation; semantic certification follows below. |
-  | Specification certification | Generated and reference specifications, equivalence theorem | Equivalence proof | Lean checks equivalence. |
-  | Implementation generation | Natural-language task, function signature, generated specification | Lean implementation | Check compilation; correctness certification follows below. |
-  | Implementation certification | Generated implementation, reference specification, correctness theorem | Correctness proof | Lean checks implementation correctness against the reference specification. |
-
-  A full solve requires both certifications; compiling artifacts alone is insufficient.
-
-- VerifyThisBench — *VerifyThisBench: Generating Code, Specifications, and Proofs All at Once* [[arXiv'25](https://arxiv.org/abs/2505.19271)] — 41 verification-competition challenges represented as 154 tasks across seven tools, plus 580 completion tasks in VerifyThisBenchXS.
-
-  **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
-
-
-  | Task | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | VerifyThisBench: full task | Informal challenge and target verification language/tool | Implementation or model, specifications, and proof annotations/scripts required by the challenge | Compile and verify with the designated tool; diagnostics can drive repair. |
-  | XS Code-Gen: 226 tasks | Function specifications; implementation and proof annotations removed | Implementation and supporting proof annotations | Verify the completed program against the supplied specifications. |
-  | XS Specification-Gen: 233 tasks | Implementation and proof annotations; function specifications removed | Function specifications | Verify the completed artifact with the restored specifications. |
-  | XS Loop-Gen: 121 tasks | Specifications and implementation; loop invariants removed | Loop invariants | Check invariant obligations and overall program verification. |
-
-  Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge. [Task definitions](https://arxiv.org/html/2505.19271#S3).
 
 <a id="benchmark-vero-audit"></a>
 
@@ -197,6 +117,86 @@
   - **LLM input**: An informal cryptographic protocol description, target security properties, and access to Tamarin feedback.
   - **LLM output**: A formal protocol model, encoded properties, and an attack explanation supported by tool analysis; the formal tool supplies the attack trace.
   - **Verification**: Run Tamarin and validate the attack against the intended protocol. A violation of a mistranslated model is insufficient evidence of a flaw in the original protocol.
+
+- Verus-SpecBench / Verus-SpecGym — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
+
+  **Tasks**: Spec gen. **Level**: Function level.
+
+  - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
+  - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
+  - **Verification**: Execute specifications through Verus `exec_spec` and compare their acceptance of input/output cases with official tests and adversarial Codeforces hacks. This tests both omitted requirements and overrestrictive specifications; it is not a universal intent-equivalence proof.
+
+- DafnyCOMP — *Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification* [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
+
+  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
+
+  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
+  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
+  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
+
+- OSVBench — *OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification* [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
+
+  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
+
+  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
+  - **LLM output**: An executable state-machine specification for the syscall.
+  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
+
+
+- miniCodeProps — *miniCodeProps: a Minimal Benchmark for Proving Code Properties* [[arXiv'24](https://arxiv.org/abs/2406.11915)] — small, self-contained Lean programs and properties.
+
+  **Tasks**: Proof gen. **Level**: Function/theorem level.
+
+  - **LLM input**: A fixed program, its definitions, and a formal statement about its behavior.
+  - **LLM output**: Lean tactics or a complete proof of the supplied property, with code and property unchanged.
+  - **Verification**: Check the completed theorem in Lean; induction or auxiliary lemmas may be necessary even for short programs.
+
+- FVAPPS — *Proving the Coding Interview: A Benchmark for Formally Verified Code Generation* [[LLM4Code@ICSE'25](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)] — coding-problem scope; 4,715 samples, including 1,083 curated samples.
+
+  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
+  - **LLM input**: A Lean 4 coding task with implementation/proof holes and supplied correctness requirements.
+  - **LLM output**: The missing implementation and proofs that it meets those requirements.
+  - **Verification**: Check the completed artifacts in Lean without unfinished proofs or added untrusted assumptions. The guarantee concerns the supplied statements; dataset size does not imply that every specification is equally faithful to the original problem.
+
+- Vericoding benchmark / AlgoVeri — fixed-specification synthesis across Dafny, Verus, and Lean.
+
+  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
+  Papers: *A benchmark for vericoding: formally verified program synthesis* [[arXiv'25](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)]; *AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms* [[arXiv'26](https://arxiv.org/abs/2602.09464)]. The former aggregates multiple task sources, including FVAPPS and VERINA; the latter aligns classical algorithms across languages.
+  - **LLM input**: A formal functional specification with the implementation removed, optionally accompanied by a natural-language description.
+  - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
+  - **Verification**: Run the relevant checker against the fixed specification. AlgoVeri supports comparisons on aligned algorithm tasks; aggregate results from the broader vericoding collection involve different source distributions.
+
+- CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
+
+  **Tasks**: Spec gen; impl gen; proof gen (spec equivalence and implementation correctness). **Level**: Function level.
+
+
+  The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
+
+  | Stage | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | Specification generation | Natural-language task and Lean scaffold/signatures | Formal specification | Check compilation; semantic certification follows below. |
+  | Specification certification | Generated and reference specifications, equivalence theorem | Equivalence proof | Lean checks equivalence. |
+  | Implementation generation | Natural-language task, function signature, generated specification | Lean implementation | Check compilation; correctness certification follows below. |
+  | Implementation certification | Generated implementation, reference specification, correctness theorem | Correctness proof | Lean checks implementation correctness against the reference specification. |
+
+  A full solve requires both certifications; compiling artifacts alone is insufficient.
+
+- VerifyThisBench — *VerifyThisBench: Generating Code, Specifications, and Proofs All at Once* [[arXiv'25](https://arxiv.org/abs/2505.19271)] — 41 verification-competition challenges represented as 154 tasks across seven tools, plus 580 completion tasks in VerifyThisBenchXS.
+
+  **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
+
+
+  | Task | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | VerifyThisBench: full task | Informal challenge and target verification language/tool | Implementation or model, specifications, and proof annotations/scripts required by the challenge | Compile and verify with the designated tool; diagnostics can drive repair. |
+  | XS Code-Gen: 226 tasks | Function specifications; implementation and proof annotations removed | Implementation and supporting proof annotations | Verify the completed program against the supplied specifications. |
+  | XS Specification-Gen: 233 tasks | Implementation and proof annotations; function specifications removed | Function specifications | Verify the completed artifact with the restored specifications. |
+  | XS Loop-Gen: 121 tasks | Specifications and implementation; loop invariants removed | Loop invariants | Check invariant obligations and overall program verification. |
+
+  Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge. [Task definitions](https://arxiv.org/html/2505.19271#S3).
 
 <a id="code-training"></a>
 
