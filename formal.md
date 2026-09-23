@@ -315,19 +315,12 @@
   - LLM input: the type/signature, preceding file context, retrieved similar examples, and relevant definitions from the project. LLM output: one F* body, either an implementation or a proof.
   - Verification: insert the body at its original location and run F*'s type checker with SMT support. `verify@k` counts a task solved if at least one of k generated bodies passes. Each task completes one definition in repository context, not the whole repository.
 
-- **Re:Form -- Reducing Human Annotations in Scalable Formal Software Verification with RL in LLMs: A Preliminary Study on Dafny** [[arXiv'25](https://arxiv.org/abs/2507.16331)]
-  - **Task / task construction**: Add specifications and supporting annotations to existing Dafny code. The authors clean public Dafny programs and use an LLM to translate Python programs into Dafny, generate annotations, and repair failed translations for up to ten verifier-guided rounds; verified pairs seed SFT. The separate DafnyComp evaluation composes LeetCode-derived functions into harder multi-function programs.
-  - **LLM input**: An existing Dafny implementation with annotations removed.
-  - **LLM output**: The full Dafny program with preconditions, postconditions, and proof-supporting annotations restored; the model reproduces the code body to avoid an annotation-positioning task.
-  - **Verification / feedback**: Dafny checks compilation and whether the implementation satisfies the generated annotations. RL also rewards a generated specification when Dafny proves it at least as strong as the reference under the paper's pre/post implication tests; verification alone can reward weak specifications.
-  - **Agentic?** No for the trained model's evaluated response; data curation uses a fixed LLM-and-verifier repair workflow.
-  - **Weight update / algorithm**: Yes. SFT warm start followed by regularized GRPO. GRPO is an existing RL algorithm; the paper's distinctive pieces are automated Dafny data construction and syntax, verification, and specification-strength rewards.
-  - Background: RL for verified programming is limited by scarce annotated demonstrations and the difficulty of producing initially valid formal-language programs.
-  - Key problem & insight: Automatically construct Dafny training tasks, bootstrap syntax and proof competence with SFT, then refine using verifier feedback.
-  - Proposed method — Re:Form with two stages:
-    1. **Data curation and SFT**: Build formal-program examples and teach models to generate Dafny implementations and annotations.
-    2. **Regularized RL**: Use formal verification feedback while retaining regularization to improve generalization beyond the supervised corpus.
-  - Results: On the paper's 300-task out-of-distribution DafnyComp subset, the 14B RL model reaches 14.0% Pass@1 versus 8.3% for its SFT counterpart and 2.7% for the Claude data-generator baseline; the study also demonstrates initial verifiable-code competence with a 0.5B model.
+- **[Re:Form — Reducing Human Annotations in Scalable Formal Software Verification with RL in LLMs: A Preliminary Study on Dafny](https://arxiv.org/abs/2507.16331)** [arXiv'25]
+  - SFT followed by GRPO on Qwen2.5-based models for Dafny specification generation.
+  - Data: collect public Dafny programs and use Claude 3.5 Sonnet to translate Python programs and add specifications; Dafny errors guide up to ten repair rounds. Verifier-accepted programs supply SFT examples.
+  - Model input: a Dafny implementation with specification annotations removed. Model output: the full program with `requires`, `ensures`, loop invariants, and other supporting annotations.
+  - RL reward: syntax validity, Dafny verification, and specification strength relative to the Claude-generated reference. Dafny checks `P_ref ⇒ P_gen` for preconditions and `P_ref ∧ Q_gen ⇒ Q_ref` for postconditions; this discourages weak specifications such as `ensures true`. GRPO updates the model with KL and entropy regularization.
+  - Evaluation: syntax validity, verification success, and relative specification strength on held-out programs and multi-function DafnyComp. On 300 DafnyComp tasks, the 14B RL model reaches 14.0% verified pass@1 versus 8.3% for SFT; strength is measured against Claude's reference, not independently established intent.
 
 - **SpecRL: Reinforcement Learning with Test-Based Completeness Rewards for Formal Specification Synthesis** [[arXiv'26](https://arxiv.org/abs/2604.05820)]
   - **Task / task construction**: Strip pre/postconditions and auxiliary annotations from existing deterministic Dafny programs (main RL training uses Py2Dfy-Spec). Offline, an LLM proposes concrete inputs, the original implementation supplies actual outputs, and the LLM mutates them into impossible input-output pairs called spectests.
