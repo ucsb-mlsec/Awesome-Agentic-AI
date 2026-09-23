@@ -12,24 +12,19 @@
   - [Benchmark](#math-benchmark)
   - [Training](#math-training)
   - [Agent](#math-agent)
-- [Hardware](#hardware)
-  - [Benchmark](#hardware-benchmark)
-  - [Training](#hardware-training)
-  - [Agent](#hardware-agent)
 
 ## Development trajectory
 
-The common workflow is **propose an artifact → check it with a formal tool → use feedback to revise the artifact or train the proposer**. What changes across the three domains is the artifact, the checker, and the source of missing information.
+The common workflow is **propose an artifact → check it with a formal tool → use feedback to revise the artifact or train the proposer**. What changes across the two domains is the artifact, the checker, and the source of missing information.
 
 | Domain | Main artifact | Development of the approach | Remaining bottleneck |
 | --- | --- | --- | --- |
 | Code | Contracts, invariants, implementations, proof scripts, protocol models | Learned hints → LLM generation and repair → verifier-supervised training → module and repository verification | Faithful specifications, cross-function composition, trusted dependencies |
 | Math | Formal statements, tactics, complete proofs, auxiliary lemmas | Tactic search and retrieval → informal-to-formal decomposition → RL and self-play → agents operating over proof libraries | Long proof planning, useful lemma discovery, statement fidelity |
-| Hardware | SVA properties, counterexample explanations, solver heuristics | Learned SAT/PDR guidance alongside NL-to-SVA → design-aware assertions → causal debugging and solver evolution | Temporal semantics, signal grounding, useful property coverage, solver cost |
 
 Three distinctions matter when reading the list:
 
-- **Proof validity versus specification fidelity**: a checked proof establishes the encoded statement; it does not establish that an LLM encoded the intended requirement correctly. Verus-SpecGym, FormalAlign, and FVEval target different versions of this gap.
+- **Proof validity versus specification fidelity**: a checked proof establishes the encoded statement; it does not establish that an LLM encoded the intended requirement correctly. Verus-SpecGym and FormalAlign target different versions of this gap.
 - **Training versus inference**: SAFE and PSV update model weights; AutoVerus and AlphaVerus improve generation through orchestration, search, and examples. Both can use verifier feedback, but their learning mechanisms differ.
 - **Local success versus system completion**: completing a supplied lemma or function proof is different from designing a module abstraction, discovering all required contracts, or verifying a production library. DafnyCOMP, VeriStruct, and CryptoProver progressively expose these additional responsibilities.
 
@@ -71,60 +66,39 @@ The research progression is **infer what to check → check existing contracts �
 #### Programs, proofs, and cross-language comparisons
 
 - FVEL: Interactive Formal Verification Environment with Large Language Models via Theorem Proving [[NeurIPS'24 — Datasets and Benchmarks; cited by 2](https://proceedings.neurips.cc/paper_files/paper/2024/file/62c6d7893b13a13c659cb815852dd00d-Paper-Datasets_and_Benchmarks_Track.pdf)]
-  - Background: Code2Inv-style tasks focus on isolated invariants; Isabelle developments contain larger proofs and dependencies that are difficult to expose to learning systems.
-  - Key problem & insight: A prover needs both an interactive verification environment and training examples that preserve the surrounding theory context.
-  - Proposed method — FVEL with two components:
-    1. **FVEL**: Translate verification tasks into Isabelle and let an LLM propose proof steps against the live prover state.
-    2. **FVELER**: Extract dependency-aware theories, lemmas, and proof trajectories for supervised fine-tuning and evaluation.
-  - Results: 758 theories, 29,304 lemmas, and 201,498 proof steps; fine-tuning increases solved SV-COMP cases from 69 to 81 for Llama3-8B and from 75 to 84 for Mistral-7B.
+  - **LLM input**: An Isabelle program-verification goal, its surrounding theory context, and the current proof state; interactive attempts also receive prover feedback.
+  - **LLM output**: Isabelle proof commands that advance the proof and ultimately close the target goal.
+  - **Verification**: Execute the commands in Isabelle through FVEL and count a task as solved only when the proof is completed and accepted.
 
 - miniCodeProps: a Minimal Benchmark for Proving Code Properties [[arXiv'24; cited by 2](https://arxiv.org/abs/2406.11915)]
-  - Background: Mathematical theorem-proving benchmarks do not establish whether a model can prove properties of executable programs.
-  - Key problem & insight: Hold the implementation and specification fixed to isolate proof-generation ability.
-  - Proposed method — miniCodeProps with two evaluation choices:
-    1. **Program-property pairs**: Provide Lean programs over lists, natural numbers, and binary trees, together with unproved correctness statements.
-    2. **Difficulty tiers**: Separate straightforward properties from problems requiring substantial induction or auxiliary reasoning; accept only Lean-checked proofs.
-  - Results: 201 specifications; evaluated neural provers solve some easy tasks but almost none of the medium and hard tasks.
+  - **LLM input**: A fixed Lean program, its definitions, and an unproved statement about its behavior.
+  - **LLM output**: A Lean proof of the supplied statement; the implementation and target property remain fixed.
+  - **Verification**: Insert the proof into the supplied Lean context and require Lean to accept the completed theorem.
 
 - DafnyBench: A Benchmark for Formal Software Verification [[TMLR'25; cited by 5](https://openreview.net/forum?id=yBgTVWccIx)] [[arXiv'24](https://arxiv.org/abs/2406.08467)]
-  - Background: Dafny checks functional correctness automatically only after users supply suitable assertions, invariants, and other proof hints.
-  - Key problem & insight: Removing hints from already verified programs creates a reproducible task with an executable correctness oracle.
-  - Proposed method — DafnyBench with two components:
-    1. **Hint-completion tasks**: Keep program logic and target specifications while asking a model to restore missing verification annotations.
-    2. **Feedback-based evaluation**: Run Dafny after generation and optionally return error messages for iterative repair.
-  - Results: More than 750 programs and approximately 53,000 lines of code; the original study's best model/prompting configuration verifies 68% of tasks. This is a historical baseline, not a current leaderboard ceiling.
+  - **LLM input**: A Dafny program with its implementation and target specifications retained but selected proof hints removed; repair attempts can include Dafny errors.
+  - **LLM output**: Missing verification annotations, such as loop invariants and intermediate assertions.
+  - **Verification**: Run Dafny on the completed program and require all relevant verification obligations to pass without changing the implementation or target specifications.
 
 - Proving the Coding Interview: A Benchmark for Formally Verified Code Generation [[LLM4Code@ICSE'25; cited by 6](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)]
-  - Background: APPS checks programming-contest solutions with tests; mathematical proof benchmarks usually provide a theorem without requiring an executable implementation.
-  - Key problem & insight: Evaluate implementation and proof construction together on ordinary programming problems.
-  - Proposed method — FVAPPS with two components:
-    1. **Lean 4 task construction**: Convert APPS-style programming puzzles and their correctness requirements into implementations and unproved formal statements.
-    2. **Joint completion**: Require a solver to fill the program and proof holes and pass Lean's checker.
-  - Results: 4,715 samples, including 1,083 curated samples; on 406 theorems from 100 sampled problems, Sonnet proves 30% and Gemini 18% in the reported setup.
+  - **LLM input**: A programming problem represented by a Lean 4 task with implementation and proof holes, together with its formal correctness requirements.
+  - **LLM output**: The missing implementation and Lean proofs of the required properties.
+  - **Verification**: Check the completed task with Lean 4; code generation alone is insufficient if the required proofs remain unfinished.
 
 - A benchmark for vericoding: formally verified program synthesis [[arXiv'25; cited by 0](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)]
-  - Background: Dafny, Verus, and Lean benchmarks largely measure different task collections, and many assess proof completion rather than implementation synthesis.
-  - Key problem & insight: Make generation from a fixed formal specification an explicit task: vericoding.
-  - Proposed method — multilingual vericoding benchmark with two components:
-    1. **Specification-only inputs**: Remove implementations and ask models to produce code plus the proof material required by each verifier.
-    2. **Tool-based evaluation**: Check generated artifacts in Dafny, Verus/Rust, or Lean; separately examine unseen tasks and optional natural-language descriptions.
-  - Results: 12,504 specifications, including 6,174 new unseen problems; reported success rates are 82% in Dafny, 44% in Verus/Rust, and 27% in Lean. The language subsets are not matched problems, so these rates are not a controlled language comparison.
+  - **LLM input**: A fixed formal specification in Dafny, Verus, or Lean with the implementation removed; some settings additionally provide a natural-language description.
+  - **LLM output**: An implementation plus the annotations or proof code needed to establish the supplied specification.
+  - **Verification**: Run the corresponding Dafny, Verus, or Lean checker and require the generated implementation to satisfy the fixed specification.
 
 - AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms [[arXiv'26; cited by 0](https://arxiv.org/abs/2602.09464)]
-  - Background: Different problem sets make Dafny-versus-Verus-versus-Lean success rates difficult to interpret.
-  - Key problem & insight: Align functional contracts across languages so differences reflect the verification workflow rather than task selection.
-  - Proposed method — AlgoVeri with two components:
-    1. **Aligned algorithms**: Specify the same 77 classical algorithms in Dafny, Verus, and Lean.
-    2. **Iterative-repair evaluation**: Measure verifier success and analyze how additional repair attempts change failure modes in each language.
-  - Results: Gemini-3 Flash reaches 40.3%, 24.7%, and 7.8% respectively; this matched setup exposes the additional memory-model and proof-construction burdens in Verus and Lean.
+  - **LLM input**: An algorithm task with aligned functional specifications in Dafny, Verus, or Lean; the benchmark covers the same algorithms across languages.
+  - **LLM output**: The implementation and supporting proof annotations or proof scripts, optionally revised using checker feedback.
+  - **Verification**: Run the checker for the target language and require completion against the supplied specification; compare results on the aligned tasks.
 
 - Neural Theorem Proving for Verification Conditions: A Real-World Benchmark [[ICLR'26; cited by 0](https://proceedings.iclr.cc/paper_files/paper/2026/hash/41efc6e1f29cf7c6bf7c6d9909850761-Abstract-Conference.html)]
-  - Background: Industrial verifiers leave verification conditions (VCs) that SMT solvers cannot discharge; competition mathematics is an imperfect proxy for these obligations.
-  - Key problem & insight: Reuse existing verification-condition generators to obtain software-derived proof tasks with controlled formal translations.
-  - Proposed method — NTP4VC with two components:
-    1. **VC extraction**: Use Why3/Frama-C pipelines and verified projects, including Linux and Contiki-OS examples, to extract obligations.
-    2. **Multilingual proof tasks**: Translate semantically equivalent obligations into Isabelle, Lean, and Rocq; construct harder instances through controlled transformations.
-  - Results: Provides a benchmark across three proof-assistant languages; general LLMs and specialized theorem provers still leave substantial VC coverage gaps. It measures VC discharge rather than specification synthesis.
+  - **LLM input**: A software-derived verification condition expressed as an Isabelle, Lean, or Rocq theorem, with the definitions and assumptions needed to state it.
+  - **LLM output**: A proof that discharges the supplied verification condition.
+  - **Verification**: Check the proof with the corresponding proof assistant; the task is proving a fixed obligation, not generating a new specification or implementation.
 
 - Learning Loop Invariants for Program Verification [[NeurIPS'18; cited by 54](https://papers.nips.cc/paper_files/paper/2018/hash/65b1e92c585fd4c2159d5f33b5030ff2-Abstract.html)]
   - Background: Search-based invariant generators cannot learn from earlier attempts; decision-tree and template methods depend on hand-designed predicates that restrict the invariant language.
@@ -308,44 +282,29 @@ The research progression is **infer what to check → check existing contracts �
 #### Specifications and semantic faithfulness
 
 - From Informal to Formal – Incorporating and Evaluating LLMs on Natural Language Requirements to Verifiable Formal Proofs [[ACL'25; citations N/A (method-paper set)](https://aclanthology.org/2025.acl-long.1310/)]
-  - Background: End-to-end formal-reasoning scores mix specification writing, mathematical reasoning, and proof construction.
-  - Key problem & insight: Split the path from informal requirements to checked proofs so individual capabilities can be measured and trained.
-  - Proposed method — task decomposition with two components:
-    1. **Instruction dataset**: Distill GPT-4o into approximately 18,000 instruction-response pairs across six tasks and Coq, Lean 4, Dafny, ACSL, and TLA+.
-    2. **Task-specific evaluation and fine-tuning**: Compare open models on individual stages instead of relying on a single end-to-end score.
-  - Results: Evaluates ten open models; formal-data fine-tuning produces improvements of up to approximately 3x in the reported tasks, with additional transfer to reasoning and coding evaluations.
+  - **LLM input**: Depending on the subtask, a formal artifact to explain, an informal requirement or proof to formalize, source code, or a partial proof to complete.
+  - **LLM output**: A natural-language analysis, a full formal proof/model, or missing proof segments in the requested language.
+  - **Verification**: Check formal outputs with Coq, Lean, Dafny, TLC, or Frama-C as applicable; distinguish basic ACSL checks from WP proof checking. Score natural-language requirement analysis with BLEU against reference descriptions, not a formal verifier.
 
 - Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)]
-  - Background: A model can verify individual functions while producing contracts too weak or inconsistent for their callers.
-  - Key problem & insight: Composition needs specifications that transport the right facts across function boundaries.
-  - Proposed method — DafnyCOMP with two components:
-    1. **Compositional programs**: Construct verified programs containing two to five interacting functions, using chain and non-chain acyclic call graphs.
-    2. **Specification regeneration**: Ask models to reconstruct contracts and proof annotations, then verify the complete composed program.
-  - Results: 400 programs: 300 chain and 100 DAG instances; the strongest evaluated model reaches only 2% verification at Pass@8 on the chain split despite much higher performance on single-function tasks.
+  - **LLM input**: A Dafny program containing multiple interacting functions, with specifications and proof annotations to reconstruct while retaining the supplied program logic.
+  - **LLM output**: Function contracts and supporting annotations that carry sufficient facts across calls.
+  - **Verification**: Run Dafny on the complete composed program; separately successful function proofs do not count if callers or other obligations fail.
 
 - VeriEquivBench: An Equivalence Score for Ground-Truth-Free Evaluation of Formally Verifiable Code [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/ebfa4297cd6419f64efe86f657ba49d0-Abstract-Conference.html)] [[arXiv'25](https://arxiv.org/abs/2510.06296)]
-  - Background: Generated code can satisfy an underspecified contract; matching an expert reference specification is expensive and can inherit reference errors.
-  - Key problem & insight: Evaluate semantic agreement rather than treating any compilable, verified code-specification pair as correct.
-  - Proposed method — VeriEquivBench with two components:
-    1. **Algorithmic tasks**: Construct substantially more complex Dafny generation tasks than textbook examples.
-    2. **Equivalence score**: Use formal equivalence checks to assess generated code and specifications without requiring an expert-written reference specification for every task.
-  - Results: 2,389 problems; the reported Claude-4-Sonnet setup solves none under Pass@4 despite achieving 75.81% on CloverBench, exposing the gap between small examples and complex algorithmic specifications.
+  - **LLM input**: A natural-language algorithmic programming problem.
+  - **LLM output**: A Dafny implementation together with formal specifications and supporting verification annotations.
+  - **Verification**: Use Dafny-based checks of both directions of the code-specification relation for the equivalence score. Separately assess intent alignment by translating specifications back to natural language and using an LLM judge; the latter is not a formal equivalence proof.
 
 - Can Large Language Models Model Programs Formally? [[arXiv'26](https://arxiv.org/abs/2604.01851)]
-  - Background: Most LLM formal-reasoning benchmarks start with a formal theorem; model checking first needs a faithful transition-system model of the program.
-  - Key problem & insight: Evaluate program-to-model translation as a separate capability, including whether the result is usable by a model checker.
-  - Proposed method — Model-Bench with two components:
-    1. **Program collection**: Select Python tasks from HumanEval, MBPP, and LiveCodeBench.
-    2. **Modeling pipeline**: Generate verification-ready formal models and check them with the associated model-checking workflow.
-  - Results: 400 programs; the evaluation identifies substantial modeling failures, establishing that code generation proficiency alone does not establish faithful formal abstraction.
+  - **LLM input**: A Python program, modeling instructions, and, depending on the setting, modeling examples or a control-flow-normalized version of the code.
+  - **LLM output**: A TLA+ state-transition model of the program.
+  - **Verification**: Run TLC on benchmark test configurations to check whether the model executes without checking failures; separately compare its state behavior with manually reviewed oracle models. Passing TLC alone does not establish faithful program translation.
 
 - Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization [[arXiv'26; cited by 0](https://arxiv.org/abs/2605.26457)]
-  - Background: A proof establishes a formal specification, but the specification may omit input assumptions or accept incorrect outputs.
-  - Key problem & insight: Make generated specifications executable so their meaning can be tested independently of the implementation proof.
-  - Proposed method — Verus-SpecGym with two components:
-    1. **Verus-SpecBench**: Provide 581 Codeforces-derived specification-writing tasks and an agent environment with Verus, shell, and filesystem tools.
-    2. **Executable specifications**: Extend Verus's `exec_spec` support and evaluate against official tests and adversarial Codeforces hacks.
-  - Results: The strongest evaluated model reaches 77.8%; other frontier models reach 51.1–57.8%. An LLM judge misses 26% of failures detected by this evaluator. Test-based specification validation is empirical, not a proof of complete intent alignment.
+  - **LLM input**: A Codeforces-derived problem statement and specification-writing scaffold in an environment with Verus, shell, and filesystem tools.
+  - **LLM output**: A Verus specification encoding the input assumptions and required output behavior.
+  - **Verification**: Compile and execute the specification using Verus exec_spec support, then check it against official tests and adversarial hacks for soundness and completeness. This is test-based specification validation, not a proof of full intent alignment.
 
 - Evaluating LLM-driven User-Intent Formalization for Verification-Aware Languages [[FMCAD'24; cited by 1](https://arxiv.org/abs/2406.09757)]
   - Background: Dafny can prove an implementation against a supplied contract, but cannot decide whether that contract captures the user's natural-language intent; runtime-only mutation metrics also fail on quantified or ghost-state specifications.
@@ -374,28 +333,19 @@ The research progression is **infer what to check → check existing contracts �
   - Results: Generates verifiable specifications for 279/385 Java programs versus 247 for AutoSpec and 98 for Houdini. Expert ratings average 4.54/5 for semantic quality, close to 4.83 for ground-truth specifications.
 
 - SpotIt: Evaluating Text-to-SQL Evaluation with Formal Verification [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/70e692da44c19710386648694e2b899b-Abstract-Conference.html)]
-  - Background: Text-to-SQL evaluation often accepts two queries because they produce the same output on one database, even when their semantics differ.
-  - Key problem & insight: Search for a distinguishing database instead of trusting a fixed test database.
-  - Proposed method — SpotIt with two components:
-    1. **Bounded equivalence verification**: Encode generated and reference SQL queries and ask the verifier for a database that makes their outputs disagree.
-    2. **SQL support extensions**: Extend the verifier's supported constructs to cover a larger part of practical Text-to-SQL benchmarks.
-  - Results: Re-evaluates ten Text-to-SQL methods on BIRD and finds differences missed by execution-based evaluation. Absence of a distinguishing database establishes only the checked bounded result.
+  - **LLM input**: For the evaluated Text-to-SQL models, a natural-language database question and its database schema/context.
+  - **LLM output**: A SQL query answering the question.
+  - **Verification**: SpotIt compares the generated query with a reference query using bounded formal equivalence checking and searches for a database on which they disagree. A counterexample establishes disagreement, not which query matches the user intent; no counterexample establishes only the checked bounded result.
 
 - Can LLMs Reason Like Automated Theorem Provers for Rust Verification? VCoT-Bench: Evaluating via Verification Chain of Thought [[ICML'26](https://icml.cc/virtual/2026/poster/63236)]
-  - Background: A binary Verus success score hides which deductive steps an LLM can actually reconstruct.
-  - Key problem & insight: Expose the solver's reasoning as explicit intermediate verification obligations.
-  - Proposed method — VCoT-Lift and VCoT-Bench with two components:
-    1. **VCoT-Lift**: Lift low-level solver reasoning into human-readable Verification Chain-of-Thought steps.
-    2. **Completion tasks**: Remove proof content at different rates, locations, and proof types to diagnose reasoning gaps.
-  - Results: 1,988 completion tasks and ten evaluated models; performance is fragile across the three diagnostic dimensions, rather than uniformly explained by whole-proof pass/fail.
+  - **LLM input**: A Verus program and a partially removed Verification Chain-of-Thought, with missing blocks varying by amount, proof type, or location.
+  - **LLM output**: The missing Verus-level reasoning blocks, such as assertions, loop invariants, or lemma functions.
+  - **Verification**: Check syntax with Verus in no-verify mode and score semantic reconstruction with a calibrated GPT-5-mini judge against the reference reasoning. The benchmark semantic score is model-based, not a kernel-checked proof of the completed reasoning.
 
 - How Powerful are LLMs in Generating Formal Program Specifications? [[ICML'26](https://icml.cc/virtual/2026/poster/66406)]
-  - Background: Full implementation verification and specification-equivalence proving can fail because a proof is hard, even when the proposed specification is meaningful.
-  - Key problem & insight: Instantiate specifications on trusted examples to separate semantic quality from general proof difficulty.
-  - Proposed method — Coins with two components:
-    1. **Rocq specifications**: Curate human-written reference specifications for HumanEval tasks and collect generated alternatives.
-    2. **Concrete proof obligations**: Instantiate the specifications with trusted test cases and use Rocq to check the resulting obligations.
-  - Results: The HumanEval study shows that verification complexity can obscure differences in specification quality; Coins provides a more discriminative evaluation, while failed proofs remain inconclusive evidence.
+  - **LLM input**: A HumanEval task description or reference implementation, depending on the specification-generation setting.
+  - **LLM output**: A Rocq specification describing the allowed input-output relation; the evaluation pipeline also generates proofs for concrete instances.
+  - **Verification**: Coins instantiates the specification on trusted positive tests and mutation-derived negative cases, then checks the resulting proof obligations in Rocq. Successful proofs provide evidence about those cases; failed proofs are inconclusive and finite tests do not establish complete intent alignment.
 
 #### Smart-contract property reasoning
 
@@ -409,13 +359,9 @@ The research progression is **infer what to check → check existing contracts �
   - Results: Generates models for 23 functions across five CosmWasm CTF contracts in five independent runs. Most unseen-test pass rates are 90–100%; the hardest CTF-09 functions succeed in 4/5 runs and reach 73–80% on held-out examples.
 
 - LLMs as verification oracles for Solidity [[FC'26](https://www.ifca.ai/fc26/program.html)] [[arXiv'25](https://arxiv.org/abs/2509.19153)]
-  - Background: SolCMC and Certora require formal encodings and have different limits on expressible contract properties; ordinary vulnerability benchmarks mostly evaluate fixed bug classes.
-  - Key problem & insight: Measure whether reasoning models can assess supplied business-logic properties, including transaction ordering and liveness, rather than merely recognize vulnerability patterns.
-  - Proposed method — verification-oracle evaluation with three components:
-    1. **Controlled dataset**: Pair five contract families and their mutations with properties and manually established ground truth.
-    2. **Quantitative analysis**: Compare GPT-5 and GPT-4 predictions; evaluate SolCMC and Certora on the subsets expressible in each tool.
-    3. **Qualitative analysis**: Inspect explanations and proposed counterexamples for coherent interpretation and valid reasoning.
-  - Results: On 667 tasks, GPT-5 reaches 92% accuracy and 92% F1 versus GPT-4's 63% and 64%; GPT-5 still makes 31 false-positive and 21 false-negative predictions. These are untrusted model judgments, not machine-checked proofs.
+  - **LLM input**: A Solidity contract or mutated variant and a supplied natural-language property, including any stated assumptions.
+  - **LLM output**: A judgment about whether the property holds, with an explanation or proposed counterexample.
+  - **Verification**: Compare judgments with established ground-truth labels and manually assess explanations; compare with SolCMC and Certora on properties expressible in each tool. The LLM answers themselves are not machine-checked proofs.
 
 #### Systems and protocol verification
 
@@ -439,12 +385,9 @@ The research progression is **infer what to check → check existing contracts �
   - Results: The strongest model is 16% correct by default and 26% when interface names are supplied, while open models reach at most 1%. Depending on interface and pass-quality rules, the measured rate on the same outputs ranges from 18.7% to 1.7%; only 5/300 outputs survive the strict property-mutation test.
 
 - CryptoFormalEval: Integrating LLMs and Formal Verification for Automated Cryptographic Protocol Vulnerability Detection [[arXiv'24; cited by 0](https://arxiv.org/abs/2411.13627)]
-  - Background: Tamarin can discover protocol attacks, but experts must translate informal protocols and security goals into its modeling language.
-  - Key problem & insight: Test whether an agent can complete the modeling-and-attack-discovery workflow on previously unseen protocols, rather than recall known attacks.
-  - Proposed method — CryptoFormalEval with two components:
-    1. **Protocol tasks**: Pair newly designed, flawed protocols with target security properties.
-    2. **Tamarin interaction and validation**: Let agents revise models using tool feedback and validate the submitted attack artifacts.
-  - Results: The dataset contains 15 protocols; the reported five-task comparison exposes syntax, semantic-modeling, and instruction-following failures even when a model informally understands an attack.
+  - **LLM input**: An informal cryptographic protocol description and target security properties, with access to Tamarin feedback.
+  - **LLM output**: A formal protocol model, security-property encodings, and an attack or vulnerability explanation supported by the analysis.
+  - **Verification**: Run Tamarin on the submitted model and validate the attack artifacts against the intended protocol; an attack on an incorrectly translated model does not establish a flaw in the original protocol.
 
 - Constructing formal models of cryptographic protocols from Alice&Bob style specifications via LLM [[Scientific Reports'25; cited by 10](https://doi.org/10.1038/s41598-025-93373-y)]
   - Background: Protocol analysts must repeatedly translate concise Alice&Bob descriptions into tool-specific ProVerif declarations; direct LLM generation lacks enough syntax and type control for verifier-ready models.
@@ -456,36 +399,24 @@ The research progression is **infer what to check → check existing contracts �
   - Results: The dataset derives 106 sub-protocols from four official ProVerif examples (53/25/14/14). For GLM4.0, modification raises syntax correctness from 65% to 82% and improves content F1 from 0.58 to 0.62; Qwen2.5-7B achieves the strongest content metrics, while repair prompts transfer poorly to Llama3-8B.
 
 - Can Large Language Models Verify System Software? A Case Study Using FSCQ as a Benchmark [[HotOS'25](https://users.cs.duke.edu/~mlentz/papers/llmverif_hotos2025.pdf)]
-  - Background: Success on small verified programs does not establish proof-generation ability for a file system with project-specific abstractions.
-  - Key problem & insight: Evaluate directly inside FSCQ, preserving the context that its existing proofs depend on.
-  - Proposed method — FSCQ study with two components:
-    1. **Context construction**: Present target Rocq/Coq theorems with relevant surrounding definitions and proof context.
-    2. **Best-first search**: Query an off-the-shelf LLM for proof steps and expand candidates that the prover accepts.
-  - Results: 38% proof coverage on sampled FSCQ theorems; over 57% on the simpler subset with human proofs shorter than 64 tokens. These are theorem-level results, not autonomous verification of the entire file system.
+  - **LLM input**: A target FSCQ theorem, relevant Coq/Rocq definitions, and the current proof context.
+  - **LLM output**: Proof steps or a completed proof for the supplied theorem.
+  - **Verification**: Execute candidate steps in Coq/Rocq and accept only a completed proof in the FSCQ context; report theorem coverage rather than claiming verification of the entire file system.
 
 - OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)]
-  - Background: Kernel specifications describe state transitions and intended behavior, which cannot safely be copied from potentially buggy implementations.
-  - Key problem & insight: Test whether models recover intended kernel semantics while respecting a supplied verification model.
-  - Proposed method — OSVBench with two components:
-    1. **Hyperkernel tasks**: Supply functional descriptions, a state-transition programming model, and implementation context, including injected bugs.
-    2. **Specification checking**: Use generated specifications in the kernel verification pipeline and categorize syntax, semantic, and bug-type failures.
-  - Results: 245 tasks with approximately 20k–30k-token contexts and 12 evaluated models; the released five-shot comparison reports 55.10% Pass@1 for Doubao-1.5-pro versus 38.78% for GPT-4o.
+  - **LLM input**: A kernel syscall description, the supplied state-transition programming model, and implementation context that may contain injected bugs.
+  - **LLM output**: An executable state-machine specification for the syscall.
+  - **Verification**: Run the Hyperkernel verifier with the generated specification and compare its verdicts with those obtained using the reference specification across the evaluated kernel variants; matching a buggy implementation alone is insufficient.
 
 - CrypFormBench: Benchmarking Formal Analysis Capability of Large Language Models for Cryptographic Schemes [[FSE'26](https://doi.org/10.1145/3808184)] [[arXiv'26](https://arxiv.org/abs/2606.25561)]
-  - Background: Tamarin/Scyther and CryptoVerif/EasyCrypt cover different security models and require specialized input languages.
-  - Key problem & insight: Measure tool-specific formalization skills separately instead of equating informal cryptographic reasoning with executable verification artifacts.
-  - Proposed method — CrypFormBench with two components:
-    1. **Capability matrix**: Cover interpretation, generation, completion, transformation, and correction across seven verifier languages.
-    2. **Cross-tool evaluation**: Test symbolic and computational security tasks and examine few-shot prompting, repeated sampling, and lightweight fine-tuning.
-  - Results: 700 instances spanning 677 schemes and 160 security properties; among nine evaluated LLMs, Claude-3.5 obtains the highest aggregate score, 48.7/100.
+  - **LLM input**: Depending on the task, a cryptographic scheme description, a formal model to interpret or translate, incomplete formal code, or faulty code to repair, with the target verifier language specified.
+  - **LLM output**: An explanation, generated model, completed fragment, translated model, or corrected formal code.
+  - **Verification**: Run the relevant verifier testbed for formal outputs and compare security verdicts with reference labels; additionally use code or semantic similarity for completion and interpretation tasks. Syntax, security-verdict agreement, and similarity are distinct evaluation signals.
 
 - Selene: Pioneering Automated Proof in Software Verification [[ACL'24; cited by 4](https://aclanthology.org/2024.acl-long.98/)]
-  - Background: Small isolated theorems omit the dependencies and proof styles encountered in an industrial verification project.
-  - Key problem & insight: Benchmark proof generation inside seL4 while reusing prechecked dependencies to keep interactive evaluation affordable.
-  - Proposed method — Selene with two components:
-    1. **Project-level benchmark**: Extract Isabelle proof tasks from seL4 and group them by proof style and complexity.
-    2. **Lightweight verification environment**: Retain verified dependencies and check generated replacements within the project context; study retrieval and feedback augmentations.
-  - Results: Collects 5,464 lemmas, including 5,419 procedural proofs; GPT-4 achieves 51.8% ACC@5 on the easiest procedural tier, with substantially harder results for more complex tiers.
+  - **LLM input**: An Isabelle lemma from the seL4 development, with surrounding definitions and available project dependencies; enhanced settings add retrieved examples or checker feedback.
+  - **LLM output**: A replacement Isabelle proof for the supplied lemma.
+  - **Verification**: Check the replacement within the seL4 Isabelle environment while reusing preverified dependencies; success means the target lemma is proved in that context.
 
 <a id="code-training"></a>
 
@@ -1082,37 +1013,24 @@ The main shift is from **predicting the next tactic** to **managing a proof-deve
 ### Benchmark
 
 - MiniF2F: a cross-system benchmark for formal Olympiad-level mathematics [[ICLR'22; cited by 25](https://arxiv.org/abs/2109.00110)]
-  - Background: Proof-assistant-specific corpora make it difficult to compare provers on the same mathematical problems.
-  - Key problem & insight: Formalize a shared set of competition problems across proof systems and require machine-checked solutions.
-  - Proposed method — miniF2F with two components:
-    1. **Shared mathematical statements**: Draw problems from AMC, AIME, IMO, and high-school/undergraduate material.
-    2. **Cross-system formalizations**: Provide statements in Metamath, Lean, and partially Isabelle and HOL Light, with common validation/test organization.
-  - Results: 488 statements; establishes a widely reused comparison point for formal competition mathematics. Compare reported success only after checking the language version, split, and sampling budget.
+  - **LLM input**: A fixed formal mathematical statement and its context in the chosen proof-assistant version; some proving setups also use the informal problem statement.
+  - **LLM output**: A complete proof of the supplied statement.
+  - **Verification**: Check the proof with the corresponding proof assistant, such as Lean or Metamath, using the selected benchmark formalization and split.
 
 - LeanDojo: Theorem Proving with Retrieval-Augmented Language Models [[NeurIPS'23 — Datasets and Benchmarks; cited by 40](https://proceedings.neurips.cc/paper_files/paper/2023/hash/4441469427094f8873d0fecb0c4e1cee-Abstract-Datasets_and_Benchmarks.html)]
-  - Background: Neural provers need reproducible interaction with Lean and access to relevant lemmas from a large mathematical library.
-  - Key problem & insight: Treat premise selection as a learned retrieval problem with supervision extracted from actual proof dependencies.
-  - Proposed method — LeanDojo and ReProver with three components:
-    1. **LeanDojo**: Extract proof states and premise-use annotations and expose a programmatic proof environment.
-    2. **Premise retriever**: Retrieve accessible lemmas using hard negatives and dependency-aware training data.
-    3. **ReProver**: Generate tactics conditioned on retrieved premises and search through Lean-checked proof states.
-  - Results: Releases 98,734 theorems and proofs, including a split testing unseen premises; ReProver requires approximately one GPU-week of training and improves over the paper's non-retrieval and GPT-4 baselines.
+  - **LLM input**: A Lean theorem/current proof state and accessible library premises; ReProver conditions generation on retrieved premises.
+  - **LLM output**: Lean tactics that advance the proof, ultimately forming a complete proof of the theorem.
+  - **Verification**: Execute tactics through LeanDojo and require Lean to close all goals and accept the proof; retrieval relevance alone is not task success.
 
 - PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition [[NeurIPS'24 — Datasets and Benchmarks; cited by 4](https://proceedings.neurips.cc/paper_files/paper/2024/file/1582eaf9e0cf349e1e5a6ee453100aa1-Paper-Datasets_and_Benchmarks_Track.pdf)]
-  - Background: Improving miniF2F scores may reflect progress on relatively short competition proofs rather than broader undergraduate mathematics.
-  - Key problem & insight: Use difficult Putnam problems with manually constructed formalizations across several proof assistants.
-  - Proposed method — PutnamBench with two components:
-    1. **Human formalization**: Encode statements from the William Lowell Putnam Mathematical Competition in Lean 4 and Isabelle, with a substantial Coq subset.
-    2. **Cross-prover evaluation**: Require checked proofs and compare neural and symbolic systems on the same source problems.
-  - Results: The original release contains 1,692 formalizations of 640 problems; its evaluated systems solve only a handful. Later papers use expanded versions, so denominators such as 640, 644, and 658 must not be silently mixed.
+  - **LLM input**: A formalized Putnam competition problem with the required definitions in Lean 4, Isabelle, or Coq.
+  - **LLM output**: A proof of the supplied formal statement.
+  - **Verification**: Check the proof in the corresponding assistant without changing the theorem or introducing unproved assumptions; use the task set of the stated benchmark version.
 
 - FormalAlign: Automated Alignment Evaluation for Autoformalization [[ICLR'25; cited by 1](https://proceedings.iclr.cc/paper_files/paper/2025/hash/fceedf8c9c0ff51f41b9fe0294ef0070-Abstract-Conference.html)]
-  - Background: Lean accepts a proof of the statement it receives, even if autoformalization changed or weakened the original mathematical claim.
-  - Key problem & insight: Assess informal–formal semantic alignment separately from proof validity.
-  - Proposed method — FormalAlign with two training objectives:
-    1. **Autoformalization**: Learn to generate the formal statement from its informal counterpart.
-    2. **Representational alignment**: Jointly train representations to distinguish aligned pairs from mismatched statements and use the learned score for selection.
-  - Results: Alignment-selection accuracy reaches 99.21% versus GPT-4's 88.91% on FormL4-Basic, and 66.39% versus 64.34% on miniF2F-Valid. This is a learned evaluator, not a sound proof of translation equivalence.
+  - **LLM input**: An informal mathematical statement and a candidate formal statement; the autoformalization component receives the informal statement alone.
+  - **LLM output**: An alignment score/ranking for the pair; the autoformalization component generates a formal statement.
+  - **Verification**: Evaluate alignment predictions and candidate selection against the benchmark reference labels. FormalAlign is a learned semantic evaluator, not a proof checker or a formal proof that the translation preserves meaning.
 
 - Learning to Prove Theorems via Interacting with Proof Assistants [[ICML'19; cited by 24](https://arxiv.org/abs/1905.09381)]
   - Background: Earlier learned interactive provers train on a few thousand theorems and choose tactics from a fixed vocabulary, preventing project-disjoint evaluation and tactics containing new local terms.
@@ -1398,200 +1316,3 @@ The main shift is from **predicting the next tactic** to **managing a proof-deve
     1. **General coding agent**: Use Claude Code to plan proofs, edit files, retrieve library facts, and coordinate auxiliary reasoning.
     2. **Numina-Lean-MCP**: Expose Lean interactions and proof feedback as tools, enabling the agent to revise its plan and proof artifacts autonomously.
   - Results: With Claude Opus 4.5, solves all twelve Putnam 2025 problems in the reported setup; additionally assists mathematicians in formalizing the Brascamp–Lieb theorem. The latter is explicitly a human–AI collaboration.
-
-## Hardware
-
-**Research trajectory.** Two threads develop in parallel. One learns decisions inside symbolic verification: NeuroPDR guides clause generalization, and NeuroBack predicts SAT phases while leaving the solver in control. The other automates verification engineering: FVEval and AssertionBench make assertion quality measurable, AssertLLM extracts properties from complete design specifications, and CodeV-SVA trains specialized assertion models. FVDebug then uses counterexamples to explain and repair failures; IC3-Evolve uses agents offline to improve the model checker itself.
-
-**Why these papers.** The selection covers two benchmark designs, specialized SVA training, learned PDR/SAT guidance, specification-to-assertion generation, counterexample debugging, and solver-code evolution. Generic RTL generation evaluated only through simulation is outside this representative subset.
-
-The workflow is **design intent → signals and temporal properties → formal checking → counterexample diagnosis**, with learned solver guidance reducing the cost of the checking step. An SVA can compile and hold while expressing a weak or vacuous property, so functional equivalence, triggering behavior, and useful coverage matter alongside pass rate.
-
-<a id="hardware-benchmark"></a>
-
-### Benchmark
-
-- AssertionBench: A Benchmark to Evaluate Large-Language Models for Assertion Generation [[Findings of NAACL'25; cited by 10](https://aclanthology.org/2025.findings-naacl.449/)]
-  - Background: Many LLM assertion-generation demonstrations evaluate only a few hand-selected circuits and lack verified reference collateral.
-  - Key problem & insight: Compare models on a shared collection of realistic RTL designs with formally checked assertions.
-  - Proposed method — AssertionBench with two components:
-    1. **Design and assertion corpus**: Curate OpenCores Verilog designs and reference assertions obtained with GoldMine and HARM.
-    2. **Assertion evaluation**: Generate properties from RTL and distinguish syntactic validity from functional correctness using formal checking.
-  - Results: 100 curated hardware designs; the study finds substantial room for improvement even for GPT-4o. Correctness of individual assertions is measured separately from completeness of design coverage.
-
-- FVEval: Understanding Language Model Capabilities in Formal Verification of Digital Hardware [[DATE'25; cited by 10](https://doi.org/10.23919/DATE64628.2025.10992720)] [[arXiv'24](https://arxiv.org/abs/2410.23299)]
-  - Background: Compiling an SVA does not establish that it expresses the intended temporal property or provides useful design coverage.
-  - Key problem & insight: Separate natural-language translation from RTL-based assertion discovery and evaluate functional semantics rather than string matching alone.
-  - Proposed method — FVEval with three tasks:
-    1. **NL2SVA-Human**: Translate expert-written natural-language properties into assertions.
-    2. **NL2SVA-Machine**: Evaluate scalable synthetic translation cases covering varied assertion structures.
-    3. **Design2SVA**: Infer assertions directly from RTL and evaluate their relationship to reference design properties.
-  - Results: The evaluated models can exceed 80% syntax correctness with examples while remaining substantially weaker on functional correctness; the benchmark exposes both strict and relaxed functional metrics.
-
-- OpenLLM-RTL: Open Dataset and Benchmark for LLM-Aided Design RTL Generation [[ICCAD'24; cited by 27](https://doi.org/10.1145/3676536.3697118)] [[arXiv'25](https://arxiv.org/abs/2503.15112)]
-  - Background: Public RTL resources are too small for controlled training studies and lack a shared formal benchmark for evaluating assertions generated from complete specifications.
-  - Key problem & insight: Release aligned generation, verification, and training resources in one framework, and formally filter synthetic instruction-code pairs for functional consistency rather than syntax alone.
-  - Proposed method — OpenLLM-RTL with three resources:
-    1. **RTLLM 2.0**: Expand the natural-language-to-RTL benchmark to 50 hand-authored designs with tests and golden implementations.
-    2. **AssertEval**: Provide 18 documented open-source designs, golden RTL, signal definitions, and one-click JasperGold scripts; score SVA syntax, FPV outcome, and cone-of-influence coverage.
-    3. **RTLCoder-Data**: Generate 80K instruction/RTL pairs and a 7K subset whose functionality is checked through generated assertions and formal verification.
-  - Results: Training on 80K samples raises Eval-Machine Pass@1 from 53.7% at 5K samples to 64.7%, 4.7 points above GPT-4. The verified 7K subset outperforms the raw 27K set across all benchmarks and the raw 50K set on 6/8 metrics while using under 20% of its training time.
-
-- WaveformQA: Benchmarking LLM Temporal Reasoning on Digital Waveforms [[IEEE ICLAD'26 abridged; cited by 0](https://arxiv.org/abs/2607.20638)]
-  - Background: Hardware debugging depends on long temporal traces, but code-oriented benchmarks do not isolate lookup, ordering, counting, correlation, and state-machine reasoning directly over waveforms.
-  - Key problem & insight: Generate questions from simulated traces with exact answers and compare representations, revealing that token efficiency and reasoning clarity trade off differently for VCD and structured event data.
-  - Proposed method — WaveformQA with three components:
-    1. **Trace corpus**: Simulate five RISC-V cores into 13 traces spanning 338–4,185 signals and increasing transition windows.
-    2. **Question generator**: Produce 360 questions in eight temporal/multi-signal categories over a 3-by-5 signal/transition complexity grid.
-    3. **Dual representation evaluation**: Encode each trace as raw VCD or event-time JSON and report aggregate accuracy, in-context accuracy, context overflow, and error type.
-  - Results: JSON improves in-context accuracy by 37–53 points over VCD despite using 15–30% more tokens. Claude Sonnet 4.6 reaches 64.7% aggregate/80.9% in-context accuracy and Gemini 2.5 Pro 57.8%/78.8%; accuracy falls 8–12 points as transitions grow from 5K to 30K.
-
-- AssertLLM2: A Comprehensive LLM Benchmark for Assertion Generation from Design Specifications [[ICCAD'26 accepted; cited by 0](https://arxiv.org/abs/2605.27472)]
-  - Background: Earlier SVA benchmarks give models golden RTL, use small modules or weak specification snippets, and reward assertions that compile or prove even when they are vacuous, shallow, or ineffective at finding bugs.
-  - Key problem & insight: Separate pre-implementation bug prevention from post-implementation bug hunting, keep golden RTL grader-only, and score meaningful coverage and injected-fault detection alongside FPV.
-  - Proposed method — AssertLLM2 with three components:
-    1. **Realistic corpus**: Curate 83 system-level designs in 13 categories with structured textual specifications, raw PDFs, dependency-complete golden RTL, and mutation-derived faulty variants.
-    2. **Two generation settings**: Generate from specification alone for **bug prevention**, or from specification plus a five-bug RTL for **bug hunting**.
-    3. **Multi-axis grader**: Measure syntax, proven/counterexample/undetermined FPV status, COI, proof and formal coverage, and single-bug mutation kill ratio.
-  - Results: GPT-5.2 has the highest syntax rate (95.0%), while Claude Sonnet 4.5 has the strongest average proof/formal coverage (23.30%/22.38%) and union bug-kill ratio (16.31%). Union generation improves coverage and bug killing, but even leading models remain below 30% proof coverage and 19% bug kill.
-
-- HierSVA: A Data Synthesis Pipeline, Dataset, and Benchmark for LLM-Driven Hierarchical Hardware Formal Verification [[arXiv'26; cited by 0](https://arxiv.org/abs/2606.13706)]
-  - Background: Existing SVA datasets flatten module context and evaluate syntax or proof pass/fail without vacuity, mutation, specification faithfulness, or hierarchical coverage.
-  - Key problem & insight: Synthesize reference assertions bottom-up with assume-guarantee contracts, then evaluate generated assertion sets along independent formal-evidence axes.
-  - Proposed method — HierSVA with three reusable components:
-    1. **HierSVA-SP**: Preprocess hierarchical RTL, expand parameter combinations, and iterate LLM generation against VC Formal FPV, formal-core, and fault-analysis feedback.
-    2. **HierSVA-DS**: Package 342 BaseJump STL modules at hierarchy depths 0–9 plus 28 expert-reviewed module/bug pairs with natural-language specifications.
-    3. **HierSVA-B**: Score compilation, proven and non-vacuous assertions, specification faithfulness, mutation coverage, formal-core coverage, and static-versus-agentic behavior.
-  - Results: Across twelve LLMs, module compile rate is 67.1%; 82.1% of assertions in evaluable runs prove non-vacuously, yet they detect only 70.2% of eligible faults and cover 36.2% of the formal core. On the deep subset, buggy-RTL recall is 0.87 but precision only 0.60.
-
-- Robustness of LLM-Generated SystemVerilog Assertions to Semantics-Preserving RTL Transformations [[arXiv'26; cited by 0](https://arxiv.org/abs/2609.05658)]
-  - Background: A model can score well on one RTL spelling while changing its assertion when operand order, identifiers, or redundant parentheses change without altering behavior.
-  - Key problem & insight: Use metamorphic testing to separate aggregate point accuracy from conditional stability on the behaviors a model originally handled correctly.
-  - Proposed method — controlled RTL-to-SVA robustness evaluation with three transformations:
-    1. **Operand reordering**: Reorder commutative condition operands while preserving the path predicate.
-    2. **Identifier renaming**: Deterministically rename signals without changing connectivity or behavior.
-    3. **Parentheses insertion**: Add redundant grouping syntax and score each assignment behavior by exhaustive Boolean equivalence.
-  - Results: On 40 programs/295 behaviors, Qwen2.5-Coder-7B loses 21.8% of baseline-correct behaviors under parentheses, while DeepSeek-Coder-V2-Lite loses 27.0%. DeepSeek's renamed-input accuracy rises by 9.8 points even though 19.5% of its previously correct behaviors regress, showing that net accuracy can hide instability.
-
-- CircuitProver: Agentic Lean 4 Theorem Proving with Reusable Circuit Proof Library for Hardware Verification [[arXiv'26; citations N/A (method-paper set)](https://arxiv.org/abs/2607.27259)]
-  - Background: Model checking verifies hardware instances independently and hides proof knowledge inside solver heuristics; interactive theorem proving yields reusable artifacts but requires extensive manual modeling and proof engineering.
-  - Key problem & insight: Translate parameterized circuits into executable Lean semantics and accumulate successful proof plans and lemmas so related designs do not restart proof search from zero.
-  - Proposed method — CircuitProver with three phases:
-    1. **Hardware autoformalization**: Translate supported Chisel ASTs into parameterized Lean state/step/output models and formalize the natural-language specification.
-    2. **Agentic proving**: Build a hardware-aware proof scaffold, query Lean for diagnostics, and iteratively generate or repair a kernel-checked proof.
-    3. **Proof accumulation**: Distill successful trajectories into natural-language guidance and a Lean theorem library for future arithmetic, state-transition, invariant, and composition tasks.
-  - Results: Solves all 63 tasks versus 58/63 for the matched vanilla agent and 31/63 for Chicala/Stainless. Reuse cuts proof rounds by 50.0%, verification time by 23.2%, and proof length by 16.3%; Opus 4.8 is the only tested backbone to reach 63/63.
-
-- Rtl2Lean: Automated RTL-to-Lean Translation with Hierarchical Theorem Generation and Lemma Reuse [[arXiv'26; citations N/A (method-paper set)](https://arxiv.org/abs/2607.16855)]
-  - Background: Proving SystemVerilog in an interactive theorem prover normally requires manual cycle semantics, state modeling, and repeated auxiliary lemmas for combinational and sequential behavior.
-  - Key problem & insight: Compile RTL into a pure Lean transition system and generate proofs bottom-up, admitting LLM-proposed lemmas only after kernel checking so they become reusable library facts.
-  - Proposed method — Rtl2Lean with three stages:
-    1. **RTL-to-Lean semantic compilation**: Parse typed SystemVerilog and lower blocking/nonblocking assignments, bit-vector operations, and processes into `State`, `Inputs`, `Outputs`, and `step` definitions.
-    2. **Four-layer theorem framework**: Generate combinational, sequential-block, step-level, and reachability/invariant theorems from local semantics to multi-cycle properties.
-    3. **Autonomous lemma generation**: When automation stalls, prompt an LLM with the goal, definitions, and Lean errors; check, repair, and store accepted intermediate lemmas.
-  - Results: Across six designs, generates and checks 403/403 theorems. Of 358 foundational lemmas, 287 are reusable automatically, an 80.2% reuse ratio, with all six designs achieving 100% proof success.
-
-- AssertionForge: Enhancing Formal Verification Assertion Generation with Structured Representation of Specifications and RTL [[ICLAD'25; citations N/A (method-paper set)](https://arxiv.org/abs/2503.19174)]
-  - Background: Specification-only generation misses internal RTL interactions, while raw specification-plus-RTL prompts overwhelm the model and fail to connect design intent with implementation paths.
-  - Key problem & insight: Build one hardware-specific knowledge graph spanning both artifacts and retrieve multi-resolution paths around each target signal.
-  - Proposed method — AssertionForge with three components:
-    1. **Unified knowledge graph**: Extract specification entities/relations with an LLM, parse RTL structure and dataflow, and align names into one graph.
-    2. **Multi-resolution context synthesis**: Combine a global design summary, signal-specific retrieval, and **GRW-AS** guided random walks through verification-relevant graph paths.
-    3. **Context pruning and SVA generation**: Use an LLM to remove redundant context, produce verification plans and assertions, and check syntax/proof/COI with JasperGold.
-  - Results: On five designs, AssertionForge yields 208 proven ETHMAC assertions versus 15 for AssertLLM and raises its COI metrics from roughly 45–50% to 98.84–100%; it also reaches near-complete COI coverage on APB, OpenMSP430, and SOCKIT. These are structural coverage results over proven properties, not requirement completeness.
-
-- SANGAM: SystemVerilog Assertion Generation via Monte Carlo Tree Self-Refine [[ICLAD'25; citations N/A (method-paper set)](https://arxiv.org/abs/2506.13983)]
-  - Background: Single-pass spec-to-SVA pipelines underuse waveforms and have little opportunity to explore alternative assertions or repair syntax and semantic omissions.
-  - Key problem & insight: Treat each signal's assertion set as a search state and use critic plus formal-tool feedback inside Monte Carlo Tree Self-Refine.
-  - Proposed method — SANGAM with three stages:
-    1. **Specification processing**: Use Signal Mapper, Spec Analyzer, and Waveform Analyzer agents to build a signal-wise information bank from text, diagrams, and timing waveforms.
-    2. **MCTSr assertion reasoning**: Select assertion nodes with UCT, expand them through critic/JasperGold feedback and RAG, rescore, and backpropagate quality over four rollouts.
-    3. **Assertion combination**: Merge reasoning paths, correct syntax, and deduplicate the final signal-level SVA set.
-  - Results: Produces 152 correct I2C assertions versus 50 for AssertLLM (+204%) and 46 RV-Timer assertions versus 11 for ChIRAAG (+254%). Both designs exceed 90% branch/toggle coverage and reach 74–84% property coverage in the reported JasperGold setup.
-
-- AssertGen: Enhancement of LLM-aided Assertion Generation through Cross-Layer Signal Bridging [[ATS'25; citations N/A (method-paper set)](https://arxiv.org/abs/2509.23674)]
-  - Background: Top-module assertions miss faults rooted in submodules because specification behaviors are scattered across text chunks and semantic levels and are not linked to concrete hierarchical RTL paths.
-  - Key problem & insight: Extract cross-signal verification objectives first, then construct a cross-layer signal chain that maps each objective to the relevant code slices before SVA generation.
-  - Proposed method — AssertGen with four steps:
-    1. **Contextual entity extraction**: Iteratively retrieve descriptions of signals, registers, and related entities from specification chunks.
-    2. **Verification-objective generation**: Use chain-of-thought prompting to combine fragmented behaviors into cross-signal properties.
-    3. **Cross-layer bridging**: Map objectives through module hierarchy and signal chains to the matching Verilog segments.
-    4. **Structured SVA generation**: Prompt over aligned objectives and RTL context, then check FPV, COI, proof-core coverage, and mutation detection.
-  - Results: On SHA3, mutation bug detection reaches 15.35% versus AssertLLM's 11.36%; on PicoRV32 it reaches 23.20%, about twice the baseline, and on ECG 8.12% versus 1.34%/0.81%. The five-design study also reports higher FPV and structural/proof coverage than AssertLLM and Spec2Assertion.
-
-- From Indiscriminate to Targeted: Functionally Critical Signal-Driven Assertion Generation using LLMs for Efficient RTL Verification [[arXiv'26; citations N/A (method-paper set)](https://arxiv.org/abs/2604.08932)]
-  - Background: Existing methods generate many assertions across arbitrary signals, while industrial verification seeks high coverage and fault exposure with minimal properties and context cost.
-  - Key problem & insight: Rank signals by their structural and behavioral influence, then give the model only the RTL slice needed to state a tightly constrained property about each selected signal.
-  - Proposed method — AgileAssert with three components:
-    1. **Semantic graph construction**: Build data/control dependencies and classify signal roles across module hierarchy.
-    2. **Hybrid criticality ranking**: Combine PageRank, observability, output boost, mux-branch influence, and redundancy filtering to select top-$K$ signals.
-    3. **Structure-aware slicing**: Extract signal-centered RTL cones and generate targeted SVAs incrementally until coverage/error-detection goals are met.
-  - Results: Uses 66.68% fewer assertions on average while improving normalized block-level branch/statement/toggle/COI coverage by 8.99/8.27/12.61/18.78 points and CPU-level coverage by 19.27/17.65/11.37/23.76. It cuts prompt tokens by 64% and, when beating baselines on mutation detection, uses 72.74% fewer assertions.
-
-- Assertain: Automated Security Assertion Generation Using Large Language Models [[MDTS'26; citations N/A (method-paper set)](https://arxiv.org/abs/2604.01583)]
-  - Background: Functional SVA generators lack explicit threat models and standardized vulnerability mapping, causing security properties to be generic, hallucinated, or unrelated to the architecture's real attack surface.
-  - Key problem & insight: Intersect RTL-structure and user-threat CWE mappings before generation, then inject the full design and refine every property against actual identifiers and temporal rules.
-  - Proposed method — Assertain with three phases:
-    1. **Knowledge mapping**: Classify the design, map both design category and threat strings to CWE sets, and retain their intersection as target weaknesses.
-    2. **Context-aware generation**: Prompt per CWE with vulnerability knowledge and full RTL to produce a scenario, natural-language property, and SVA triplet over multiple sampled runs.
-    3. **Self-reflection refinement**: Remove undefined signals, enforce reset/timing/non-vacuity rules, and emit a clean property module with both security and functional checks.
-  - Results: Across 11 designs, Assertain improves correct-assertion count, unique CWE coverage, and detected architectural flaws over direct GPT-5 by 61.22%, 59.49%, and 67.92%. It finds 15 flaws versus 8 on MIPS and 15 versus 6 on MMU, while maintaining 88–100% functional correctness across designs.
-
-<a id="hardware-training"></a>
-
-### Training
-
-- QiMeng-CodeV-SVA: Training Specialized LLMs for Hardware Assertion Generation via RTL-Grounded Bidirectional Data Synthesis [[DAC'26](https://github.com/wyt2000/CodeV-SVA)] [[arXiv'26](https://arxiv.org/abs/2603.14239)]
-  - Background: General code models have limited high-quality SVA training data, while arbitrary synthetic NL–SVA pairs can drift semantically.
-  - Key problem & insight: Ground assertion synthesis in actual RTL and use translation in both directions to filter data.
-  - Proposed method — CodeV-SVA with two components:
-    1. **RTL-grounded synthesis**: Generate assertions using large-scale open-source hardware code as the design context.
-    2. **Bidirectional data selection and training**: Translate between natural-language properties and SVA, select consistent pairs, and train specialized assertion models.
-  - Results: CodeV-SVA-14B reaches 75.8% Func.@1 on NL2SVA-Human and 84.0% on NL2SVA-Machine, matching or exceeding the compared GPT-5 and DeepSeek-R1 configurations. Bidirectional consistency is a data filter, not a proof that every NL–SVA pair is equivalent.
-
-- NeuroPDR: Integrating Neural Networks in the PDR Algorithm for Hardware Model Checking [[MLCAD'23](https://guangyuhu.me/publication/mlcad23-neuropdr/)]
-  - Background: PDR/IC3 runtime depends heavily on inductive generalization: finding compact blocking clauses that support progress across frames.
-  - Key problem & insight: Learn generalization guidance from circuit structure while retaining the model checker's symbolic validity checks.
-  - Proposed method — NeuroPDR with two components:
-    1. **Message-passing GNN**: Encode circuit information and predict guidance for inductive-clause generalization.
-    2. **PDR integration**: Apply the learned guidance during generalization, leaving final inductiveness and safety decisions to the solver.
-  - Results: Reduces convergence time by approximately 26.4% on average in the reported experiments and transfers benefits to a different benchmark set. It optimizes verification search rather than generating RTL or specifications.
-
-- NeuroBack: Improving CDCL SAT Solving using Graph Neural Networks [[ICLR'24](https://proceedings.iclr.cc/paper_files/paper/2024/hash/2f27964513a28d034530bfdd117ea31d-Abstract-Conference.html)]
-  - Background: Earlier GNN-enhanced SAT solvers can spend more time on repeated neural inference than they save in symbolic search.
-  - Key problem & insight: A single prediction of useful variable phases can guide a complete CDCL run without repeated GPU calls.
-  - Proposed method — NeuroBack with two components:
-    1. **DataBack and phase prediction**: Train a GNN on 120,286 samples to predict variable values associated with satisfying assignments/backbone structure.
-    2. **Kissat integration**: Query the model before solving, initialize phase guidance, and let the conventional CDCL solver finish the search on CPU.
-  - Results: Enables Kissat to solve up to 5.2% more SATCOMP-2022 and 7.4% more SATCOMP-2023 problems. This is general SAT infrastructure relevant to verification, not a hardware-only benchmark.
-
-<a id="hardware-agent"></a>
-
-### Agent
-
-- AssertLLM: Generating Hardware Verification Assertions from Design Specifications via Multi-LLMs [[ASP-DAC'25; cited by 51](https://zhiyuanyan.netlify.app/publication/aspdac25/)] [[arXiv'24](https://arxiv.org/abs/2411.14436)]
-  - Background: Prior NL-to-SVA methods often assume an engineer has already extracted a clean sentence and identified its corresponding RTL signals.
-  - Key problem & insight: Process complete specifications, including waveform diagrams, before attempting final assertion generation.
-  - Proposed method — AssertLLM with two components:
-    1. **Structured specification extraction**: Convert unstructured text and waveforms into template-based descriptions of signals and required behavior.
-    2. **Assertion generation**: Use the structured descriptions and a customized LLM to generate SystemVerilog assertions tied to the design.
-  - Results: Reports 88% syntactic-and-functional correctness for generated assertions and 97% cone-of-influence coverage. Coverage is a structural measure, not a claim that every architectural requirement has been verified.
-
-- FVDebug: An LLM-Driven Debugging Assistant for Automated Root Cause Analysis of Formal Verification Failures [[arXiv'25](https://arxiv.org/abs/2510.15906)]
-  - Background: A failed hardware property yields a multi-cycle counterexample, but engineers must still correlate waveforms, RTL, and design intent to identify the cause.
-  - Key problem & insight: Convert the trace into causal structure before asking the LLM to explain and repair the failure.
-  - Proposed method — FVDebug with four components:
-    1. **Causal Graph Synthesis**: Build and consolidate a directed graph from the failure trace.
-    2. **Graph Scanner**: Analyze batches of nodes with for-and-against prompting to identify plausible causes.
-    3. **Insight Rover**: Explore candidate causal explanations and rank root-cause hypotheses.
-    4. **Fix Generator**: Propose RTL repairs using multiple strategies and validate/rank the candidates.
-  - Results: On 38 SVA-Eval-Human debugging cases, reaches 71.1% Pass@1 and 86.8% Pass@5 versus 60.5% and 65.8% for the direct-LLM baseline; also studies two production-scale counterexamples.
-
-- IC3-Evolve: Proof-/Witness-Gated Offline LLM-Driven Heuristic Evolution for IC3 Hardware Model Checking [[IJCAI'26](https://www.ijcai.org/proceedings/2026/31)]
-  - Background: IC3 performance depends on interacting heuristics, and automatically optimizing solver code can accidentally introduce unsound speedups.
-  - Key problem & insight: Evolve small heuristic patches offline and require independently checkable evidence for every solved instance before accepting a patch.
-  - Proposed method — IC3-Evolve with three components:
-    1. **Slot-restricted patches**: Limit edits to defined heuristic regions rather than allow unrestricted changes to the solver.
-    2. **Proof-/witness-gated evaluation**: Independently check SAFE certificates and replay UNSAFE traces; reject candidates that fail either requirement.
-    3. **Compass&Jump**: Coordinate programmer and evaluator agents to select edit scopes and retain benchmark-improving candidates.
-  - Results: In the reported clause-propagation evolution example, PAR2 drops from 1,050.61s to 943.07s and timeouts from 25 to 21; the deployed checker performs no LLM inference. Certificate gating validates evaluated runs, not a universal proof of the modified solver's implementation.
