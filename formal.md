@@ -17,6 +17,22 @@
 
 ### Benchmark
 
+- **DafnyCOMP** — **Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification** [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
+
+  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
+
+  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
+  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
+  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
+
+- **OSVBench** — **OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification** [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
+
+  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
+
+  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
+  - **LLM output**: An executable state-machine specification for the syscall.
+  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
+
 - **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks in lean, with separate SpecGen, CodeGen, ProofGen, and combined settings.
 
   **Tasks**: Spec gen; impl gen; proof gen; combined settings. **Level**: Function level.
@@ -69,6 +85,8 @@
 
   **Tasks**: Impl gen + proof gen; proof-only; specification audit. **Level**: Repo level (real world software repos translated to lean4). Agentic
 
+  **Verification target**: The benchmark's curated Lean rewrites of source repositories, not the original Python, Dafny, Verus, or Coq source repositories.
+
 
   - **Code-and-proof**
     - **LLM input**: Repository with some empty functions/APIs, and specifications
@@ -105,7 +123,10 @@
 
   - **LLM input**: A Python source file containing a reference implementation, a docstring describing its intended behavior, and tests.
   - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and proof attempts for those specs.
-  - **Verification**: Typecheck the Lean artifact and measure proof completion, distinguishing proved theorems from `sorry` placeholders. Assess whether generated theorems cover the reference specification using an LLM coverage judge audited against human ratings. Lean checks proofs about the generated Lean implementation; this does not establish universal semantic equivalence between the original Python and the Lean translation.
+  - **Verification**:
+    1. **Implementation and tests**: Typecheck the generated Lean file and check its translated tests against the generated Lean implementation.
+    2. **Proofs**: Check the generated theorem proofs with Lean and measure how many are completed without `sorry` placeholders.
+    3. **Specification coverage**: Compare the generated theorem statements with human-curated reference specifications using an LLM judge.
 
 - VerusBench — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
 
@@ -138,23 +159,6 @@
   - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
   - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
   - **Verification**: Execute specifications through Verus `exec_spec` and compare their acceptance of input/output cases with official tests and adversarial Codeforces hacks. This tests both omitted requirements and overrestrictive specifications; it is not a universal intent-equivalence proof.
-
-- DafnyCOMP — *Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification* [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
-
-  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
-
-  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
-  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
-  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
-
-- OSVBench — *OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification* [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
-
-  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
-
-  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
-  - **LLM output**: An executable state-machine specification for the syscall.
-  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
-
 
 - miniCodeProps — *miniCodeProps: a Minimal Benchmark for Proving Code Properties* [[arXiv'24](https://arxiv.org/abs/2406.11915)] — small, self-contained Lean programs and properties.
 
@@ -402,6 +406,7 @@ Representative methods are grouped by their main technical contribution. Closely
   - Results: Releases CoqStoq with 2,226 projects and 196,929 theorems; proves 32.0% on the curated evaluation, 29% more theorems than Tactician.
 
 - **An AI Approach to Verified Production Cryptographic Libraries** [[arXiv'26](https://arxiv.org/abs/2608.00965)]
+  - Verification target: Existing Rust production-library source, kept executable-code-identical while Verus specifications and proofs are added. The reported chacha20 result covers the portable backend, not SIMD backends.
   - Background: Most proof-generation tasks supply internal contracts and lemmas; production cryptographic libraries also require discovering those intermediate interfaces.
   - Key problem & insight: Plan internal specifications and proofs while mechanically preventing changes that weaken the trusted problem statement.
   - Proposed method — CryptoProver with three components:
