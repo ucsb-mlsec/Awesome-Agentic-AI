@@ -35,8 +35,29 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
 
 ## Cyber Models
 - [Creation (TianGong)](https://github.com/AntAISecurityLab/Creation)
-- [Xekrung blog](https://alibaba-velldepth.github.io/writeups/model-track.html) [Xekrung arxiv](https://arxiv.org/abs/2605.00072)
+  - post-trained from Qwen 3.8-27B (sft and rl)
+  - creation with Deepseek V4 Pro、Qwen 3.8 Max achieves 98.5% success rate on cybergym
+- [Xekrung blog](https://alibaba-velldepth.github.io/writeups/model-track.html) 
+  - Failure-sample utilization: Invalid PoCs, build failures, and non-triggering samples are reformulated into “failure cause → corrective action” training pairs
+  - Other information is trivial
 - [Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models](https://arxiv.org/abs/2609.08418)
+  - pure sft, based on Qwen3.8-27B, teacher models GLM-5.2、DeepSeek-V4 Flash、Kimi K2.7. Kimi K3、Fable 5's traj are too 
+  - 63.24% on cybergym (Qwen3.8-27B from 54.51% to 63.24%)
+  - technique:
+    - construted a wide range of envs, collected totally 164k trajs
+      - SWE-bench-like coding tasks mined from GitHub PRs.
+      - 69,854 buildable environments derived from public CVE records.
+      - CTF challenges: 9,312  environments.
+      - Linux kernel vulnerabilities: 12,993 verified environments derived from historical security fixes.
+      - Exploit development: 1,601 cases derived from selected vulnerability, CTF, and kernel environments.
+      - Firmware and hardware: 1,003 firmware re-hosts and 374 physical-device-backed environments.
+    - When a teacher gets stuck, a human expert supplies the missing insight. The affected turns are rewritten into self-contained reasoning, and only execution-verified successful trajectories are retained for SFT.
+  - v1.1 is out, [84% on cybergym](https://verapraxis.ai/research/feyospace-v1-1)
+    - new teacher Grok 4.6
+    - more data:
+      - shifts from mining existing CVEs and public challenges to developing software and discovering vulnerabilities
+      - added binary tasks
+    - retain thinking tokens across multi-turns
 
 
 ## General coding agents
