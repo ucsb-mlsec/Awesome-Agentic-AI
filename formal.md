@@ -303,24 +303,17 @@
 - **[Automated Proof Generation for Rust Code via Self-Evolution](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)** [ICLR'25]
   - SFT of DeepSeekCoder-33B-Instruct for function-level Verus/Rust proof generation.
   - To build tasks, GPT-4o adapts small MBPP/CodeNet programs to Verus-compatible Rust and generates `requires`/`ensures`.
+  - Specification-generation SFT (to build proof tasks): input = Verus-compatible Rust implementation + docstring; target = `requires`/`ensures`. GPT-4o supplies the initial examples; a fine-tuned DeepSeekCoder generates later candidates, which are filtered against input-output tests.
   - Two tasks
     - Proof-generation SFT: input = fixed Rust implementation + `requires`/`ensures`; target = the full function with proof annotations such as loop invariants and assertions. Keep a target only if Verus verifies the function against its specification.
     - Repair SFT: input = an earlier failed proof attempt + its Verus error; target = a later, Verus-verified version of the full function.
   - **Self-evolution**: GPT-4o supplies initial verified proofs; the fine-tuned model generates new proof candidates for the existing function/specification pairs, Verus selects successful proofs, and the model is fine-tuned again. 
 
-- **Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming** [[ICSE'25](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)] [[arXiv'24](https://arxiv.org/abs/2405.01787)]
-  - **Task / task construction**: Remove the body of a top-level F* definition from real F* projects and ask for a replacement satisfying its existing type, which can encode a program specification or a proposition. FStarDataSet extracts these definitions, dependencies, and build settings from eight open-source projects.
-  - **LLM input**: The target F* type/signature, preceding file context, retrieved related examples, and selected in-scope premises.
-  - **LLM output**: One F* definition body, which may be an implementation or a proof term.
-  - **Verification / feedback**: Reinsert the body and run the isolated F* type-checking harness with SMT support; checker feedback is used for evaluation, not an LLM repair loop in this paper.
-  - **Agentic?** No — retrieval and generation form a fixed pipeline.
-  - **Weight update / algorithm**: Yes. SFT of Phi-2/StarCoder-style generators; a separate premise-selection embedding model is also trained with a similarity loss. No RL. The contribution is the reusable dataset/checker and type-directed retrieval, not a new generator optimizer.
-  - Background: F* mixes programs and proofs and delegates many obligations to SMT, but still requires experts to construct typed definitions and select useful premises.
-  - Key problem & insight: Treat each top-level definition as a type-directed synthesis problem with a reproducible F* checker.
-  - Proposed method — F* synthesis with two components:
-    1. **FStarDataSet**: Extract specifications, definitions, context, and checker support from production-related F* projects.
-    2. **Fine-tuning and premise retrieval**: Train smaller code models and augment prompts using type-based retrieval of relevant definitions.
-  - Results: The extended corpus contains approximately 940k lines and 54k definitions; on its cross-project evaluation, fine-tuned StarCoder reaches 58.13% verify@10 versus 41.63% for GPT-3.5.
+- **[Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)** [ICSE'25]
+  - SFT of Phi-2, Orca-2, and StarCoder on top-level definitions extracted from eight real F* projects.
+  - Task construction: remove one definition's body, keeping its declared type, which may specify a program's behavior or state a lemma. The original body becomes the SFT target.
+  - LLM input: the type/signature, preceding file context, retrieved similar examples, and relevant definitions from the project. LLM output: one F* body, either an implementation or a proof.
+  - Verification: insert the body at its original location and run F*'s type checker with SMT support. `verify@k` counts a task solved if at least one of k generated bodies passes. Each task completes one definition in repository context, not the whole repository.
 
 - **Re:Form -- Reducing Human Annotations in Scalable Formal Software Verification with RL in LLMs: A Preliminary Study on Dafny** [[arXiv'25](https://arxiv.org/abs/2507.16331)]
   - **Task / task construction**: Add specifications and supporting annotations to existing Dafny code. The authors clean public Dafny programs and use an LLM to translate Python programs into Dafny, generate annotations, and repair failed translations for up to ten verifier-guided rounds; verified pairs seed SFT. The separate DafnyComp evaluation composes LeetCode-derived functions into harder multi-function programs.
