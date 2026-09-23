@@ -22,7 +22,7 @@ Finally, we provide an incomplete summary of recent works on general LLM reasoni
 
 ## [Formal verification and AI](formal.md)
 
-This page traces the development of AI-assisted formal verification across code and mathematics, organized by benchmarks, training, and agents. Code receives broad coverage; mathematics focuses on representative work. Benchmark entries state the LLM input, LLM output, and verification procedure; other paper entries explain the background, key insight, method, and results.
+This page collects research on LLMs and formal verification first released in 2024 or later, across code and mathematics, organized by benchmarks, training, and agents. Code receives broad coverage; mathematics focuses on representative work. Benchmark entries state the LLM input, LLM output, and verification procedure; other paper entries explain the background, key insight, method, and results.
 
 ## How to contribute
 
