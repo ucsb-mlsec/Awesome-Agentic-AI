@@ -52,11 +52,20 @@
 
   **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
 
-  | Setting | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | Curated context | Target theorem, base context, and selected reference-proof dependencies | Lean proof | Check the theorem in its project environment. |
-  | Full repository context | Same target and base context plus broader repository declarations; retain curated dependencies when truncating | Lean proof | Apply the same project-level proof check. |
-  | Aristotle compatibility subset | Target theorem in a compiled project, additionally exposing preceding same-file lemma statements | Lean proof | Check in that project; report this easier 100-task setting separately. |
+  - **Curated context**
+    - **LLM input**: Target theorem, base context, and selected reference-proof dependencies
+    - **LLM output**: Lean proof
+    - **Verification**: Check the theorem in its project environment.
+
+  - **Full repository context**
+    - **LLM input**: Same target and base context plus broader repository declarations; retain curated dependencies when truncating
+    - **LLM output**: Lean proof
+    - **Verification**: Apply the same project-level proof check.
+
+  - **Aristotle compatibility subset**
+    - **LLM input**: Target theorem in a compiled project, additionally exposing preceding same-file lemma statements
+    - **LLM output**: Lean proof
+    - **Verification**: Check in that project; report this easier 100-task setting separately.
 
   These settings complete supplied theorems, not entire repositories. [Context definitions](https://arxiv.org/html/2602.18307#S2).
 
@@ -67,10 +76,15 @@
   **Tasks**: Impl gen + proof gen; proof-only. **Level**: Repo level (multi-module completion).
 
 
-  | Task | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | Code-and-proof | Repository scaffold, fixed APIs, definitions, and specifications | API implementations and proofs across modules | Rebuild with fixed interfaces and restricted axioms; require every specification for a full repository solve. |
-  | Proof-only | The same repository plus reference implementations | Proofs for those implementations | Check every specification against the fixed code under the same restrictions. |
+  - **Code-and-proof**
+    - **LLM input**: Repository scaffold, fixed APIs, definitions, and specifications
+    - **LLM output**: API implementations and proofs across modules
+    - **Verification**: Rebuild with fixed interfaces and restricted axioms; require every specification for a full repository solve.
+
+  - **Proof-only**
+    - **LLM input**: The same repository plus reference implementations
+    - **LLM output**: Proofs for those implementations
+    - **Verification**: Check every specification against the fixed code under the same restrictions.
 
   Formal audit tasks are listed in [Vero formal audit](#benchmark-vero-audit).
 
@@ -81,11 +95,20 @@
   **Tasks**: Specification audit (unsatisfiability / inconsistency); counterexample gen for the reference implementation (Lean proof certificates). **Level**: Repo level; certificates may target one specification or a specification family.
 
 
-  | Audit task | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | Impl: reference-code violation | Fixed specifications and reference implementation | Proof that the reference implementation fails at least one specification | Lean checks the negative certificate. |
-  | Spec: unsatisfiable requirement | Fixed definitions, API interface, and one specification | Proof that no implementation satisfies it | Lean checks unsatisfiability. |
-  | Spec: conflicting requirements | Fixed definitions, API interface, and specification family | Proof of joint inconsistency plus individual satisfiability | Lean checks both claims. |
+  - **Impl: reference-code violation**
+    - **LLM input**: Fixed specifications and reference implementation
+    - **LLM output**: Proof that the reference implementation fails at least one specification
+    - **Verification**: Lean checks the negative certificate.
+
+  - **Spec: unsatisfiable requirement**
+    - **LLM input**: Fixed definitions, API interface, and one specification
+    - **LLM output**: Proof that no implementation satisfies it
+    - **Verification**: Lean checks unsatisfiability.
+
+  - **Spec: conflicting requirements**
+    - **LLM input**: Fixed definitions, API interface, and specification family
+    - **LLM output**: Proof of joint inconsistency plus individual satisfiability
+    - **Verification**: Lean checks both claims.
 
   No successful certificate means an inconclusive audit, not established safety or consistency. [Audit definitions](https://arxiv.org/html/2608.13522#S3.S5).
 
@@ -202,12 +225,25 @@
 
   The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
 
-  | Stage | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | Specification generation | Natural-language task and Lean scaffold/signatures | Formal specification | Check compilation; semantic certification follows below. |
-  | Specification certification | Generated and reference specifications, equivalence theorem | Equivalence proof | Lean checks equivalence. |
-  | Implementation generation | Natural-language task, function signature, generated specification | Lean implementation | Check compilation; correctness certification follows below. |
-  | Implementation certification | Generated implementation, reference specification, correctness theorem | Correctness proof | Lean checks implementation correctness against the reference specification. |
+  - **Specification generation**
+    - **LLM input**: Natural-language task and Lean scaffold/signatures
+    - **LLM output**: Formal specification
+    - **Verification**: Check compilation; semantic certification follows below.
+
+  - **Specification certification**
+    - **LLM input**: Generated and reference specifications, equivalence theorem
+    - **LLM output**: Equivalence proof
+    - **Verification**: Lean checks equivalence.
+
+  - **Implementation generation**
+    - **LLM input**: Natural-language task, function signature, generated specification
+    - **LLM output**: Lean implementation
+    - **Verification**: Check compilation; correctness certification follows below.
+
+  - **Implementation certification**
+    - **LLM input**: Generated implementation, reference specification, correctness theorem
+    - **LLM output**: Correctness proof
+    - **Verification**: Lean checks implementation correctness against the reference specification.
 
   A full solve requires both certifications; compiling artifacts alone is insufficient.
 
@@ -216,12 +252,25 @@
   **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
 
 
-  | Task | LLM input | LLM output | Verification |
-  | --- | --- | --- | --- |
-  | VerifyThisBench: full task | Informal challenge and target verification language/tool | Implementation or model, specifications, and proof annotations/scripts required by the challenge | Compile and verify with the designated tool; diagnostics can drive repair. |
-  | XS Code-Gen: 226 tasks | Function specifications; implementation and proof annotations removed | Implementation and supporting proof annotations | Verify the completed program against the supplied specifications. |
-  | XS Specification-Gen: 233 tasks | Implementation and proof annotations; function specifications removed | Function specifications | Verify the completed artifact with the restored specifications. |
-  | XS Loop-Gen: 121 tasks | Specifications and implementation; loop invariants removed | Loop invariants | Check invariant obligations and overall program verification. |
+  - **VerifyThisBench: full task**
+    - **LLM input**: Informal challenge and target verification language/tool
+    - **LLM output**: Implementation or model, specifications, and proof annotations/scripts required by the challenge
+    - **Verification**: Compile and verify with the designated tool; diagnostics can drive repair.
+
+  - **XS Code-Gen: 226 tasks**
+    - **LLM input**: Function specifications; implementation and proof annotations removed
+    - **LLM output**: Implementation and supporting proof annotations
+    - **Verification**: Verify the completed program against the supplied specifications.
+
+  - **XS Specification-Gen: 233 tasks**
+    - **LLM input**: Implementation and proof annotations; function specifications removed
+    - **LLM output**: Function specifications
+    - **Verification**: Verify the completed artifact with the restored specifications.
+
+  - **XS Loop-Gen: 121 tasks**
+    - **LLM input**: Specifications and implementation; loop invariants removed
+    - **LLM output**: Loop invariants
+    - **Verification**: Check invariant obligations and overall program verification.
 
   Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge. [Task definitions](https://arxiv.org/html/2505.19271#S3).
 
