@@ -293,10 +293,12 @@
 ### Training
 
 - **[SmartInv: Multimodal Learning for Smart Contract Invariant Inference](https://www.cs.columbia.edu/~junfeng/papers/smartinv-sp24.pdf)** [IEEE S&P'24]
-
-  SmartInv trains a **LLaMA-7B** model with **LoRA supervised fine-tuning (SFT), not RL**, to infer business-logic invariants from Solidity code and natural-language clues such as comments. Researchers manually label 572 contracts with their transaction context, critical code locations, relevant invariants, which invariants are most useful for finding bugs, their priority, and known vulnerabilities. They write reusable Tier-of-Thought question templates; a script fills those templates with each contract and its human labels to create staged training examples. The questions progress from “what is this transaction and where should we check?” to “what invariant belongs there?” to “which invariants are most likely to reveal a bug?” The paper reports 2,173 resulting training samples, rather than 2,173 separately labeled contracts; it does not give an exact per-template breakdown of that total.
-
-  At inference, the model answers these questions in sequence, using earlier predictions to guide later ones. SmartInv then tries to prove the generated invariants and searches for counterexamples when proof fails; a counterexample may expose a contract bug or an incorrect candidate invariant. This is a fixed, non-agentic workflow. Its contribution is the staged training data and invariant-checking pipeline, not a new SFT optimizer.
+  - sft, lora, base model LLaMA-7B
+  - manually annotates 572 contracts with their transaction context, critical code locations, relevant invariants (for known vulns).
+  - use question templates to turn the annotation into staged questions, eventually providing invariants. e.g.,
+    - “what is this transaction and where should we check?”
+    - “what invariant belongs there?”
+    - “which invariants are most likely to reveal a bug?”
 
 - **Automated Proof Generation for Rust Code via Self-Evolution** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)]
   - **Task / task construction**: Generate Verus proof annotations for a fixed Rust implementation and specification. GPT-4o adapts MBPP/CodeNet programs to Verus-compatible Rust, then proposes pre/postconditions; compilable code and quality-filtered specifications seed proof generation. Successful Verus proofs and failed-proof/error/successful-repair triples become training examples.
