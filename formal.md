@@ -40,30 +40,25 @@
   - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space. Some heuristics to prevent the model from generating trivial properties.
 
   
-- **DafnyBench** / VerusBench — annotation completion in Dafny / Rust-Verus; standalone-program scope.
+- **DafnyBench** — **DafnyBench: A Benchmark for Formal Software Verification** [[TMLR'25](https://openreview.net/forum?id=yBgTVWccIx)] [[arXiv'24](https://arxiv.org/abs/2406.08467)] — 1,326 Dafny programs.
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
-  Papers: **DafnyBench: A Benchmark for Formal Software Verification** [[TMLR'25](https://openreview.net/forum?id=yBgTVWccIx)] [[arXiv'24](https://arxiv.org/abs/2406.08467)]; *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)]. DafnyBench contains 1,326 programs; the original VerusBench contains 150 proof tasks, with evaluation subsets varying across papers.
-  - **LLM input**: An implementation and its target contracts with selected proof annotations removed; repair attempts may also receive verifier diagnostics.
-  - **LLM output**: Missing invariants, assertions, ghost code, and supporting proof annotations.
-  - **Verification**: Run Dafny or Verus and require the target obligations to pass while preserving the executable code and target contracts. The two benchmarks share a task type; their programs and solver behavior are not interchangeable.
+  - **LLM input**: A Dafny implementation and its target specifications, with selected proof hints removed; repair attempts may receive verifier diagnostics.
+  - **LLM output**: Missing verification annotations, such as loop invariants and intermediate assertions.
+  - **Verification**: Run Dafny on the completed program and require the target obligations to pass without changing the implementation or target specifications.
 
-- RVBench / **VeriSoftBench** / Selene — proof completion with repository and systems context, grouped across Verus / Lean / Isabelle.
+- **VeriSoftBench** — **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)] — 500 proof obligations from 23 Lean repositories.
 
-  **Tasks**: Proof gen. **Level**: Repo context; individual function/theorem obligations, not whole-repo completion.
+  **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
 
-  Papers: *Towards Repository-Level Program Verification with Large Language Models* [[LMPL'25](https://arxiv.org/abs/2509.25197)]; **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)]; *Selene: Pioneering Automated Proof in Software Verification* [[ACL'24](https://aclanthology.org/2024.acl-long.98/)]. RVBench spans four Verus projects; VeriSoftBench contains 500 obligations from 23 Lean repositories; Selene draws lemmas from the seL4 verification development.
-
-  | Benchmark / setting | LLM input | LLM output | Verification |
+  | Setting | LLM input | LLM output | Verification |
   | --- | --- | --- | --- |
-  | RVBench | Fixed Verus code/contracts, a proof hole, and project context | Missing proof annotations | Run Verus in the project environment. |
-  | VeriSoftBench: curated context | Target theorem, base context, and selected reference-proof dependencies | Lean proof | Check the theorem in its project environment. |
-  | VeriSoftBench: full repository context | Same target and base context plus broader repository declarations; retain curated dependencies when truncating | Lean proof | Apply the same project-level proof check. |
-  | VeriSoftBench-Aristotle: compatibility subset | Target theorem in a compiled project, additionally exposing preceding same-file lemma statements | Lean proof | Check in that project; report this easier 100-task setting separately. |
-  | Selene | Isabelle lemma, fixed definitions/specifications, and seL4 project context | Isabelle proof commands | Check the lemma within the verification development. |
+  | Curated context | Target theorem, base context, and selected reference-proof dependencies | Lean proof | Check the theorem in its project environment. |
+  | Full repository context | Same target and base context plus broader repository declarations; retain curated dependencies when truncating | Lean proof | Apply the same project-level proof check. |
+  | Aristotle compatibility subset | Target theorem in a compiled project, additionally exposing preceding same-file lemma statements | Lean proof | Check in that project; report this easier 100-task setting separately. |
 
-  These tasks complete supplied obligations, not entire repositories. VeriSoftBench's context variants are different inputs to the same proof task. [Context definitions](https://arxiv.org/html/2602.18307#S2).
+  These settings complete supplied theorems, not entire repositories. [Context definitions](https://arxiv.org/html/2602.18307#S2).
 
 <a id="benchmark-vero"></a>
 
@@ -106,9 +101,10 @@
 
   **Tasks**: Exploit reproduction from a supplied counterexample. **Level**: Contract level.
 
+  - **Background**: SolCMC can find a property violation under abstract external-call behavior and report a counterexample without providing the external contract code that realizes that behavior. Given this counterexample, the LLM generates a concrete external contract; the verifier then checks whether its interactions with the vulnerable contract trigger the same violation.
   - **LLM input**: A vulnerable contract and an already available formal counterexample.
-  - **LLM output**: An attacker/reproduction contract and concrete interaction steps that realize the counterexample.
-  - **Verification**: Compile and run the reproduction and check that it triggers the target violation, using formal/execution feedback for repair. This evaluates realization of a known counterexample, not independent vulnerability discovery.
+  - **LLM output**: A reproduction contract—an external attacker/exploit contract that implements the behavior needed to reproduce the reported violation.
+  - **Verification**: Check compilation and use bounded cross-contract verification (BCCV) to analyze the vulnerable and generated contracts together. A successful check produces a concrete interaction trace that triggers the same violation; failed attempts provide feedback for repair. This evaluates realization of a known counterexample, not independent vulnerability discovery.
 
 - **CryptoFormalEval** — protocol attack discovery; **CryptoFormalEval: Integrating LLMs and Formal Verification for Automated Cryptographic Protocol Vulnerability Detection** [[arXiv'24](https://arxiv.org/abs/2411.13627)] — protocol-level models and message traces.
 
@@ -118,7 +114,31 @@
   - **LLM output**: A formal protocol model, encoded properties, and an attack explanation supported by tool analysis; the formal tool supplies the attack trace.
   - **Verification**: Run Tamarin and validate the attack against the intended protocol. A violation of a mistranslated model is insufficient evidence of a flaw in the original protocol.
 
-- Verus-SpecBench / Verus-SpecGym — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
+- VerusBench — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
+
+  **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
+
+  - **LLM input**: Rust/Verus code and fixed target contracts with proof annotations to complete; repair attempts can include Verus errors.
+  - **LLM output**: Invariants, assertions, ghost code, and supporting proof annotations.
+  - **Verification**: Run Verus and require the target obligations to pass while preserving executable code and target contracts.
+
+- RVBench — *Towards Repository-Level Program Verification with Large Language Models* [[LMPL'25](https://arxiv.org/abs/2509.25197)] — tasks drawn from four Verus projects.
+
+  **Tasks**: Proof gen. **Level**: Repo context; local verification obligations.
+
+  - **LLM input**: Fixed Verus code and contracts, a proof hole, and project context.
+  - **LLM output**: Missing proof annotations using the project's definitions and lemmas.
+  - **Verification**: Run Verus in the project environment. Completing the target obligation does not establish completion of the entire repository.
+
+- Selene — *Selene: Pioneering Automated Proof in Software Verification* [[ACL'24](https://aclanthology.org/2024.acl-long.98/)] — proof tasks drawn from the seL4 verification development.
+
+  **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
+
+  - **LLM input**: An Isabelle lemma, fixed definitions and specifications, and relevant seL4 project context.
+  - **LLM output**: Isabelle proof commands completing the supplied lemma.
+  - **Verification**: Check the completed lemma in Isabelle within the verification development. A successful lemma proof does not mean the entire kernel has been verified by the model.
+
+- Verus-SpecGym (benchmark: Verus-SpecBench) — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
 
   **Tasks**: Spec gen. **Level**: Function level.
 
@@ -159,14 +179,21 @@
   - **LLM output**: The missing implementation and proofs that it meets those requirements.
   - **Verification**: Check the completed artifacts in Lean without unfinished proofs or added untrusted assumptions. The guarantee concerns the supplied statements; dataset size does not imply that every specification is equally faithful to the original problem.
 
-- Vericoding benchmark / AlgoVeri — fixed-specification synthesis across Dafny, Verus, and Lean.
+- Vericoding benchmark — *A benchmark for vericoding: formally verified program synthesis* [[arXiv'25](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)] — 12,504 formal specifications across Dafny, Verus/Rust, and Lean; aggregates multiple sources, including FVAPPS and VERINA.
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
 
-  Papers: *A benchmark for vericoding: formally verified program synthesis* [[arXiv'25](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)]; *AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms* [[arXiv'26](https://arxiv.org/abs/2602.09464)]. The former aggregates multiple task sources, including FVAPPS and VERINA; the latter aligns classical algorithms across languages.
-  - **LLM input**: A formal functional specification with the implementation removed, optionally accompanied by a natural-language description.
+  - **LLM input**: A formal functional specification with the implementation removed; a separate setting additionally supplies a natural-language description.
   - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
-  - **Verification**: Run the relevant checker against the fixed specification. AlgoVeri supports comparisons on aligned algorithm tasks; aggregate results from the broader vericoding collection involve different source distributions.
+  - **Verification**: Run the corresponding Dafny, Verus, or Lean checker against the fixed specification. The language subsets have different source distributions.
+
+- AlgoVeri — *AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms* [[arXiv'26](https://arxiv.org/abs/2602.09464)] — 77 classical algorithms aligned across Dafny, Verus, and Lean.
+
+  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
+  - **LLM input**: A formal specification for an algorithm in the target language, with matching functional contracts across the language versions.
+  - **LLM output**: The algorithm implementation and the verification annotations or explicit proof scripts needed to establish its correctness.
+  - **Verification**: Check the generated implementation and proof with the target language's verifier against the supplied contract. The aligned tasks support comparisons across verification languages.
 
 - CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
 
@@ -378,11 +405,11 @@ Representative methods are grouped by their main technical contribution. Closely
   - Results: The revised arXiv version reports GPT-4o-mini precision of 91.32% for boundaries, 90.40% for types, and 80.66% for attributes. Downstream reentrancy-analysis precision improves from 72.16% with SliSE to 80.41% with SliSE+SmartHalo. Equivalence is checked against the initial decompiler output, not directly against original bytecode.
 
 - **VeriExploit: Automatic Bug Reproduction in Smart Contracts via LLMs and Formal Methods** [[ASE'25](https://pure.manchester.ac.uk/ws/portalfiles/portal/1632624289/ASE2025.pdf)]
-  - Background: A smart-contract verifier may report a counterexample without producing an attacker contract or an executable transaction sequence.
+  - Background: SolCMC can report a property violation under abstract external-call behavior without providing the external contract code that realizes that behavior. The task is to implement the required external behavior and check whether it triggers the same violation in the vulnerable contract.
   - Key problem & insight: Treat the formal counterexample as a construction guide for an executable bug reproduction.
   - Proposed method — VeriExploit with two components:
-    1. **Reproduction synthesis**: Give the LLM the vulnerable contract and counterexample to generate an attacker/reproduction contract and interaction steps.
-    2. **Validation and refinement**: Check whether the generated artifact re-triggers the target bug, then repair failed attempts using formal and execution feedback.
+    1. **Reproduction synthesis**: Give the LLM the vulnerable contract and counterexample to generate a reproduction contract: an external attacker/exploit contract that implements the required behavior.
+    2. **Validation and refinement**: Check compilation and use bounded cross-contract verification (BCCV) to validate interactions between the generated and vulnerable contracts, producing a concrete trace of the same violation or feedback for repair.
   - Results: Achieves 85.60% reproduction success on the authors' benchmark. The task starts from a supplied vulnerable contract and counterexample rather than discovering every bug from scratch.
 
 - Neuroforger: certified violation witnesses for smart contracts verification via LLMs [[arXiv'26/05](https://arxiv.org/abs/2605.31389)]
