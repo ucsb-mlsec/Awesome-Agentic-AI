@@ -17,9 +17,13 @@
 
 ### Benchmark
 
+**Agentic evaluation** here means the reported setup lets an AI system inspect intermediate results and iteratively choose or revise actions. A fixed prompt, automatic scoring, or a fixed number of repair prompts alone is marked No. Structured search agents are identified separately from open tool-using agents; the same task set can support either approach.
+
 - **DafnyCOMP** — **Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification** [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
 
   **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
+
+  **Agentic evaluation**: No — fixed multi-function completion and whole-program checking.
 
   - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
   - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
@@ -29,6 +33,8 @@
 
   **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
 
+  **Agentic evaluation**: No — specification generation and external evaluation, without an interactive agent environment.
+
   - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
   - **LLM output**: An executable state-machine specification for the syscall.
   - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
@@ -36,6 +42,8 @@
 - **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks in lean, with separate SpecGen, CodeGen, ProofGen, and combined settings.
 
   **Tasks**: Spec gen; impl gen; proof gen; combined settings. **Level**: Function level.
+
+  **Agentic evaluation**: No — staged generation tasks with checker-based scoring, without autonomous tool use.
 
   - each task has a problem description, code implementation, specifications (pre-condition and post-condition), a proof (optional), and comprehensive test cases (input-output pairs, including both positive and negative)
   - specgen: give the model description and lean function signature, ask model to generate the speficication. When verifying the result, a model will try to prove the preconditions are equivalent and postconditions are equivalent given the precondition, if the model cannot prove, then use test cases.
@@ -51,6 +59,8 @@
 
   **Tasks**: Model gen (states/transitions); spec gen (properties). **Level**: System-model level.
 
+  **Agentic evaluation**: No — a specification-generation dataset and external model-checking evaluation.
+
   - **LLM input**: A natural-language system description; a configuration including invariant names, specification names etc.
   - **LLM output**: A TLA+ specification of states, transitions, and properties.
   - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space. Some heuristics to prevent the model from generating trivial properties.
@@ -60,6 +70,8 @@
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
+  **Agentic evaluation**: No — proof completion; optional verifier-feedback repair is a fixed loop.
+
   - **LLM input**: A Dafny implementation and its target specifications, with selected verification annotations (invariants, intermediate assertions) removed; verifier feedbacks.
   - **LLM output**: Missing verification annotations
   - **Verification**: Run Dafny on the completed program and require the target obligations to pass without changing the implementation or target specifications.
@@ -67,6 +79,8 @@
 - **VeriSoftBench** — **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)] — 500 proof obligations from 23 Lean repositories, each repo is a abstract verification project(e.g., an algorithm), doesn't necessarily correspond to a software repo.
 
   **Tasks**: Proof gen. **Level**: Repo context.
+
+  **Agentic evaluation**: No in the standard model setting — context is supplied in the prompt and repair rounds are fixed; specialized provers are reported separately.
   remove the prof of one theorem, ask model to generate the prof
 
   - **Curated context**
@@ -83,7 +97,9 @@
 
 - **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
 
-  **Tasks**: Impl gen + proof gen; proof-only; specification audit. **Level**: Repo level (real world software repos translated to lean4). Agentic
+  **Tasks**: Impl gen + proof gen; proof-only; specification audit. **Level**: Repo level (real world software repos translated to lean4).
+
+  **Agentic evaluation**: Yes — agents can inspect and edit a multi-module repository and repeatedly run Lean.
 
   **Verification target**: The benchmark's curated Lean rewrites of source repositories, not the original Python, Dafny, Verus, or Coq source repositories.
 
@@ -111,6 +127,8 @@
 
   **Tasks**: Exploit reproduction from a supplied counterexample. **Level**: Contract level.
 
+  **Agentic evaluation**: No — a prescribed counterexample-to-reproduction pipeline, rather than an open-ended agent environment.
+
   - **Background**: SolCMC can find a property violation under abstract external-call behavior and report a counterexample without providing the external contract code that realizes that behavior. Given this counterexample, the LLM generates a concrete external contract; the verifier then checks whether its interactions with the vulnerable contract trigger the same violation.
   - **LLM input**: A vulnerable contract and an already available formal counterexample (generated by SolCMC; specifications are rule-based, like reentrancy checks, no divide by 0 etc).
   - **LLM output**: A reproduction contract—an external attacker/exploit contract that implements the behavior needed to reproduce the reported violation.
@@ -120,6 +138,8 @@
 - **VeriBench** — **VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4** [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
 
   **Tasks**: Impl translation (Python to Lean); spec gen; proof gen; test translation. **Level**: Function / standalone-program level.
+
+  **Agentic evaluation**: Yes — coding agents work on the source file and use Lean feedback during formalization.
 
   - **LLM input**: A Python source file containing a reference implementation, a docstring describing its intended behavior, and tests.
   - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and proof attempts for those specs.
@@ -132,6 +152,8 @@
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
+  **Agentic evaluation**: Structured agentic in AutoVerus — specialized generation and repair agents iteratively use Verus feedback; the task set itself can also be used without agents.
+
   - **LLM input**: Rust/Verus code and fixed target contracts with proof annotations to complete; repair attempts can include Verus errors.
   - **LLM output**: Invariants, assertions, ghost code, and supporting proof annotations.
   - **Verification**: Run Verus and require the target obligations to pass while preserving executable code and target contracts.
@@ -139,6 +161,8 @@
 - RVBench — *Towards Repository-Level Program Verification with Large Language Models* [[LMPL'25](https://arxiv.org/abs/2509.25197)] — tasks drawn from four Verus projects.
 
   **Tasks**: Proof gen. **Level**: Repo context; local verification obligations.
+
+  **Agentic evaluation**: No in the paper’s RagVerus setup — retrieval and optional verifier-feedback repair follow a prescribed pipeline.
 
   - **LLM input**: Fixed Verus code and contracts, a proof hole, and project context.
   - **LLM output**: Missing proof annotations using the project's definitions and lemmas.
@@ -148,6 +172,8 @@
 
   **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
 
+  **Agentic evaluation**: No — individual Isabelle proof-completion tasks with checker scoring.
+
   - **LLM input**: An Isabelle lemma, fixed definitions and specifications, and relevant seL4 project context.
   - **LLM output**: Isabelle proof commands completing the supplied lemma.
   - **Verification**: Check the completed lemma in Isabelle within the verification development. A successful lemma proof does not mean the entire kernel has been verified by the model.
@@ -155,6 +181,8 @@
 - Verus-SpecGym (benchmark: Verus-SpecBench) — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
 
   **Tasks**: Spec gen. **Level**: Function level.
+
+  **Agentic evaluation**: Yes — Verus-SpecGym exposes Verus, shell, and filesystem tools to the agent.
 
   - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
   - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
@@ -164,6 +192,8 @@
 
   **Tasks**: Proof gen. **Level**: Function/theorem level.
 
+  **Agentic evaluation**: No — individual Lean proof-completion tasks.
+
   - **LLM input**: A fixed program, its definitions, and a formal statement about its behavior.
   - **LLM output**: Lean tactics or a complete proof of the supplied property, with code and property unchanged.
   - **Verification**: Check the completed theorem in Lean; induction or auxiliary lemmas may be necessary even for short programs.
@@ -171,6 +201,8 @@
 - FVAPPS — *Proving the Coding Interview: A Benchmark for Formally Verified Code Generation* [[LLM4Code@ICSE'25](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)] — coding-problem scope; 4,715 samples, including 1,083 curated samples.
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
+  **Agentic evaluation**: No — implementation/proof completion with external Lean scoring.
 
   - **LLM input**: A Lean 4 coding task with implementation/proof holes and supplied correctness requirements.
   - **LLM output**: The missing implementation and proofs that it meets those requirements.
@@ -180,6 +212,8 @@
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
 
+  **Agentic evaluation**: No — fixed synthesis tasks checked by the target verifier.
+
   - **LLM input**: A formal functional specification with the implementation removed; a separate setting additionally supplies a natural-language description.
   - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
   - **Verification**: Run the corresponding Dafny, Verus, or Lean checker against the fixed specification. The language subsets have different source distributions.
@@ -188,6 +222,8 @@
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
 
+  **Agentic evaluation**: No — fixed aligned synthesis tasks checked by the target verifier.
+
   - **LLM input**: A formal specification for an algorithm in the target language, with matching functional contracts across the language versions.
   - **LLM output**: The algorithm implementation and the verification annotations or explicit proof scripts needed to establish its correctness.
   - **Verification**: Check the generated implementation and proof with the target language's verifier against the supplied contract. The aligned tasks support comparisons across verification languages.
@@ -195,6 +231,8 @@
 - CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
 
   **Tasks**: Spec gen; impl gen; proof gen (spec equivalence and implementation correctness). **Level**: Function level.
+
+  **Agentic evaluation**: Mixed — the main four-stage pipeline is prescribed, but a reported baseline uses the COPRA proof-search agent for proof stages.
 
 
   The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
@@ -225,6 +263,8 @@
 
   **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
 
+  **Agentic evaluation**: No in the reported setup — verifier diagnostics can drive a fixed number of repair rounds.
+
 
   - **VerifyThisBench: full task**
     - **LLM input**: Informal challenge and target verification language/tool
@@ -252,13 +292,18 @@
 
 ### Training
 
-Only papers that train or fine-tune LLM parameters are included in this section.
+All seven papers below update at least one LLM's weights, but not necessarily every model in their pipeline. **SFT/RFT** means learning from selected examples with a token-prediction loss; verifier-filtered examples alone do not make an algorithm policy-gradient RL. **Agentic** below refers to the trained model's reported task setting; a separate, scripted data-production loop does not by itself make that model an agent.
 
 
 #### LLM-based invariant inference
 
 - **SmartInv: Multimodal Learning for Smart Contract Invariant Inference** [[IEEE S&P'24](https://www.cs.columbia.edu/~junfeng/papers/smartinv/)]
-  - **LLM training**: Supervised fine-tuning of LLaMA-family models on annotated smart contracts and Tier-of-Thought examples for invariant generation. [Training code](https://github.com/columbia/SmartInv).
+  - **Task / task construction**: Infer business-logic invariants and their critical program points from Solidity. Researchers label 572 real contracts with transaction context, program points, invariants, and vulnerability information; Tier-of-Thought augmentation yields 2,173 training samples. [Training code](https://github.com/columbia/SmartInv).
+  - **LLM input**: Contract source, including natural-language clues such as comments and names, plus tiered questions; later questions receive earlier inferred answers.
+  - **LLM output**: Critical program points, candidate invariants, their ranking, and an auxiliary vulnerability prediction.
+  - **Verification / feedback**: Compile candidates, try inductive checking with Boogie/VeriSol, then use CORRAL bounded model checking to seek violations when induction fails. A counterexample may indicate either a bug or a bad inferred invariant, so it requires inspection; this checking is not the model's training loss.
+  - **Agentic?** No — inference follows a fixed sequence of tiered prompts and checks.
+  - **Weight update / algorithm**: Yes. LoRA supervised next-token fine-tuning of LLaMA-family models, not RL; the distinctive method is multimodal Tier-of-Thought labeling/prompting and ranked invariant checking, not a new optimizer. A GPT-4 prompting baseline does not update GPT-4's weights.
   - Background: Pattern-based smart-contract analyzers miss business-logic bugs when the intended transaction behavior is not explicit in the code.
   - Key problem & insight: Infer properties from both code and natural-language transaction context, then check where the implementation violates them.
   - Proposed method — SmartInv with two components:
@@ -269,7 +314,12 @@ Only papers that train or fine-tune LLM parameters are included in this section.
 #### Verifier-supervised synthesis and self-improvement
 
 - **Automated Proof Generation for Rust Code via Self-Evolution** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)]
-  - **LLM training**: Iterative LLM fine-tuning on verifier-accepted proofs and debugging examples containing failed proofs plus verifier feedback.
+  - **Task / task construction**: Generate Verus proof annotations for a fixed Rust implementation and specification. GPT-4o adapts MBPP/CodeNet programs to Verus-compatible Rust, then proposes pre/postconditions; compilable code and quality-filtered specifications seed proof generation. Successful Verus proofs and failed-proof/error/successful-repair triples become training examples.
+  - **LLM input**: Rust/Verus implementation and pre/postconditions; the debugging mode also supplies a failed proof and Verus diagnostics.
+  - **LLM output**: Proof annotations, including loop invariants and assertions, or repaired annotations; the specification-generation stage outputs pre/postconditions.
+  - **Verification / feedback**: Verus checks the completed function against its specification and filters proof examples. Tests and a specification-quality measure filter the earlier specification data.
+  - **Agentic?** No for the trained model's direct generation/debugging tasks; the paper runs an automated multi-round data and fine-tuning pipeline.
+  - **Weight update / algorithm**: Yes. Iterative SFT of open code models on selected specification, proof, and repair examples; no policy-gradient RL or new optimizer. The contribution is the self-evolving data/filtering loop and explicit verifier-error repair training.
   - Background: Open models have little exposure to Verus proofs, and human-written Rust proof corpora are too small for ordinary large-scale fine-tuning.
   - Key problem & insight: A verifier labels both successful proofs and failed attempts, supporting generation training and debugging training together.
   - Proposed method — SAFE with two components:
@@ -278,7 +328,12 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: Achieves 52.52% proof-generation accuracy on the authors' expert-built benchmark versus 14.39% for GPT-4o; this comparison concerns that benchmark and configuration.
 
 - **Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming** [[ICSE'25](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)] [[arXiv'24](https://arxiv.org/abs/2405.01787)]
-  - **LLM training**: Fine-tune code language models, including StarCoder and Phi-2, on F* definitions and proofs.
+  - **Task / task construction**: Remove the body of a top-level F* definition from real F* projects and ask for a replacement satisfying its existing type, which can encode a program specification or a proposition. FStarDataSet extracts these definitions, dependencies, and build settings from eight open-source projects.
+  - **LLM input**: The target F* type/signature, preceding file context, retrieved related examples, and selected in-scope premises.
+  - **LLM output**: One F* definition body, which may be an implementation or a proof term.
+  - **Verification / feedback**: Reinsert the body and run the isolated F* type-checking harness with SMT support; checker feedback is used for evaluation, not an LLM repair loop in this paper.
+  - **Agentic?** No — retrieval and generation form a fixed pipeline.
+  - **Weight update / algorithm**: Yes. SFT of Phi-2/StarCoder-style generators; a separate premise-selection embedding model is also trained with a similarity loss. No RL. The contribution is the reusable dataset/checker and type-directed retrieval, not a new generator optimizer.
   - Background: F* mixes programs and proofs and delegates many obligations to SMT, but still requires experts to construct typed definitions and select useful premises.
   - Key problem & insight: Treat each top-level definition as a type-directed synthesis problem with a reproducible F* checker.
   - Proposed method — F* synthesis with two components:
@@ -287,7 +342,12 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: The extended corpus contains approximately 940k lines and 54k definitions; on its cross-project evaluation, fine-tuned StarCoder reaches 58.13% verify@10 versus 41.63% for GPT-3.5.
 
 - **Re:Form -- Reducing Human Annotations in Scalable Formal Software Verification with RL in LLMs: A Preliminary Study on Dafny** [[arXiv'25](https://arxiv.org/abs/2507.16331)]
-  - **LLM training**: Supervised fine-tuning followed by regularized reinforcement learning using Dafny verification feedback.
+  - **Task / task construction**: Add specifications and supporting annotations to existing Dafny code. The authors clean public Dafny programs and use an LLM to translate Python programs into Dafny, generate annotations, and repair failed translations for up to ten verifier-guided rounds; verified pairs seed SFT. The separate DafnyComp evaluation composes LeetCode-derived functions into harder multi-function programs.
+  - **LLM input**: An existing Dafny implementation with annotations removed.
+  - **LLM output**: The full Dafny program with preconditions, postconditions, and proof-supporting annotations restored; the model reproduces the code body to avoid an annotation-positioning task.
+  - **Verification / feedback**: Dafny checks compilation and whether the implementation satisfies the generated annotations. RL also rewards a generated specification when Dafny proves it at least as strong as the reference under the paper's pre/post implication tests; verification alone can reward weak specifications.
+  - **Agentic?** No for the trained model's evaluated response; data curation uses a fixed LLM-and-verifier repair workflow.
+  - **Weight update / algorithm**: Yes. SFT warm start followed by regularized GRPO. GRPO is an existing RL algorithm; the paper's distinctive pieces are automated Dafny data construction and syntax, verification, and specification-strength rewards.
   - Background: RL for verified programming is limited by scarce annotated demonstrations and the difficulty of producing initially valid formal-language programs.
   - Key problem & insight: Automatically construct Dafny training tasks, bootstrap syntax and proof competence with SFT, then refine using verifier feedback.
   - Proposed method — Re:Form with two stages:
@@ -296,7 +356,12 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: On the paper's 300-task out-of-distribution DafnyComp subset, the 14B RL model reaches 14.0% Pass@1 versus 8.3% for its SFT counterpart and 2.7% for the Claude data-generator baseline; the study also demonstrates initial verifiable-code competence with a 0.5B model.
 
 - **SpecRL: Reinforcement Learning with Test-Based Completeness Rewards for Formal Specification Synthesis** [[arXiv'26](https://arxiv.org/abs/2604.05820)]
-  - **LLM training**: Train the specification-generating LLM with reinforcement learning rewards combining verification success and rejection of negative input-output tests.
+  - **Task / task construction**: Strip pre/postconditions and auxiliary annotations from existing deterministic Dafny programs (main RL training uses Py2Dfy-Spec). Offline, an LLM proposes concrete inputs, the original implementation supplies actual outputs, and the LLM mutates them into impossible input-output pairs called spectests.
+  - **LLM input**: The stripped Dafny implementation, with its method signature and executable body fixed.
+  - **LLM output**: Preconditions, postconditions, and auxiliary annotations such as loop invariants in a completed Dafny program.
+  - **Verification / feedback**: Check extraction/compilation and Dafny verification first; for verified candidates, execute a predicate for the proposed specification on spectests and reward the fraction of impossible pairs it rejects. This is empirical completeness evidence, not a proof that the specification captures every behavior.
+  - **Agentic?** No for the trained model: it generates an answer directly at inference. The offline spectest builder has a fixed LLM-assisted repair/enhancement workflow.
+  - **Weight update / algorithm**: Yes. Starts from Re:Form SFT checkpoints, then updates them with standard GRPO. The new component is the execution-backed spectest construction and completeness reward, not a new RL optimizer.
   - Background: A verifier can accept `ensures true`; rewarding verification success alone encourages weak specifications that say little about the implementation.
   - Key problem & insight: Add negative input-output examples that distinguish useful specifications from vacuous ones.
   - Proposed method — SpecRL with two components:
@@ -305,7 +370,12 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: On out-of-distribution DafnyComp-Spec, the 7B model improves verification success by 49.96% and empirical completeness by 26.46% relative to SFT. Spectests improve measured completeness; they do not establish logical completeness.
 
 - **Formal Disco: Scalable Open-Ended Generation of Formally Verified Programs** [[arXiv'26](https://arxiv.org/abs/2607.04631)]
-  - **LLM training**: Iteratively fine-tune Qwen2.5-Coder-32B-Instruct with LoRA on successful generation and repair trajectories selected for program diversity. [Training code](https://github.com/metareflection/formal-disco#distillation-and-self-improvement).
+  - **Task / task construction**: Create verified programs without a fixed problem list. An Initiator draws inspiration from repository READMEs and language-documentation snippets; a Fixer repairs failures; an Extender adds methods or lemmas to verified programs. Successful worker calls become training examples. [Training code](https://github.com/metareflection/formal-disco#distillation-and-self-improvement).
+  - **LLM input**: Initiator: seed snippets and language instructions; Fixer: current program and compiler/verifier errors; Extender: an already verified program and its context.
+  - **LLM output**: A new program with specifications and proofs, or a diff that repairs or extends one.
+  - **Verification / feedback**: Compile and verify each resulting Dafny, Verus, or Frama-C program; successful calls are retained, then ranked for rare program features before training. Checker success establishes the generated formal artifact, not fidelity to a sampled README.
+  - **Agentic?** Yes in the data-generation system: agenda-driven LLM workers create, repair, and extend artifacts with tool feedback. The trained model is a worker inside this structured workflow, not an unrestricted repository agent.
+  - **Weight update / algorithm**: Yes. Distill seed frontier-model calls into Qwen2.5-Coder-32B-Instruct, then iterate LoRA/SFT on verifier-successful, diversity-selected calls. No policy-gradient RL; the entropy objective acts through example ranking/filtering, not a new gradient optimizer.
   - Background: Self-training is constrained by a small seed corpus and can keep regenerating similar easy programs.
   - Key problem & insight: Separate the creation, repair, and extension of verified programs, then train for both success and diversity.
   - Proposed method — Formal Disco with three worker roles:
@@ -315,11 +385,16 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: Produces datasets for Dafny, Verus, and Frama-C; the final Qwen generation's largest verified examples exceed the largest Claude seed examples by 22–62% in lines of code across those languages, alongside downstream verification evaluations.
 
 - **Propose, Solve, Verify: Self-Play Through Formal Verification** [[ICML'26](https://icml.cc/virtual/2026/poster/63571)]
-  - **LLM training**: Update the solver LLM through expert iteration on formally verified solutions generated during self-play. [Paper](https://arxiv.org/abs/2512.18160).
+  - **Task / task construction**: Start with Verus specifications. A proposer sees examples labeled Easy/Medium/Hard/Impossible by the current solver's verified pass rate and generates new pre/postcondition problems at a target difficulty; proposed specifications are parsed, deduplicated, and checked for validity. [Paper](https://arxiv.org/abs/2512.18160).
+  - **LLM input**: Solver: a fixed Verus specification and prompt example; proposer: prior specifications, difficulty labels, and target difficulty.
+  - **LLM output**: Solver: Rust/Verus implementation plus proof annotations; proposer: new Verus specifications/tasks.
+  - **Verification / feedback**: Verus checks solver candidates against the fixed specification. Only verified solutions enter solver training; verification pass rates set proposer difficulty labels. A separate spec checker filters ill-formed proposals.
+  - **Agentic?** No for an individual solver attempt: it generates a complete candidate rather than exploring tools. The overall propose–solve–verify self-play loop is automated.
+  - **Weight update / algorithm**: Yes for the solver: rejection fine-tuning (RFT), i.e. SFT/cross-entropy on verified sampled solutions, not GRPO. The proposer is updated by changing its in-context examples, not by weight training. Novelty lies in difficulty-aware task proposal combined with the established RFT procedure.
   - Background: Expert iteration on a fixed problem set eventually runs out of new solvable examples, while test-only self-play can reinforce incorrect solutions.
   - Key problem & insight: Couple a difficulty-aware problem proposer to a solver, using formal verification as the acceptance signal.
-  - Proposed method — Propose, Solve, Verify (PSV) with two learned roles:
-    1. **Proposer**: Generate new formal programming tasks calibrated to the current solver's ability.
+  - Proposed method — Propose, Solve, Verify (PSV) with two roles:
+    1. **Proposer**: Generate new formal programming tasks calibrated to the current solver's ability through updated in-context examples.
     2. **Solver**: Attempt the tasks, retain verified solutions, and improve through expert iteration before the next proposal round.
   - Results: PSV-Verus improves Pass@1 by up to 9.6x over the paper's inference-only and expert-iteration baselines across three benchmarks; gains depend on both verification and difficulty-aware proposal.
 
