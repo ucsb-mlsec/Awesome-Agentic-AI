@@ -109,7 +109,7 @@
   - **Verification**: analyze the vulnerable and generated contracts together using SolCMC. A successful check produces a concrete interaction trace that triggers the same violation.
 
 
-- VeriBench — *VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4* [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
+- **VeriBench** — **VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4** [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
 
   **Tasks**: Impl translation (Python to Lean); spec gen; proof gen; test translation. **Level**: Function / standalone-program level.
 
