@@ -3,7 +3,7 @@
 ## Table of Contents
 
 - [Code](#code)
-  - [Benchmark](#code-benchmark): [Spec](#code-benchmark-spec) / [Proof](#code-benchmark-proof) / [Impl](#code-benchmark-impl) / [E2E](#code-benchmark-e2e) / [Counterexample](#code-benchmark-counterexample)
+  - [Benchmark](#code-benchmark)
   - [Training](#code-training)
   - [Agent](#code-agent)
 - [Math](#math)
@@ -17,11 +17,10 @@
 
 ### Benchmark
 
-<a id="code-benchmark-spec"></a>
-
-#### Spec — generate what should hold
-
 - **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks in lean, with separate SpecGen, CodeGen, ProofGen, and combined settings.
+
+  **Tasks**: Spec gen; impl gen; proof gen; combined settings. **Level**: Function level.
+
   - each task has a problem description, code implementation, specifications (pre-condition and post-condition), a proof (optional), and comprehensive test cases (input-output pairs, including both positive and negative)
   - specgen: give the model description and lean function signature, ask model to generate the speficication. When verifying the result, a model will try to prove the preconditions are equivalent and postconditions are equivalent given the precondition, if the model cannot prove, then use test cases.
     - Good precondition should reject illegal inputs and accept legal inputs, good postconditions should reject (legal input+wrong output) and accept (legal input+correct output).
@@ -32,108 +31,169 @@
       - SpecGen＋ProofGen: Give the LLM description＋Lean function signature＋implementation; generate specification and a proof that the implementation satisfies it.
       - CodeGen＋SpecGen＋ProofGen: Give the LLM description＋Lean function signature; generate code and specification, then provide the reference specification to generate the code’s correctness proof.
     
-- TLA+-Bench — **TLA+-Bench: An Execution-Grounded Benchmark and Dataset for Natural-Language to TLA+ Specification Generation** [[arXiv'26](https://arxiv.org/abs/2607.23425)] — focus on model checking and temporal logic; 403 TLC-runnable gold specifications and 897 parse-only silver specifications.
+- **TLA+-Bench** — **TLA+-Bench: An Execution-Grounded Benchmark and Dataset for Natural-Language to TLA+ Specification Generation** [[arXiv'26](https://arxiv.org/abs/2607.23425)] — focus on model checking and temporal logic; 403 TLC-runnable gold specifications and 897 parse-only silver specifications.
+
+  **Tasks**: Model gen (states/transitions); spec gen (properties). **Level**: System-model level.
+
   - **LLM input**: A natural-language system description; a configuration including invariant names, specification names etc.
   - **LLM output**: A TLA+ specification of states, transitions, and properties.
   - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space. Some heuristics to prevent the model from generating trivial properties.
 
   
 - Verus-SpecBench / Verus-SpecGym — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
+
+  **Tasks**: Spec gen. **Level**: Function level.
+
   - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
   - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
   - **Verification**: Execute specifications through Verus `exec_spec` and compare their acceptance of input/output cases with official tests and adversarial Codeforces hacks. This tests both omitted requirements and overrestrictive specifications; it is not a universal intent-equivalence proof.
 
 - DafnyCOMP — *Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification* [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
+
+  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
+
   - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
   - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
   - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
 
 - OSVBench — *OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification* [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
+
+  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
+
   - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
   - **LLM output**: An executable state-machine specification for the syscall.
   - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
 
 
-<a id="code-benchmark-proof"></a>
+- **DafnyBench** / VerusBench — annotation completion in Dafny / Rust-Verus; standalone-program scope.
 
-#### Proof — keep the implementation and target property fixed
+  **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
-- **DafnyBench** / **VerusBench** — annotation completion in Dafny / Rust-Verus; standalone-program scope.
-  Papers: **DafnyBench: A Benchmark for Formal Software Verification** [[TMLR'25](https://openreview.net/forum?id=yBgTVWccIx)] [[arXiv'24](https://arxiv.org/abs/2406.08467)]; **AutoVerus: Automated Proof Generation for Rust Code** [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)]. DafnyBench contains 1,326 programs; the original VerusBench contains 150 proof tasks, with evaluation subsets varying across papers.
+  Papers: **DafnyBench: A Benchmark for Formal Software Verification** [[TMLR'25](https://openreview.net/forum?id=yBgTVWccIx)] [[arXiv'24](https://arxiv.org/abs/2406.08467)]; *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)]. DafnyBench contains 1,326 programs; the original VerusBench contains 150 proof tasks, with evaluation subsets varying across papers.
   - **LLM input**: An implementation and its target contracts with selected proof annotations removed; repair attempts may also receive verifier diagnostics.
   - **LLM output**: Missing invariants, assertions, ghost code, and supporting proof annotations.
   - **Verification**: Run Dafny or Verus and require the target obligations to pass while preserving the executable code and target contracts. The two benchmarks share a task type; their programs and solver behavior are not interchangeable.
 
 - miniCodeProps — *miniCodeProps: a Minimal Benchmark for Proving Code Properties* [[arXiv'24](https://arxiv.org/abs/2406.11915)] — small, self-contained Lean programs and properties.
+
+  **Tasks**: Proof gen. **Level**: Function/theorem level.
+
   - **LLM input**: A fixed program, its definitions, and a formal statement about its behavior.
   - **LLM output**: Lean tactics or a complete proof of the supplied property, with code and property unchanged.
   - **Verification**: Check the completed theorem in Lean; induction or auxiliary lemmas may be necessary even for short programs.
 
-- RVBench / VeriSoftBench / Selene — proof completion with repository and systems context, grouped across Verus / Lean / Isabelle.
-  Papers: *Towards Repository-Level Program Verification with Large Language Models* [[LMPL'25](https://arxiv.org/abs/2509.25197)]; *VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean* [[arXiv'26](https://arxiv.org/abs/2602.18307)]; *Selene: Pioneering Automated Proof in Software Verification* [[ACL'24](https://aclanthology.org/2024.acl-long.98/)]. RVBench spans four Verus projects; VeriSoftBench contains 500 obligations from 23 Lean repositories; Selene draws lemmas from the seL4 verification development.
-  - **LLM input**: A proof hole or target lemma, fixed definitions and specifications, and project context. VeriSoftBench separately supplies curated dependencies or the full repository.
-  - **LLM output**: Verus annotations, Lean proofs, or Isabelle proof commands that complete the target obligation using project definitions and lemmas.
-  - **Verification**: Check the replacement with the corresponding verifier in its project environment. A solved repository-dependent lemma counts as a local success, not completion of the entire repository; context selection and project diversity also differ across these datasets.
+- RVBench / **VeriSoftBench** / Selene — proof completion with repository and systems context, grouped across Verus / Lean / Isabelle.
 
-<a id="code-benchmark-impl"></a>
+  **Tasks**: Proof gen. **Level**: Repo context; individual function/theorem obligations, not whole-repo completion.
 
-#### Impl — generate code under a supplied specification
+  Papers: *Towards Repository-Level Program Verification with Large Language Models* [[LMPL'25](https://arxiv.org/abs/2509.25197)]; **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)]; *Selene: Pioneering Automated Proof in Software Verification* [[ACL'24](https://aclanthology.org/2024.acl-long.98/)]. RVBench spans four Verus projects; VeriSoftBench contains 500 obligations from 23 Lean repositories; Selene draws lemmas from the seL4 verification development.
+
+  | Benchmark / setting | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | RVBench | Fixed Verus code/contracts, a proof hole, and project context | Missing proof annotations | Run Verus in the project environment. |
+  | VeriSoftBench: curated context | Target theorem, base context, and selected reference-proof dependencies | Lean proof | Check the theorem in its project environment. |
+  | VeriSoftBench: full repository context | Same target and base context plus broader repository declarations; retain curated dependencies when truncating | Lean proof | Apply the same project-level proof check. |
+  | VeriSoftBench-Aristotle: compatibility subset | Target theorem in a compiled project, additionally exposing preceding same-file lemma statements | Lean proof | Check in that project; report this easier 100-task setting separately. |
+  | Selene | Isabelle lemma, fixed definitions/specifications, and seL4 project context | Isabelle proof commands | Check the lemma within the verification development. |
+
+  These tasks complete supplied obligations, not entire repositories. VeriSoftBench's context variants are different inputs to the same proof task. [Context definitions](https://arxiv.org/html/2602.18307#S2).
 
 - FVAPPS — *Proving the Coding Interview: A Benchmark for Formally Verified Code Generation* [[LLM4Code@ICSE'25](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)] — coding-problem scope; 4,715 samples, including 1,083 curated samples.
+
+  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
   - **LLM input**: A Lean 4 coding task with implementation/proof holes and supplied correctness requirements.
   - **LLM output**: The missing implementation and proofs that it meets those requirements.
   - **Verification**: Check the completed artifacts in Lean without unfinished proofs or added untrusted assumptions. The guarantee concerns the supplied statements; dataset size does not imply that every specification is equally faithful to the original problem.
 
 - Vericoding benchmark / AlgoVeri — fixed-specification synthesis across Dafny, Verus, and Lean.
+
+  **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
+
   Papers: *A benchmark for vericoding: formally verified program synthesis* [[arXiv'25](https://arxiv.org/abs/2509.22908)] [[Dafny@POPL'26](https://popl26.sigplan.org/details/dafny-2026-papers/13/A-benchmark-for-vericoding-formally-verified-program-synthesis)]; *AlgoVeri: An Aligned Benchmark for Verified Code Generation on Classical Algorithms* [[arXiv'26](https://arxiv.org/abs/2602.09464)]. The former aggregates multiple task sources, including FVAPPS and VERINA; the latter aligns classical algorithms across languages.
   - **LLM input**: A formal functional specification with the implementation removed, optionally accompanied by a natural-language description.
   - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
   - **Verification**: Run the relevant checker against the fixed specification. AlgoVeri supports comparisons on aligned algorithm tasks; aggregate results from the broader vericoding collection involve different source distributions.
 
+<a id="benchmark-vero"></a>
+
 - **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
-  - **LLM input**: A repository scaffold with fixed APIs, definitions, and formal specifications; proof-only mode additionally supplies implementations.
-  - **LLM output**: Implementations and proofs across modules, or proofs alone in proof-only mode.
-  - **Verification**: Rebuild under the benchmark's fixed interface and axiom restrictions; distinguish individual specification success from completion of every obligation in a repository. This is repository-scale code-and-proof synthesis from fixed specifications, not natural-language-to-specification generation.
+
+  **Tasks**: Impl gen + proof gen; proof-only. **Level**: Repo level (multi-module completion).
 
 
-<a id="code-benchmark-e2e"></a>
+  | Task | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | Code-and-proof | Repository scaffold, fixed APIs, definitions, and specifications | API implementations and proofs across modules | Rebuild with fixed interfaces and restricted axioms; require every specification for a full repository solve. |
+  | Proof-only | The same repository plus reference implementations | Proofs for those implementations | Check every specification against the fixed code under the same restrictions. |
 
-#### E2E — generate specifications, implementations, and proofs
+  Formal audit tasks are listed in [Vero formal audit](#benchmark-vero-audit).
 
-The **VERINA** combined settings are the reused starting point here; see [its input/output and separate evaluators](#code-benchmark-spec). The following retain different evaluation boundaries.
+- CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
 
-- **CLEVER** — **CLEVER: A Curated Benchmark for Formally Verified Code Generation** [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
-  - **LLM input**: A natural-language programming task and Lean scaffold; the evaluator retains a human-written reference specification.
-  - **LLM output**: A formal specification, an implementation, and certification proofs for specification equivalence and implementation correctness.
-  - **Verification**: Check specification equivalence against the held-out reference and implementation correctness against the reference requirement in Lean. Code satisfying a weak, self-generated specification alone does not pass; the reference still defines the intended meaning.
+  **Tasks**: Spec gen; impl gen; proof gen (spec equivalence and implementation correctness). **Level**: Function level.
+
+
+  The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
+
+  | Stage | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | Specification generation | Natural-language task and Lean scaffold/signatures | Formal specification | Check compilation; semantic certification follows below. |
+  | Specification certification | Generated and reference specifications, equivalence theorem | Equivalence proof | Lean checks equivalence. |
+  | Implementation generation | Natural-language task, function signature, generated specification | Lean implementation | Check compilation; correctness certification follows below. |
+  | Implementation certification | Generated implementation, reference specification, correctness theorem | Correctness proof | Lean checks implementation correctness against the reference specification. |
+
+  A full solve requires both certifications; compiling artifacts alone is insufficient.
 
 - VerifyThisBench — *VerifyThisBench: Generating Code, Specifications, and Proofs All at Once* [[arXiv'25](https://arxiv.org/abs/2505.19271)] — 41 verification-competition challenges represented as 154 tasks across seven tools, plus 580 completion tasks in VerifyThisBenchXS.
-  - **LLM input**: An informal challenge description and target verification language; XS variants supply partial artifacts with code, specifications, or invariants removed.
-  - **LLM output**: Specifications, implementations, and proof annotations/scripts, or the missing artifact in a completion task.
-  - **Verification**: Compile and verify with the designated tool, feeding diagnostics back for repair. Verifier acceptance checks the encoded requirement; it does not by itself certify a faithful translation of the informal challenge.
 
-<a id="code-benchmark-counterexample"></a>
+  **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
 
-#### Counterexample — produce checkable negative evidence
 
-These distinguish the artifact being challenged (Spec or Impl) and whether the LLM discovers a violation or receives a counterexample as input. Where no broadly reused standalone benchmark is established here, representative evaluation suites remain explicitly labeled.
+  | Task | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | VerifyThisBench: full task | Informal challenge and target verification language/tool | Implementation or model, specifications, and proof annotations/scripts required by the challenge | Compile and verify with the designated tool; diagnostics can drive repair. |
+  | XS Code-Gen: 226 tasks | Function specifications; implementation and proof annotations removed | Implementation and supporting proof annotations | Verify the completed program against the supplied specifications. |
+  | XS Specification-Gen: 233 tasks | Implementation and proof annotations; function specifications removed | Function specifications | Verify the completed artifact with the restored specifications. |
+  | XS Loop-Gen: 121 tasks | Specifications and implementation; loop invariants removed | Loop invariants | Check invariant obligations and overall program verification. |
 
-- Vero formal audit — Spec / Impl; an audit mode of the [repository benchmark above](#code-benchmark-impl), not an additional dataset [[arXiv'26](https://arxiv.org/abs/2608.13522)].
-  - **LLM input**: A fixed specification or specification family and the reference implementation.
-  - **LLM output**: A Lean proof that a specification is unsatisfiable, specifications conflict, or the reference implementation violates a specification.
-  - **Verification**: Check the negative certificate in Lean under the audit restrictions. A code/specification mismatch needs adjudication to identify which artifact is wrong; an unsuccessful audit establishes neither consistency nor correctness.
+  Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge. [Task definitions](https://arxiv.org/html/2505.19271#S3).
 
-- Neuroforger — Impl violation discovery; *Neuroforger: certified violation witnesses for smart contracts verification via LLMs* [[arXiv'26](https://arxiv.org/abs/2605.31389)] — a method evaluation suite of 110 smart-contract verification tasks.
+<a id="benchmark-vero-audit"></a>
+
+- **Vero formal audit** — Spec / Impl; an audit mode of the [Vero repository benchmark](#benchmark-vero), not an additional dataset [[arXiv'26](https://arxiv.org/abs/2608.13522)].
+
+  **Tasks**: Specification audit (unsatisfiability / inconsistency); counterexample gen for the reference implementation (Lean proof certificates). **Level**: Repo level; certificates may target one specification or a specification family.
+
+
+  | Audit task | LLM input | LLM output | Verification |
+  | --- | --- | --- | --- |
+  | Impl: reference-code violation | Fixed specifications and reference implementation | Proof that the reference implementation fails at least one specification | Lean checks the negative certificate. |
+  | Spec: unsatisfiable requirement | Fixed definitions, API interface, and one specification | Proof that no implementation satisfies it | Lean checks unsatisfiability. |
+  | Spec: conflicting requirements | Fixed definitions, API interface, and specification family | Proof of joint inconsistency plus individual satisfiability | Lean checks both claims. |
+
+  No successful certificate means an inconclusive audit, not established safety or consistency. [Audit definitions](https://arxiv.org/html/2608.13522#S3.S5).
+
+- **Neuroforger** — Impl violation discovery; **Neuroforger: certified violation witnesses for smart contracts verification via LLMs** [[arXiv'26](https://arxiv.org/abs/2605.31389)] — a method evaluation suite of 110 smart-contract verification tasks.
+
+  **Tasks**: Counterexample gen (executable violation witnesses). **Level**: Contract level.
+
   - **LLM input**: A Solidity contract and a GATE specification describing the shape of an admissible violation witness.
   - **LLM output**: Concrete contracts, transaction sequences, and values instantiating that witness.
   - **Verification**: Check the instantiation against the specification and execute it with Forge; the prototype's type validation includes manual checking. Successful execution certifies the particular violation; failed search is inconclusive.
 
 - **VeriExploit** — Impl counterexample-to-reproduction; **VeriExploit: Automatic Bug Reproduction in Smart Contracts via LLMs and Formal Methods** [[ASE'25](https://pure.manchester.ac.uk/ws/portalfiles/portal/1632624289/ASE2025.pdf)] — a method evaluation suite for executable smart-contract bug reproduction.
+
+  **Tasks**: Exploit reproduction from a supplied counterexample. **Level**: Contract level.
+
   - **LLM input**: A vulnerable contract and an already available formal counterexample.
   - **LLM output**: An attacker/reproduction contract and concrete interaction steps that realize the counterexample.
   - **Verification**: Compile and run the reproduction and check that it triggers the target violation, using formal/execution feedback for repair. This evaluates realization of a known counterexample, not independent vulnerability discovery.
 
-- CryptoFormalEval — protocol attack discovery; *CryptoFormalEval: Integrating LLMs and Formal Verification for Automated Cryptographic Protocol Vulnerability Detection* [[arXiv'24](https://arxiv.org/abs/2411.13627)] — protocol-level models and message traces.
+- **CryptoFormalEval** — protocol attack discovery; **CryptoFormalEval: Integrating LLMs and Formal Verification for Automated Cryptographic Protocol Vulnerability Detection** [[arXiv'24](https://arxiv.org/abs/2411.13627)] — protocol-level models and message traces.
+
+  **Tasks**: Model gen; spec gen; attack discovery with formal-tool traces. **Level**: Protocol level.
+
   - **LLM input**: An informal cryptographic protocol description, target security properties, and access to Tamarin feedback.
   - **LLM output**: A formal protocol model, encoded properties, and an attack explanation supported by tool analysis; the formal tool supplies the attack trace.
   - **Verification**: Run Tamarin and validate the attack against the intended protocol. A violation of a mistranslated model is insufficient evidence of a flaw in the original protocol.
@@ -352,7 +412,10 @@ Representative methods are grouped by their main technical contribution. Closely
 
 PutnamBench covers formalized undergraduate competition problems. Subsequent use includes [Goedel-Prover-V2](https://arxiv.org/abs/2508.03613).
 
-- PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition [[NeurIPS'24 — Datasets and Benchmarks](https://proceedings.neurips.cc/paper_files/paper/2024/file/1582eaf9e0cf349e1e5a6ee453100aa1-Paper-Datasets_and_Benchmarks_Track.pdf)]
+- **PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition** [[NeurIPS'24 — Datasets and Benchmarks](https://proceedings.neurips.cc/paper_files/paper/2024/file/1582eaf9e0cf349e1e5a6ee453100aa1-Paper-Datasets_and_Benchmarks_Track.pdf)]
+
+  **Tasks**: Proof gen. **Level**: Individual mathematical theorem.
+
   - **LLM input**: A formalized Putnam competition problem with the required definitions in Lean 4, Isabelle, or Coq.
   - **LLM output**: A proof of the supplied formal statement.
   - **Verification**: Check the proof in the corresponding assistant without changing the theorem or introducing unproved assumptions; use the task set of the stated benchmark version.
