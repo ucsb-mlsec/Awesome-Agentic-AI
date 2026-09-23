@@ -44,11 +44,11 @@
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
-  - **LLM input**: A Dafny implementation and its target specifications, with selected proof hints removed; repair attempts may receive verifier diagnostics.
-  - **LLM output**: Missing verification annotations, such as loop invariants and intermediate assertions.
+  - **LLM input**: A Dafny implementation and its target specifications, with selected verification annotations (invariants, intermediate assertions) removed; verifier feedbacks.
+  - **LLM output**: Missing verification annotations
   - **Verification**: Run Dafny on the completed program and require the target obligations to pass without changing the implementation or target specifications.
 
-- **VeriSoftBench** — **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)] — 500 proof obligations from 23 Lean repositories.
+- **VeriSoftBench** — **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)] — 500 proof obligations from 23 Lean repositories, each repo is a abstract verification project(e.g., an algorithm), doesn't necessarily correspond to a software repo.
 
   **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
 
