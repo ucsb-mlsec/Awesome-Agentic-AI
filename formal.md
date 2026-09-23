@@ -17,27 +17,27 @@
 
 ### Benchmark
 
-Priority benchmarks: **DafnyBench**, **VERINA**, **CLEVER**, and **Vero**. Bold paper titles mark priority reading: 17 papers in Code and 3 in Math, including all seven Code Training papers. The other entries provide additional task and scale coverage.
-
-The groups below organize benchmarks by what the LLM must produce. Related language variants share an entry, with differences in their checkers and scope stated explicitly. Dataset size and verification scope are separate: thousands of independent functions do not constitute a repository-level task.
-
-| Task | What is generated? | Coverage retained |
-| --- | --- | --- |
-| [Spec](#code-benchmark-spec) | Contracts, specifications, or state-transition models | Individual functions; cross-function contracts; kernel operations; whole-system behavior |
-| [Proof](#code-benchmark-proof) | Annotations, tactics, or complete proofs for fixed code and properties | Standalone functions; repository-dependent lemmas; systems proofs |
-| [Impl](#code-benchmark-impl) | Implementations, plus any required correctness proofs, under fixed specifications | Coding problems; aligned algorithms across languages; complete multi-module repositories |
-| [E2E](#code-benchmark-e2e) | Specifications, implementations, and proofs from informal requirements | Function-level generation; verification-competition challenges; specification-faithfulness certification |
-| [Counterexample](#code-benchmark-counterexample) | Evidence against a specification or implementation | Specification inconsistency; implementation violations; executable exploit reproduction; protocol attacks |
-
 <a id="code-benchmark-spec"></a>
 
 #### Spec — generate what should hold
 
-- **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks, with separate SpecGen, CodeGen, ProofGen, and combined settings.
-  - **LLM input**: For SpecGen, a natural-language programming task and a Lean 4 specification scaffold; other settings supply the code or specification needed for the selected task.
-  - **LLM output**: Preconditions and postconditions for SpecGen; implementations and/or correctness proofs in the other settings.
-  - **Verification**: Test specifications against positive and negative cases using Lean decision procedures and property-based testing; test generated code and check generated proofs with Lean. Specification test success does not establish universal equivalence to the intended requirement.
+- **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks in lean, with separate SpecGen, CodeGen, ProofGen, and combined settings.
+  - each task has a problem description, code implementation, specifications (pre-condition and post-condition), a proof (optional), and comprehensive test cases (input-output pairs, including both positive and negative)
+  - specgen: give the model description and lean function signature, ask model to generate the speficication. When verifying the result, a model will try to prove the preconditions are equivalent and postconditions are equivalent given the precondition, if the model cannot prove, then use test cases.
+    - Good precondition should reject illegal inputs and accept legal inputs, good postconditions should reject (legal input+wrong output) and accept (legal input+correct output).
+  - CodeGen: Give the model a description and Lean function signature, optionally with the reference specification, generate the implementation and check its outputs against test cases. 
+  - ProofGen: Give the model the description, function signature, implementation, and specification; generate a correctness proof and check it with Lean.
+  - Combined:
+      - CodeGen＋ProofGen: Give the LLM description＋Lean function signature＋reference specification; generate code and its correctness proof.
+      - SpecGen＋ProofGen: Give the LLM description＋Lean function signature＋implementation; generate specification and a proof that the implementation satisfies it.
+      - CodeGen＋SpecGen＋ProofGen: Give the LLM description＋Lean function signature; generate code and specification, then provide the reference specification to generate the code’s correctness proof.
+    
+- TLA+-Bench — **TLA+-Bench: An Execution-Grounded Benchmark and Dataset for Natural-Language to TLA+ Specification Generation** [[arXiv'26](https://arxiv.org/abs/2607.23425)] — focus on model checking and temporal logic; 403 TLC-runnable gold specifications and 897 parse-only silver specifications.
+  - **LLM input**: A natural-language system description; a configuration including invariant names, specification names etc.
+  - **LLM output**: A TLA+ specification of states, transitions, and properties.
+  - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space. Some heuristics to prevent the model from generating trivial properties.
 
+  
 - Verus-SpecBench / Verus-SpecGym — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
   - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
   - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
@@ -53,10 +53,6 @@ The groups below organize benchmarks by what the LLM must produce. Related langu
   - **LLM output**: An executable state-machine specification for the syscall.
   - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
 
-- TLA+-Bench — *TLA+-Bench: An Execution-Grounded Benchmark and Dataset for Natural-Language to TLA+ Specification Generation* [[arXiv'26](https://arxiv.org/abs/2607.23425)] — system models; 403 TLC-runnable gold specifications and 897 parse-only silver specifications.
-  - **LLM input**: A natural-language system description; an interface-aware setting also supplies required constant and property names.
-  - **LLM output**: A TLA+ specification of states, transitions, and properties.
-  - **Verification**: Parse with SANY, bind to the reference configuration, and run TLC over the configured finite state space; additional screens check meaningful state evolution and property vacuity. Parsing and bounded model-checking success do not establish unrestricted intent fidelity.
 
 <a id="code-benchmark-proof"></a>
 
@@ -99,7 +95,6 @@ The groups below organize benchmarks by what the LLM must produce. Related langu
   - **LLM output**: Implementations and proofs across modules, or proofs alone in proof-only mode.
   - **Verification**: Rebuild under the benchmark's fixed interface and axiom restrictions; distinguish individual specification success from completion of every obligation in a repository. This is repository-scale code-and-proof synthesis from fixed specifications, not natural-language-to-specification generation.
 
-The **VERINA** CodeGen and CodeGen+ProofGen settings also cover this group; see its entry under [Spec](#code-benchmark-spec).
 
 <a id="code-benchmark-e2e"></a>
 
@@ -147,7 +142,6 @@ These distinguish the artifact being challenged (Spec or Impl) and whether the L
 
 ### Training
 
-All seven papers in this section are priority reading.
 
 #### LLM-based invariant inference
 
