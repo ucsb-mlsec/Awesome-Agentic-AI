@@ -50,24 +50,18 @@
 
 - **VeriSoftBench** — **VeriSoftBench: Repository-Scale Formal Verification Benchmarks for Lean** [[arXiv'26](https://arxiv.org/abs/2602.18307)] — 500 proof obligations from 23 Lean repositories, each repo is a abstract verification project(e.g., an algorithm), doesn't necessarily correspond to a software repo.
 
-  **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
+  **Tasks**: Proof gen. **Level**: Repo context.
+  remove the prof of one theorem, ask model to generate the prof
 
   - **Curated context**
-    - **LLM input**: Target theorem, base context, and selected reference-proof dependencies
+    - **LLM input**: Target theorem, and author-selected reference-proof dependencies
     - **LLM output**: Lean proof
     - **Verification**: Check the theorem in its project environment.
 
   - **Full repository context**
-    - **LLM input**: Same target and base context plus broader repository declarations; retain curated dependencies when truncating
+    - **LLM input**: Target theorem, and whole repo with truncation
     - **LLM output**: Lean proof
-    - **Verification**: Apply the same project-level proof check.
-
-  - **Aristotle compatibility subset**
-    - **LLM input**: Target theorem in a compiled project, additionally exposing preceding same-file lemma statements
-    - **LLM output**: Lean proof
-    - **Verification**: Check in that project; report this easier 100-task setting separately.
-
-  These settings complete supplied theorems, not entire repositories. [Context definitions](https://arxiv.org/html/2602.18307#S2).
+    - **Verification**: Check the theorem in its project environment.
 
 <a id="benchmark-vero"></a>
 
