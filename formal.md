@@ -235,7 +235,7 @@
   **Agentic evaluation**: Mixed — the main four-stage pipeline is prescribed, but a reported baseline uses the COPRA proof-search agent for proof stages.
 
 
-  The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification. [Evaluation pipeline](https://arxiv.org/html/2505.13938#S3).
+  The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification.
 
   - **Specification generation**
     - **LLM input**: Natural-language task and Lean scaffold/signatures
@@ -286,32 +286,17 @@
     - **LLM output**: Loop invariants
     - **Verification**: Check invariant obligations and overall program verification.
 
-  Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge. [Task definitions](https://arxiv.org/html/2505.19271#S3).
+  Verifier acceptance concerns the encoded requirements; it does not independently certify their faithfulness to the informal challenge.
 
 <a id="code-training"></a>
 
 ### Training
 
-All seven papers below update at least one LLM's weights, but not necessarily every model in their pipeline. **SFT/RFT** means learning from selected examples with a token-prediction loss; verifier-filtered examples alone do not make an algorithm policy-gradient RL. **Agentic** below refers to the trained model's reported task setting; a separate, scripted data-production loop does not by itself make that model an agent.
+- **[SmartInv: Multimodal Learning for Smart Contract Invariant Inference](https://www.cs.columbia.edu/~junfeng/papers/smartinv-sp24.pdf)** [IEEE S&P'24]
 
+  SmartInv trains a **LLaMA-7B** model with **LoRA supervised fine-tuning (SFT), not RL**, to infer business-logic invariants from Solidity code and natural-language clues such as comments. Researchers manually label 572 contracts with their transaction context, critical code locations, relevant invariants, which invariants are most useful for finding bugs, their priority, and known vulnerabilities. They write reusable Tier-of-Thought question templates; a script fills those templates with each contract and its human labels to create staged training examples. The questions progress from “what is this transaction and where should we check?” to “what invariant belongs there?” to “which invariants are most likely to reveal a bug?” The paper reports 2,173 resulting training samples, rather than 2,173 separately labeled contracts; it does not give an exact per-template breakdown of that total.
 
-#### LLM-based invariant inference
-
-- **SmartInv: Multimodal Learning for Smart Contract Invariant Inference** [[IEEE S&P'24](https://www.cs.columbia.edu/~junfeng/papers/smartinv/)]
-  - **Task / task construction**: Infer business-logic invariants and their critical program points from Solidity. Researchers label 572 real contracts with transaction context, program points, invariants, and vulnerability information; Tier-of-Thought augmentation yields 2,173 training samples. [Training code](https://github.com/columbia/SmartInv).
-  - **LLM input**: Contract source, including natural-language clues such as comments and names, plus tiered questions; later questions receive earlier inferred answers.
-  - **LLM output**: Critical program points, candidate invariants, their ranking, and an auxiliary vulnerability prediction.
-  - **Verification / feedback**: Compile candidates, try inductive checking with Boogie/VeriSol, then use CORRAL bounded model checking to seek violations when induction fails. A counterexample may indicate either a bug or a bad inferred invariant, so it requires inspection; this checking is not the model's training loss.
-  - **Agentic?** No — inference follows a fixed sequence of tiered prompts and checks.
-  - **Weight update / algorithm**: Yes. LoRA supervised next-token fine-tuning of LLaMA-family models, not RL; the distinctive method is multimodal Tier-of-Thought labeling/prompting and ranked invariant checking, not a new optimizer. A GPT-4 prompting baseline does not update GPT-4's weights.
-  - Background: Pattern-based smart-contract analyzers miss business-logic bugs when the intended transaction behavior is not explicit in the code.
-  - Key problem & insight: Infer properties from both code and natural-language transaction context, then check where the implementation violates them.
-  - Proposed method — SmartInv with two components:
-    1. **Tier of Thought (ToT)**: Fine-tune and prompt a foundation model to reason across source code and contextual descriptions before generating invariants.
-    2. **Invariant checking**: Validate generated properties against the contract and use violations to localize suspicious behavior.
-  - Results: Reports 119 previously unknown bugs; of eight sampled reports sent to developers, six were fixed and five confirmed as high severity. Bug counts are not equivalent to a completeness guarantee for the inferred properties.
-
-#### Verifier-supervised synthesis and self-improvement
+  At inference, the model answers these questions in sequence, using earlier predictions to guide later ones. SmartInv then tries to prove the generated invariants and searches for counterexamples when proof fails; a counterexample may expose a contract bug or an incorrect candidate invariant. This is a fixed, non-agentic workflow. Its contribution is the staged training data and invariant-checking pipeline, not a new SFT optimizer.
 
 - **Automated Proof Generation for Rust Code via Self-Evolution** [[ICLR'25](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)]
   - **Task / task construction**: Generate Verus proof annotations for a fixed Rust implementation and specification. GPT-4o adapts MBPP/CodeNet programs to Verus-compatible Rust, then proposes pre/postconditions; compilable code and quality-filtered specifications seed proof generation. Successful Verus proofs and failed-proof/error/successful-repair triples become training examples.
@@ -370,7 +355,7 @@ All seven papers below update at least one LLM's weights, but not necessarily ev
   - Results: On out-of-distribution DafnyComp-Spec, the 7B model improves verification success by 49.96% and empirical completeness by 26.46% relative to SFT. Spectests improve measured completeness; they do not establish logical completeness.
 
 - **Formal Disco: Scalable Open-Ended Generation of Formally Verified Programs** [[arXiv'26](https://arxiv.org/abs/2607.04631)]
-  - **Task / task construction**: Create verified programs without a fixed problem list. An Initiator draws inspiration from repository READMEs and language-documentation snippets; a Fixer repairs failures; an Extender adds methods or lemmas to verified programs. Successful worker calls become training examples. [Training code](https://github.com/metareflection/formal-disco#distillation-and-self-improvement).
+  - **Task / task construction**: Create verified programs without a fixed problem list. An Initiator draws inspiration from repository READMEs and language-documentation snippets; a Fixer repairs failures; an Extender adds methods or lemmas to verified programs. Successful worker calls become training examples.
   - **LLM input**: Initiator: seed snippets and language instructions; Fixer: current program and compiler/verifier errors; Extender: an already verified program and its context.
   - **LLM output**: A new program with specifications and proofs, or a diff that repairs or extends one.
   - **Verification / feedback**: Compile and verify each resulting Dafny, Verus, or Frama-C program; successful calls are retained, then ranked for rare program features before training. Checker success establishes the generated formal artifact, not fidelity to a sampled README.
@@ -385,7 +370,7 @@ All seven papers below update at least one LLM's weights, but not necessarily ev
   - Results: Produces datasets for Dafny, Verus, and Frama-C; the final Qwen generation's largest verified examples exceed the largest Claude seed examples by 22–62% in lines of code across those languages, alongside downstream verification evaluations.
 
 - **Propose, Solve, Verify: Self-Play Through Formal Verification** [[ICML'26](https://icml.cc/virtual/2026/poster/63571)]
-  - **Task / task construction**: Start with Verus specifications. A proposer sees examples labeled Easy/Medium/Hard/Impossible by the current solver's verified pass rate and generates new pre/postcondition problems at a target difficulty; proposed specifications are parsed, deduplicated, and checked for validity. [Paper](https://arxiv.org/abs/2512.18160).
+  - **Task / task construction**: Start with Verus specifications. A proposer sees examples labeled Easy/Medium/Hard/Impossible by the current solver's verified pass rate and generates new pre/postcondition problems at a target difficulty; proposed specifications are parsed, deduplicated, and checked for validity.
   - **LLM input**: Solver: a fixed Verus specification and prompt example; proposer: prior specifications, difficulty labels, and target difficulty.
   - **LLM output**: Solver: Rust/Verus implementation plus proof annotations; proposer: new Verus specifications/tasks.
   - **Verification / feedback**: Verus checks solver candidates against the fixed specification. Only verified solutions enter solver training; verification pass rates set proposer difficulty labels. A separate spec checker filters ill-formed proposals.
@@ -537,7 +522,7 @@ Representative methods are grouped by their main technical contribution. Closely
 
 ### Benchmark
 
-PutnamBench covers formalized undergraduate competition problems. Subsequent use includes [Goedel-Prover-V2](https://arxiv.org/abs/2508.03613).
+PutnamBench covers formalized undergraduate competition problems. Subsequent use includes Goedel-Prover-V2.
 
 - **PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition** [[NeurIPS'24 — Datasets and Benchmarks](https://proceedings.neurips.cc/paper_files/paper/2024/file/1582eaf9e0cf349e1e5a6ee453100aa1-Paper-Datasets_and_Benchmarks_Track.pdf)]
 
@@ -591,7 +576,7 @@ Only papers that train or fine-tune LLM parameters are included in this section.
   - Results: Solves three of five non-geometry IMO 2024 problems; combined with AlphaGeometry 2, the system achieves silver-medal-equivalent performance using multi-day computation. This was not an ordinary timed, fully automatic natural-language competition entry.
 
 - Gold-medalist Performance in Solving Olympiad Geometry with AlphaGeometry2 [[JMLR'25](https://www.jmlr.org/papers/v26/25-1654.html)] [[arXiv'25](https://arxiv.org/abs/2502.03544)]
-  - **LLM training**: Train Gemini-based language models on synthetic geometry proofs, including fine-tuning a pretrained math-specialized Gemini model. [Training setup and Appendix B](https://arxiv.org/html/2502.03544#S6).
+  - **LLM training**: Train Gemini-based language models on synthetic geometry proofs, including fine-tuning a pretrained math-specialized Gemini model.
   - Background: General-purpose theorem proving is difficult, but Euclidean geometry admits strong domain-specific symbolic deduction and large-scale synthetic data.
   - Key problem & insight: Let a neural model suggest auxiliary constructions while a specialized symbolic engine derives and checks geometric consequences.
   - Proposed method — AlphaGeometry2 with three components:
