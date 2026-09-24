@@ -280,11 +280,12 @@
 
 - **[Automated Proof Generation for Rust Code via Self-Evolution](https://proceedings.iclr.cc/paper_files/paper/2025/hash/b2e20d7402c9985eae4ba924c65370a8-Abstract-Conference.html)** [ICLR'25]
   - SFT of DeepSeekCoder-33B-Instruct for function-level Verus/Rust proof generation.
-  - To build tasks, GPT-4o adapts small MBPP/CodeNet programs to Verus-compatible Rust and generates `requires`/`ensures`.
-  - Specification-generation SFT (to build proof tasks): input = Verus-compatible Rust implementation + docstring; target = `requires`/`ensures`. GPT-4o supplies the initial examples; a fine-tuned DeepSeekCoder generates later candidates, which are filtered against input-output tests.
-  - Two tasks
-    - Proof-generation SFT: input = fixed Rust implementation + `requires`/`ensures`; target = the full function with proof annotations such as loop invariants and assertions. Keep a target only if Verus verifies the function against its specification.
-    - Repair SFT: input = an earlier failed proof attempt + its Verus error; target = a later, Verus-verified version of the full function.
+  - Initially, to build tasks, GPT-4o adapts small MBPP/CodeNet programs to Verus-compatible Rust and generates `requires`/`ensures`.
+  - Train two models
+    - Specification-generation model (to build proof tasks): input = Verus-compatible Rust implementation + docstring; target = `requires`/`ensures`. GPT-4o supplies the initial examples; a fine-tuned DeepSeekCoder generates later candidates, which are filtered against input-output tests.
+    - Proof+impl geenration model:
+      - Proof-generation SFT: input = fixed Rust implementation + `requires`/`ensures`; target = the full function with proof annotations such as loop invariants and assertions. Keep a target only if Verus verifies the function against its specification.
+      - Repair SFT: input = an earlier failed proof attempt + its Verus error; target = a later, Verus-verified version of the full function.
   - **Self-evolution**: GPT-4o supplies initial verified proofs; the fine-tuned model generates new proof candidates for the existing function/specification pairs, Verus selects successful proofs, and the model is fine-tuned again. 
 
 - **[Towards Neural Synthesis for SMT-Assisted Proof-Oriented Programming](https://www.microsoft.com/en-us/research/publication/towards-neural-synthesis-for-smt-assisted-proof-oriented-programming/)** [ICSE'25]
