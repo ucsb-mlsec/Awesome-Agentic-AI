@@ -41,7 +41,7 @@ Under each category, we have techniques and benchmarks. Under each paper, we lis
   - Failure-sample utilization: Invalid PoCs, build failures, and non-triggering samples are reformulated into “failure cause → corrective action” training pairs
   - Other information is trivial
 - [Feyospace-v1: How the Cyber Mercury Seven Trained Frontier Cyber Models](https://arxiv.org/abs/2609.08418)
-  - pure sft, based on Qwen3.8-27B, teacher models GLM-5.2、DeepSeek-V4 Flash、Kimi K2.7. Kimi K3、Fable 5's traj are too 
+  - pure sft, based on Qwen3.8-27B, teacher models GLM-5.2、DeepSeek-V4 Flash、Kimi K2.7. （Kimi K3、Fable 5's traj are too concise)
   - 63.24% on cybergym (Qwen3.8-27B from 54.51% to 63.24%)
   - technique:
     - construted a wide range of envs, collected totally 164k trajs
