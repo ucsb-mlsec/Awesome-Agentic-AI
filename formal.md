@@ -302,47 +302,22 @@
   - Evaluation: syntax validity, verification success, and relative specification strength on held-out programs and multi-function DafnyComp. On 300 DafnyComp tasks, the 14B RL model reaches 14.0% verified pass@1 versus 8.3% for SFT; strength is measured against Claude's reference, not independently established intent.
 
 - **SpecRL: Reinforcement Learning with Test-Based Completeness Rewards for Formal Specification Synthesis** [[arXiv'26](https://arxiv.org/abs/2604.05820)]
-  - **Task / task construction**: Strip pre/postconditions and auxiliary annotations from existing deterministic Dafny programs (main RL training uses Py2Dfy-Spec). Offline, an LLM proposes concrete inputs, the original implementation supplies actual outputs, and the LLM mutates them into impossible input-output pairs called spectests.
-  - **LLM input**: The stripped Dafny implementation, with its method signature and executable body fixed.
-  - **LLM output**: Preconditions, postconditions, and auxiliary annotations such as loop invariants in a completed Dafny program.
-  - **Verification / feedback**: Check extraction/compilation and Dafny verification first; for verified candidates, execute a predicate for the proposed specification on spectests and reward the fraction of impossible pairs it rejects. This is empirical completeness evidence, not a proof that the specification captures every behavior.
-  - **Agentic?** No for the trained model: it generates an answer directly at inference. The offline spectest builder has a fixed LLM-assisted repair/enhancement workflow.
-  - **Weight update / algorithm**: Yes. Starts from Re:Form SFT checkpoints, then updates them with standard GRPO. The new component is the execution-backed spectest construction and completeness reward, not a new RL optimizer.
-  - Background: A verifier can accept `ensures true`; rewarding verification success alone encourages weak specifications that say little about the implementation.
-  - Key problem & insight: Add negative input-output examples that distinguish useful specifications from vacuous ones.
-  - Proposed method — SpecRL with two components:
-    1. **Spectests**: Construct implementation-impossible input-output pairs that an underspecified contract may still allow.
-    2. **Completeness reward**: For verifier-accepted candidates, reward the fraction of spectests rejected by the generated specification.
-  - Results: On out-of-distribution DafnyComp-Spec, the 7B model improves verification success by 49.96% and empirical completeness by 26.46% relative to SFT. Spectests improve measured completeness; they do not establish logical completeness.
+  - Re:Form rewards a specification if Dafny proves it at least as strong as a reference; SpecRL instead rewards how many wrong outputs it rejects. For each method, an LLM proposes five inputs; the implementation supplies the real outputs, and the LLM proposes three wrong outputs per input. The reward measures only these finite tests.
 
 - **Formal Disco: Scalable Open-Ended Generation of Formally Verified Programs** [[arXiv'26](https://arxiv.org/abs/2607.04631)]
-  - **Task / task construction**: Create verified programs without a fixed problem list. An Initiator draws inspiration from repository READMEs and language-documentation snippets; a Fixer repairs failures; an Extender adds methods or lemmas to verified programs. Successful worker calls become training examples.
-  - **LLM input**: Initiator: seed snippets and language instructions; Fixer: current program and compiler/verifier errors; Extender: an already verified program and its context.
-  - **LLM output**: A new program with specifications and proofs, or a diff that repairs or extends one.
-  - **Verification / feedback**: Compile and verify each resulting Dafny, Verus, or Frama-C program; successful calls are retained, then ranked for rare program features before training. Checker success establishes the generated formal artifact, not fidelity to a sampled README.
-  - **Agentic?** Yes in the data-generation system: agenda-driven LLM workers create, repair, and extend artifacts with tool feedback. The trained model is a worker inside this structured workflow, not an unrestricted repository agent.
-  - **Weight update / algorithm**: Yes. Distill seed frontier-model calls into Qwen2.5-Coder-32B-Instruct, then iterate LoRA/SFT on verifier-successful, diversity-selected calls. No policy-gradient RL; the entropy objective acts through example ranking/filtering, not a new gradient optimizer.
-  - Background: Self-training is constrained by a small seed corpus and can keep regenerating similar easy programs.
-  - Key problem & insight: Separate the creation, repair, and extension of verified programs, then train for both success and diversity.
-  - Proposed method — Formal Disco with three worker roles:
-    1. **Initiators**: Use repository READMEs and documentation to propose new verification tasks and programs.
-    2. **Fixers**: Repair candidates using compiler and verifier diagnostics.
-    3. **Extenders**: Expand already verified programs; collect trajectories for distillation and iterative SFT with an entropy-maximization objective.
-  - Results: Produces datasets for Dafny, Verus, and Frama-C; the final Qwen generation's largest verified examples exceed the largest Claude seed examples by 22–62% in lines of code across those languages, alongside downstream verification evaluations.
+  - **Goal / corpus**: Generate complete Dafny, Verus, and Frama-C programs containing implementations, specifications, and proof annotations. Repository READMEs and language-reference snippets inspire topics and features; they are not requirements to implement.
+  - **Agentic data generation**: An agenda assigns three LLM workers. Initiator takes a README and up to two language-documentation snippets and outputs a new program. Fixer takes a failed program and compiler/verifier errors and outputs a repair diff. Extender takes a verified program and outputs a diff adding a method or lemma. Compile and verify after each change; successful programs enter the corpus.
+  - **Worker SFT**: Record each worker's prompt, response, and verification result. Seed successful examples with Claude 4.5 Sonnet/Opus, then LoRA/SFT Qwen2.5-Coder-32B-Instruct on successful calls. Let Qwen generate the next round and retrain on the top third of verified examples ranked for rare program features (loop shapes, annotation counts, lemma and method sizes).
+  - **Downstream SFT tasks**: From a verified program, remove assertions and loop invariants: input = implementation plus specifications; output = a diff restoring the annotations. Or remove a lemma body: input = program plus lemma statement; output = its proof. Separately fine-tune Qwen2.5-Coder-32B on these pairs and check generated completions with the verifier.
+  - **Evaluation**: Over 100k verified programs; on VerusBench annotation generation, the fine-tuned model reaches 43% pass@1 versus 8.7% for base Qwen. Verification checks each program against its generated specifications, not against the README's intent.
 
 - **Propose, Solve, Verify: Self-Play Through Formal Verification** [[ICML'26](https://icml.cc/virtual/2026/poster/63571)]
-  - **Task / task construction**: Start with Verus specifications. A proposer sees examples labeled Easy/Medium/Hard/Impossible by the current solver's verified pass rate and generates new pre/postcondition problems at a target difficulty; proposed specifications are parsed, deduplicated, and checked for validity.
-  - **LLM input**: Solver: a fixed Verus specification and prompt example; proposer: prior specifications, difficulty labels, and target difficulty.
-  - **LLM output**: Solver: Rust/Verus implementation plus proof annotations; proposer: new Verus specifications/tasks.
-  - **Verification / feedback**: Verus checks solver candidates against the fixed specification. Only verified solutions enter solver training; verification pass rates set proposer difficulty labels. A separate spec checker filters ill-formed proposals.
-  - **Agentic?** No for an individual solver attempt: it generates a complete candidate rather than exploring tools. The overall propose–solve–verify self-play loop is automated.
-  - **Weight update / algorithm**: Yes for the solver: rejection fine-tuning (RFT), i.e. SFT/cross-entropy on verified sampled solutions, not GRPO. The proposer is updated by changing its in-context examples, not by weight training. Novelty lies in difficulty-aware task proposal combined with the established RFT procedure.
-  - Background: Expert iteration on a fixed problem set eventually runs out of new solvable examples, while test-only self-play can reinforce incorrect solutions.
-  - Key problem & insight: Couple a difficulty-aware problem proposer to a solver, using formal verification as the acceptance signal.
-  - Proposed method — Propose, Solve, Verify (PSV) with two roles:
-    1. **Proposer**: Generate new formal programming tasks calibrated to the current solver's ability through updated in-context examples.
-    2. **Solver**: Attempt the tasks, retain verified solutions, and improve through expert iteration before the next proposal round.
-  - Results: PSV-Verus improves Pass@1 by up to 9.6x over the paper's inference-only and expert-iteration baselines across three benchmarks; gains depend on both verification and difficulty-aware proposal.
+  - **Goal / seed tasks**: Train a model to implement Verus function specifications. In the headline test-time-training setting, each benchmark's existing specifications form the initial question pool; reference implementations are not training answers. A question specifies a function interface and optional `requires`/`ensures`, but leaves the implementation blank.
+  - **Solver input / output**: Given one specification and a worked prompt example, Qwen2.5-Coder-3B-Instruct generates a Rust/Verus implementation with any needed proof annotations. Sample ten solutions per question and check each against the fixed specification with Verus.
+  - **Solver training (RFT/SFT)**: For each question with a verified solution, retain at most one `(input = specification, target = verified implementation plus proof annotations)` pair. Fine-tune the solver on these pairs; questions with no verified solution add no training example.
+  - **Proposer input / output**: Its prompt contains twelve existing specifications labeled Easy/Medium/Hard/Impossible by the current solver's pass rate, plus a requested difficulty. The LLM reasons about the examples and writes a *new* Verus function signature and specification, without an implementation; no algorithm or application scenario is prescribed. Parse, deduplicate, and check that proposals compile as specifications before adding them to the next round. This does not establish that a proposal is nontrivial or solvable.
+  - **Self-play / agentic?** The solver's verified pass rates refresh the proposer's examples; new questions supply the solver's next training opportunities. Only solver weights change; the proposer adapts through its prompt. Individual calls generate complete candidates rather than exploring tools.
+  - **Evaluation**: On MBPP-Verified in the headline test-time-training setting, PSV-Verus reaches 36.78% pass@1.
 
 <a id="code-agent"></a>
 
