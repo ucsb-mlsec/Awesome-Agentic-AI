@@ -17,26 +17,6 @@
 
 ### Benchmark
 
-- **DafnyCOMP** — **Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification** [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
-
-  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
-
-  **Best reported**: Gemini 2.5 Pro — 2.00% verified Pass@8 on the 300-task chain split (independent attempts). With three verifier-feedback turns, DeepSeek-R1 and o4-mini tie at 9.67% verified on that split.
-
-  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
-  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
-  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
-
-- **OSVBench** — **OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification** [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
-
-  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
-
-  **Best reported**: Doubao-1.5-pro — 55.10% Pass@1 across 245 tasks with a five-shot prompt.
-
-  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
-  - **LLM output**: An executable state-machine specification for the syscall.
-  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
-
 - **VERINA** — **VERINA: Benchmarking Verifiable Code Generation** [[ICLR'26](https://arxiv.org/abs/2505.23135)] — function scope; 189 programming tasks in lean, with separate SpecGen, CodeGen, ProofGen, and combined settings.
 
   **Tasks**: Spec gen; impl gen; proof gen; combined settings. **Level**: Function level.
@@ -145,6 +125,26 @@
     1. **Implementation and tests**: Typecheck the generated Lean file and check its translated tests against the generated Lean implementation.
     2. **Proofs**: Check the generated theorem proofs with Lean and measure how many are completed without `sorry` placeholders.
     3. **Specification coverage**: Compare the generated theorem statements with human-curated reference specifications using an LLM judge.
+
+- **DafnyCOMP** — **Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification** [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
+
+  **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
+
+  **Best reported**: Gemini 2.5 Pro — 2.00% verified Pass@8 on the 300-task chain split (independent attempts). With three verifier-feedback turns, DeepSeek-R1 and o4-mini tie at 9.67% verified on that split.
+
+  - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
+  - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
+  - **Verification**: Verify the complete composed program with Dafny; separately successful local proofs are insufficient when caller obligations fail. Acceptance establishes correctness relative to the generated contracts, not their faithfulness to an unstated intent.
+
+- **OSVBench** — **OSVBench: Benchmarking LLMs on Specification Generation Tasks for Operating System Verification** [[AAAI'26](https://ojs.aaai.org/index.php/AAAI/article/view/40437)] — operating-system state and syscall behavior.
+
+  **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
+
+  **Best reported**: Doubao-1.5-pro — 55.10% Pass@1 across 245 tasks with a five-shot prompt.
+
+  - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
+  - **LLM output**: An executable state-machine specification for the syscall.
+  - **Verification**: Run the Hyperkernel verifier and compare the generated specification's verdicts with reference-specification verdicts across kernel variants. A specification that merely agrees with buggy code is insufficient.
 
 - VerusBench (agentic setting) — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
 
