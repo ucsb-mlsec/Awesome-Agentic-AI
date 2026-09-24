@@ -17,13 +17,11 @@
 
 ### Benchmark
 
-**Agentic evaluation** here means the reported setup lets an AI system inspect intermediate results and iteratively choose or revise actions. A fixed prompt, automatic scoring, or a fixed number of repair prompts alone is marked No. Structured search agents are identified separately from open tool-using agents; the same task set can support either approach.
-
 - **DafnyCOMP** — **Local Success Does Not Compose: Benchmarking Large Language Models for Compositional Formal Verification** [[ICLR'26](https://proceedings.iclr.cc/paper_files/paper/2026/hash/c04d37be05ba74419d2d5705972a9d64-Abstract-Conference.html)] — multiple interacting functions and their data dependencies.
 
   **Tasks**: Spec gen; proof gen (supporting annotations). **Level**: Multi-function level.
 
-  **Agentic evaluation**: No — fixed multi-function completion and whole-program checking.
+  **Best reported**: Gemini 2.5 Pro — 2.00% verified Pass@8 on the 300-task chain split (independent attempts). With three verifier-feedback turns, DeepSeek-R1 and o4-mini tie at 9.67% verified on that split.
 
   - **LLM input**: A Dafny program with its executable logic retained and contracts/supporting annotations to reconstruct across function boundaries.
   - **LLM output**: Preconditions, postconditions, and proof annotations strong enough for callers and callees to compose.
@@ -33,7 +31,7 @@
 
   **Tasks**: Spec gen (syscall state transitions). **Level**: Function/syscall level with kernel context.
 
-  **Agentic evaluation**: No — specification generation and external evaluation, without an interactive agent environment.
+  **Best reported**: Doubao-1.5-pro — 55.10% Pass@1 across 245 tasks with a five-shot prompt.
 
   - **LLM input**: A syscall description, the permitted state-transition programming model, verification assumptions, and kernel implementation context that may contain injected bugs.
   - **LLM output**: An executable state-machine specification for the syscall.
@@ -43,7 +41,7 @@
 
   **Tasks**: Spec gen; impl gen; proof gen; combined settings. **Level**: Function level.
 
-  **Agentic evaluation**: No — staged generation tasks with checker-based scoring, without autonomous tool use.
+  **Best reported (one attempt per task)**: CodeGen — o3, 72.6% test-correct; SpecGen — o3, 52.3% sound and complete; ProofGen — Goedel-Prover-V2-32B, 11.2% Lean-checked. For combined CodeGen + SpecGen + ProofGen, o3 and o4-mini tie at 3.2% end-to-end success.
 
   - each task has a problem description, code implementation, specifications (pre-condition and post-condition), a proof (optional), and comprehensive test cases (input-output pairs, including both positive and negative)
   - specgen: give the model description and lean function signature, ask model to generate the speficication. When verifying the result, a model will try to prove the preconditions are equivalent and postconditions are equivalent given the precondition, if the model cannot prove, then use test cases.
@@ -59,7 +57,7 @@
 
   **Tasks**: Model gen (states/transitions); spec gen (properties). **Level**: System-model level.
 
-  **Agentic evaluation**: No — a specification-generation dataset and external model-checking evaluation.
+  **Best reported**: Claude Opus 4.5 — 16% TLC-correct on the 100-task system-model evaluation with only the description; 26% when the configuration's constant and property names are also supplied.
 
   - **LLM input**: A natural-language system description; a configuration including invariant names, specification names etc.
   - **LLM output**: A TLA+ specification of states, transitions, and properties.
@@ -70,7 +68,7 @@
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
 
-  **Agentic evaluation**: No — proof completion; optional verifier-feedback repair is a fixed loop.
+  **Best reported in the original paper**: Claude 3 Opus — 67.8% ± 1.7% verified on the 782-program evaluation set with up to 10 attempts.
 
   - **LLM input**: A Dafny implementation and its target specifications, with selected verification annotations (invariants, intermediate assertions) removed; verifier feedbacks.
   - **LLM output**: Missing verification annotations
@@ -80,7 +78,7 @@
 
   **Tasks**: Proof gen. **Level**: Repo context.
 
-  **Agentic evaluation**: No in the standard model setting — context is supplied in the prompt and repair rounds are fixed; specialized provers are reported separately.
+  **Best reported on the 500-task main set**: Gemini-3-Pro — 41.0% verified with curated dependencies and 34.8% with full-repository context (Pass@8, up to three repair rounds). On the separate, easier 100-task Aristotle-compatible subset, Aristotle reaches 69%; these scores are not directly comparable.
   remove the prof of one theorem, ask model to generate the prof
 
   - **Curated context**
@@ -95,11 +93,11 @@
 
 <a id="benchmark-vero"></a>
 
-- **Vero** — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
+- **Vero** (agentic setting) — **Vero: Can AI Agents Build Formally Verified Software Repositories?** [[arXiv'26](https://arxiv.org/abs/2608.13522)] — 43 multi-module Lean repositories, 743 scored APIs, and 2,705 specifications.
 
   **Tasks**: Impl gen + proof gen; proof-only; specification audit. **Level**: Repo level (real world software repos translated to lean4).
 
-  **Agentic evaluation**: Yes — agents can inspect and edit a multi-module repository and repeatedly run Lean.
+  **Best reported**: Codex with GPT-5.5 (xhigh) — 27/43 fully solved repositories in code-and-proof and 25/43 in proof-only, with a 90-minute budget per run.
 
   **Verification target**: The benchmark's curated Lean rewrites of source repositories, not the original Python, Dafny, Verus, or Coq source repositories.
 
@@ -127,7 +125,7 @@
 
   **Tasks**: Exploit reproduction from a supplied counterexample. **Level**: Contract level.
 
-  **Agentic evaluation**: No — a prescribed counterexample-to-reproduction pipeline, rather than an open-ended agent environment.
+  **Reported system (no model comparison)**: VeriExploit uses GPT-4o and reaches 85.60% successful reproductions with the ESBMC backend, or 64.60% with SolCMC, on 100 contracts over five trials.
 
   - **Background**: SolCMC can find a property violation under abstract external-call behavior and report a counterexample without providing the external contract code that realizes that behavior. Given this counterexample, the LLM generates a concrete external contract; the verifier then checks whether its interactions with the vulnerable contract trigger the same violation.
   - **LLM input**: A vulnerable contract and an already available formal counterexample (generated by SolCMC; specifications are rule-based, like reentrancy checks, no divide by 0 etc).
@@ -135,11 +133,11 @@
   - **Verification**: analyze the vulnerable and generated contracts together using SolCMC. A successful check produces a concrete interaction trace that triggers the same violation.
 
 
-- **VeriBench** — **VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4** [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
+- **VeriBench** (agentic setting) — **VeriBench: An End-to-End Formal Verification Benchmark for AI Coding Agents in Lean 4** [[Preprint'26](https://openreview.net/pdf?id=vnXrEM5nNO)] [[Project](https://ehersch.github.io/veribench-blog/)] — Python-to-Lean formalization, starting from existing Python implementations.
 
   **Tasks**: Impl translation (Python to Lean); spec gen; proof gen; test translation. **Level**: Function / standalone-program level.
 
-  **Agentic evaluation**: Yes — coding agents work on the source file and use Lean feedback during formalization.
+  **Best reported**: Codex (GPT-5.4) — 0.289 agent-skill composite score (combining compilation, proof completion, and specification coverage); this is not a 28.9% solve rate.
 
   - **LLM input**: A Python source file containing a reference implementation, a docstring describing its intended behavior, and tests.
   - **LLM output**: A Lean 4 implementation, translated tests, formal specifications and proof attempts for those specs.
@@ -148,11 +146,9 @@
     2. **Proofs**: Check the generated theorem proofs with Lean and measure how many are completed without `sorry` placeholders.
     3. **Specification coverage**: Compare the generated theorem statements with human-curated reference specifications using an LLM judge.
 
-- VerusBench — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
+- VerusBench (agentic setting) — *AutoVerus: Automated Proof Generation for Rust Code* [[OOPSLA'25](https://doi.org/10.1145/3763174)] [[arXiv'24](https://arxiv.org/abs/2409.13082)] — the original benchmark contains 150 Rust/Verus proof tasks; evaluation subsets vary across papers.
 
   **Tasks**: Proof gen (invariants and annotations). **Level**: Function / standalone-program level.
-
-  **Agentic evaluation**: Structured agentic in AutoVerus — specialized generation and repair agents iteratively use Verus feedback; the task set itself can also be used without agents.
 
   - **LLM input**: Rust/Verus code and fixed target contracts with proof annotations to complete; repair attempts can include Verus errors.
   - **LLM output**: Invariants, assertions, ghost code, and supporting proof annotations.
@@ -162,8 +158,6 @@
 
   **Tasks**: Proof gen. **Level**: Repo context; local verification obligations.
 
-  **Agentic evaluation**: No in the paper’s RagVerus setup — retrieval and optional verifier-feedback repair follow a prescribed pipeline.
-
   - **LLM input**: Fixed Verus code and contracts, a proof hole, and project context.
   - **LLM output**: Missing proof annotations using the project's definitions and lemmas.
   - **Verification**: Run Verus in the project environment. Completing the target obligation does not establish completion of the entire repository.
@@ -172,17 +166,13 @@
 
   **Tasks**: Proof gen. **Level**: Repo context; individual theorem obligations.
 
-  **Agentic evaluation**: No — individual Isabelle proof-completion tasks with checker scoring.
-
   - **LLM input**: An Isabelle lemma, fixed definitions and specifications, and relevant seL4 project context.
   - **LLM output**: Isabelle proof commands completing the supplied lemma.
   - **Verification**: Check the completed lemma in Isabelle within the verification development. A successful lemma proof does not mean the entire kernel has been verified by the model.
 
-- Verus-SpecGym (benchmark: Verus-SpecBench) — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
+- Verus-SpecGym (benchmark: Verus-SpecBench) (agentic setting) — *Verus-SpecGym: An Agentic Environment for Evaluating Specification Autoformalization* [[arXiv'26](https://arxiv.org/abs/2605.26457)] — function scope; 581 Codeforces-derived specification tasks.
 
   **Tasks**: Spec gen. **Level**: Function level.
-
-  **Agentic evaluation**: Yes — Verus-SpecGym exposes Verus, shell, and filesystem tools to the agent.
 
   - **LLM input**: A problem statement and Verus specification scaffold, with access to the verifier, shell, and filesystem.
   - **LLM output**: Input assumptions and required output behavior encoded as a Verus specification.
@@ -192,8 +182,6 @@
 
   **Tasks**: Proof gen. **Level**: Function/theorem level.
 
-  **Agentic evaluation**: No — individual Lean proof-completion tasks.
-
   - **LLM input**: A fixed program, its definitions, and a formal statement about its behavior.
   - **LLM output**: Lean tactics or a complete proof of the supplied property, with code and property unchanged.
   - **Verification**: Check the completed theorem in Lean; induction or auxiliary lemmas may be necessary even for short programs.
@@ -201,8 +189,6 @@
 - FVAPPS — *Proving the Coding Interview: A Benchmark for Formally Verified Code Generation* [[LLM4Code@ICSE'25](https://github.com/quinn-dougherty/fvapps)] [[arXiv'25](https://arxiv.org/abs/2502.05714)] — coding-problem scope; 4,715 samples, including 1,083 curated samples.
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
-
-  **Agentic evaluation**: No — implementation/proof completion with external Lean scoring.
 
   - **LLM input**: A Lean 4 coding task with implementation/proof holes and supplied correctness requirements.
   - **LLM output**: The missing implementation and proofs that it meets those requirements.
@@ -212,8 +198,6 @@
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
 
-  **Agentic evaluation**: No — fixed synthesis tasks checked by the target verifier.
-
   - **LLM input**: A formal functional specification with the implementation removed; a separate setting additionally supplies a natural-language description.
   - **LLM output**: An implementation plus the annotations or proof scripts required by the target language.
   - **Verification**: Run the corresponding Dafny, Verus, or Lean checker against the fixed specification. The language subsets have different source distributions.
@@ -222,8 +206,6 @@
 
   **Tasks**: Impl gen; proof gen. **Level**: Function / standalone-program level.
 
-  **Agentic evaluation**: No — fixed aligned synthesis tasks checked by the target verifier.
-
   - **LLM input**: A formal specification for an algorithm in the target language, with matching functional contracts across the language versions.
   - **LLM output**: The algorithm implementation and the verification annotations or explicit proof scripts needed to establish its correctness.
   - **Verification**: Check the generated implementation and proof with the target language's verifier against the supplied contract. The aligned tasks support comparisons across verification languages.
@@ -231,8 +213,6 @@
 - CLEVER — *CLEVER: A Curated Benchmark for Formally Verified Code Generation* [[NeurIPS'25 — Datasets and Benchmarks](https://arxiv.org/abs/2505.13938)] — 161 HumanEval-derived function tasks.
 
   **Tasks**: Spec gen; impl gen; proof gen (spec equivalence and implementation correctness). **Level**: Function level.
-
-  **Agentic evaluation**: Mixed — the main four-stage pipeline is prescribed, but a reported baseline uses the COPRA proof-search agent for proof stages.
 
 
   The evaluation has four stages; the reference specification is hidden during specification generation and supplied for certification.
@@ -262,8 +242,6 @@
 - VerifyThisBench — *VerifyThisBench: Generating Code, Specifications, and Proofs All at Once* [[arXiv'25](https://arxiv.org/abs/2505.19271)] — 41 verification-competition challenges represented as 154 tasks across seven tools, plus 580 completion tasks in VerifyThisBenchXS.
 
   **Tasks**: Spec gen; impl gen; proof gen (including loop invariants). **Level**: Function / multi-function / module level, depending on the challenge.
-
-  **Agentic evaluation**: No in the reported setup — verifier diagnostics can drive a fixed number of repair rounds.
 
 
   - **VerifyThisBench: full task**
@@ -509,6 +487,8 @@ PutnamBench covers formalized undergraduate competition problems. Subsequent use
 - **PutnamBench: Evaluating Neural Theorem-Provers on the Putnam Mathematical Competition** [[NeurIPS'24 — Datasets and Benchmarks](https://proceedings.neurips.cc/paper_files/paper/2024/file/1582eaf9e0cf349e1e5a6ee453100aa1-Paper-Datasets_and_Benchmarks_Track.pdf)]
 
   **Tasks**: Proof gen. **Level**: Individual mathematical theorem.
+
+  **Best reported in the original paper**: DSP using GPT-4o — 4/640 theorems proved in Isabelle (pass@10). In Lean 4, GPT-4o and COPRA using GPT-4o each prove 1/640; the language-specific settings should be compared separately.
 
   - **LLM input**: A formalized Putnam competition problem with the required definitions in Lean 4, Isabelle, or Coq.
   - **LLM output**: A proof of the supplied formal statement.
